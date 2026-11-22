@@ -5,15 +5,18 @@
   "game": "Resident Evil 2 Remake",
   "steam_appid": 883710,
   "verified": false,
-  "notes_ar": "لازم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas). الاتصال يكون من نافذة Archipelago داخل اللعبة.",
+  "notes_ar": "لازم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas). البرنامج يكتب العنوان والاسم داخل اللعبة، وانت بس تضغط Connect.",
   "sources": [
-    "https://fuzzygameson.github.io/RE2R_AP_SetupGuide"
+    "https://fuzzygameson.github.io/RE2R_AP_SetupGuide",
+    "https://github.com/FuzzyGamesOn/RE2R_AP_World/releases",
+    "https://github.com/FuzzyGamesOn/RE2R_AP_Client",
+    "https://github.com/praydog/REFramework/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "FuzzyGamesOn/RE2R_AP_World",
-      "asset": "*.apworld",
+      "asset": "residentevil2remake.apworld",
       "to": "{custom_worlds}",
       "label": "RE2R apworld"
     }
@@ -22,7 +25,8 @@
     {
       "type": "manual",
       "id": "non_rtx",
-      "text_ar": "في ستيم: كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون RTX (dx11_non-rt). سويتها؟"
+      "text_ar": "في ستيم: كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون Ray Tracing (dx11_non-rt) واستنى التحديث يخلص. سويتها؟",
+      "done_if_exists": "{game_dir}/reframework/autorun/AP_REF/core.lua"
     },
     {
       "type": "github_release",
@@ -42,7 +46,19 @@
       "label": "RE2R AP client"
     }
   ],
-  "connect": [],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "path": "{game_dir}/reframework/data/AP_REF.json",
+      "merge": true,
+      "content": {
+        "APHost": "{address}",
+        "APSlot": "{slot}",
+        "APPassword": "{password}"
+      }
+    }
+  ],
   "launch": [
     {
       "type": "steam_launch",
@@ -52,8 +68,104 @@
       "type": "manual",
       "id": "connect_re",
       "every_time": true,
-      "text_ar": "في نافذة Archipelago Client for REFramework اكتب Host = {address} و Slot = {slot}، وبعدها ابدأ قيم بنفس الشخصية والصعوبة اللي تطلع لك."
+      "text_ar": "داخل اللعبة في نافذة Archipelago Client for REFramework تلقى العنوان والاسم مكتوبة لك، اضغط Connect بس. بعدها ابدأ قيم جديد بنفس الشخصية والصعوبة اللي اخترتها."
     }
   ],
-  "options": []
+  "options": [
+    {
+      "key": "character",
+      "label_ar": "الشخصية",
+      "help_ar": "لازم تبدأ القيم بنفس الشخصية",
+      "default": "leon",
+      "choices": [
+        {
+          "value": "leon",
+          "label_ar": "ليون"
+        },
+        {
+          "value": "claire",
+          "label_ar": "كلير"
+        }
+      ]
+    },
+    {
+      "key": "scenario",
+      "label_ar": "السيناريو",
+      "help_ar": "A الأول، B الثاني",
+      "default": "a",
+      "choices": [
+        {
+          "value": "a",
+          "label_ar": "A"
+        },
+        {
+          "value": "b",
+          "label_ar": "B"
+        }
+      ]
+    },
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "لازم تلعب بنفس الصعوبة داخل اللعبة",
+      "default": "standard",
+      "choices": [
+        {
+          "value": "assisted",
+          "label_ar": "سهلة (Assisted)"
+        },
+        {
+          "value": "standard",
+          "label_ar": "عادية (Standard)"
+        },
+        {
+          "value": "hardcore",
+          "label_ar": "صعبة (Hardcore)"
+        }
+      ]
+    },
+    {
+      "key": "bonus_start",
+      "label_ar": "بداية مع مساعدة",
+      "help_ar": "تبدأ مع علاج وذخيرة زيادة",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "allow_progression_in_labs",
+      "label_ar": "أغراض مهمة في المختبر",
+      "help_ar": "لو لا، ما ينحط شي مهم في آخر منطقة (أقل انتظار)",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "cross_scenario_weapons",
+      "label_ar": "خلط الأسلحة",
+      "help_ar": "يخلط أسلحة السيناريوهات الأربعة",
+      "default": "none",
+      "choices": [
+        {
+          "value": "none",
+          "label_ar": "لا"
+        },
+        {
+          "value": "starting",
+          "label_ar": "سلاح البداية بس"
+        },
+        {
+          "value": "match",
+          "label_ar": "نفس النوع"
+        },
+        {
+          "value": "full",
+          "label_ar": "كامل"
+        },
+        {
+          "value": "all",
+          "label_ar": "كل الأسلحة"
+        }
+      ],
+      "advanced": true
+    }
+  ]
 }

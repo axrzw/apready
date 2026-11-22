@@ -5,15 +5,18 @@
   "game": "Resident Evil 3 Remake",
   "steam_appid": 952060,
   "verified": false,
-  "notes_ar": "لازم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas). الاتصال يكون من نافذة Archipelago داخل اللعبة.",
+  "notes_ar": "نستخدم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas) لأن REFramework الرسمي لها. البرنامج يكتب العنوان والاسم داخل اللعبة.",
   "sources": [
-    "https://therealsolidussnake.github.io/RE3R_AP_SetupGuide/"
+    "https://therealsolidussnake.github.io/RE3R_AP_SetupGuide/",
+    "https://github.com/TheRealSolidusSnake/RE3R_AP_World/releases",
+    "https://github.com/TheRealSolidusSnake/RE3R_AP_Client/releases",
+    "https://github.com/praydog/REFramework/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "TheRealSolidusSnake/RE3R_AP_World",
-      "asset": "*.apworld",
+      "asset": "re3remake.apworld",
       "to": "{custom_worlds}",
       "label": "RE3R apworld"
     }
@@ -22,7 +25,8 @@
     {
       "type": "manual",
       "id": "non_rtx",
-      "text_ar": "في ستيم: كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون RTX (dx11_non-rt). سويتها؟"
+      "text_ar": "في ستيم: كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون Ray Tracing (dx11_non-rt) واستنى التحديث يخلص. سويتها؟",
+      "done_if_exists": "{game_dir}/reframework/autorun/AP_REF/core.lua"
     },
     {
       "type": "github_release",
@@ -35,14 +39,25 @@
     {
       "type": "github_release",
       "repo": "TheRealSolidusSnake/RE3R_AP_Client",
-      "asset": "__source__",
+      "asset": "reframework.zip",
       "extract": true,
-      "strip_top_folder": true,
       "to": "{game_dir}",
       "label": "RE3R AP client"
     }
   ],
-  "connect": [],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "path": "{game_dir}/reframework/data/AP_REF.json",
+      "merge": true,
+      "content": {
+        "APHost": "{address}",
+        "APSlot": "{slot}",
+        "APPassword": "{password}"
+      }
+    }
+  ],
   "launch": [
     {
       "type": "steam_launch",
@@ -52,8 +67,54 @@
       "type": "manual",
       "id": "connect_re",
       "every_time": true,
-      "text_ar": "في نافذة Archipelago Client for REFramework اكتب Host = {address} و Slot = {slot}، وبعدها ابدأ قيم بنفس الشخصية والصعوبة اللي تطلع لك."
+      "text_ar": "داخل اللعبة في نافذة Archipelago Client for REFramework تلقى العنوان والاسم مكتوبة لك، اضغط Connect بس. بعدها ابدأ قيم جديد بنفس الشخصية والصعوبة اللي اخترتها."
     }
   ],
-  "options": []
+  "options": [
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "لازم تلعب بنفس الصعوبة داخل اللعبة",
+      "default": "standard",
+      "choices": [
+        {
+          "value": "standard",
+          "label_ar": "عادية (Standard)"
+        },
+        {
+          "value": "hardcore",
+          "label_ar": "صعبة (Hardcore)"
+        },
+        {
+          "value": "nightmare",
+          "label_ar": "Nightmare"
+        },
+        {
+          "value": "inferno",
+          "label_ar": "Inferno"
+        }
+      ]
+    },
+    {
+      "key": "bonus_start",
+      "label_ar": "بداية مع مساعدة",
+      "help_ar": "تبدأ مع علاج وذخيرة زيادة",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "allow_missable_locations",
+      "label_ar": "أماكن تفوت",
+      "help_ar": "لو إيه، ممكن ينحط شي مهم في مكان ما ترجع له",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "allow_progression_in_nest",
+      "label_ar": "أغراض مهمة في NEST",
+      "help_ar": "لو لا، أقل انتظار في آخر اللعبة",
+      "default": false,
+      "advanced": true
+    }
+  ]
 }

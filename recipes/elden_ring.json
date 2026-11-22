@@ -14,7 +14,8 @@
       "type": "manual",
       "id": "host_apworld",
       "url": "https://www.nexusmods.com/eldenring/mods/10334?tab=files",
-      "text_ar": "(للمستضيف) نزّل ملف elden_ring.apworld من صفحة المود وحطه في {custom_worlds}، وبعدها اضغط سويتها."
+      "text_ar": "(للمستضيف) نزّل ملف elden_ring.apworld من صفحة المود وحطه في {custom_worlds}، وبعدها اضغط سويتها.",
+      "done_if_exists": "{custom_worlds}/*elden*.apworld"
     }
   ],
   "install": [

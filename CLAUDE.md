@@ -41,14 +41,28 @@ connect[]        per-session steps before launch (write configs with {slot} {hos
 launch[]         start the game / client
 ```
 Step types: `github_release` (repo, asset glob or "__source__", to, extract,
-strip_top_folder, tag), `workshop` (workshop_id), `manual` (id, text_ar, url,
-every_time), `copy`, `write_file`, `open_url`, `steam_launch`, `run`, `apworld_builtin`.
+strip_top_folder, pick = glob of one file inside the zip to copy flat, check = path that
+proves it's installed, tag, prerelease), `workshop` (workshop_id; done by itself once Steam
+has downloaded it), `manual` (id, text_ar, url, every_time, done_if_exists = path/glob that
+means it's already done, open_exe = launcher to open for the player), `copy`, `write_file`
+(merge = keep the other keys of an existing JSON, ints = keys to write as numbers),
+`json_list_add` (path, items), `open_url`, `steam_launch`, `run` (exe may be a glob,
+optional_args only added when the value isn't empty), `apworld_builtin`.
+Asset globs must match exactly one file of the release (a test rejects bare `*.zip`).
+Clients inside an apworld (Archipelago Launcher components) are opened with
+`ArchipelagoLauncher.exe "<Component>" -- --connect {address} --name {slot}`, so players need
+the apworld too (put the same step in `install`).
 Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
 {slot} {host} {port} {address} {password}`.
 
 ## Status: what to do first
-All 12 recipes are `"verified": false`. They were written from the setup guides in each
-recipe's `sources` but have never been run on a real PC. In this order:
+All 13 recipes are `"verified": false`. Nov 2026 review: repos, asset names, game strings,
+option keys and death_link keys were checked against the sources and release pages (see
+the review notes in the commit history). What is still manual and why:
+Elden Ring (Nexus needs a login), Cuphead connect (stored inside the save slot), Sekiro
+connect (.NET user settings under a hashed path), RE4R per-seed patch (only the Wizard can),
+the non-RTX Steam beta for RE2/3/7, and the one-time install button in the RE4R / Village /
+RE9 launchers. None has been run on a real PC yet. In this order:
 1. On Windows run `python -m app` and test Terraria end to end, since it's official and simplest.
 2. For each recipe, open its sources and check: the repo names, the asset name globs
    (look at the actual release assets), the exact `game` string, the option keys and
@@ -58,10 +72,17 @@ recipe's `sources` but have never been run on a real PC. In this order:
    tModLoader's mod config with slot and port, start the Sekiro client with connect
    args, pass `--connect {address} --name {slot}` to Archipelago clients that
    support it. The goal is zero manual steps after the first install.
-4. Hitman uses the stock Archipelago apworld from BenDipp/Archipelago (not MultiworldGG).
-   Check that the launcher component name is "HITMAN World of Assassination Client".
-5. Sekiro needs the game on version 1.06 and Steam offline. Find the apworld's release
-   repo, which is linked from the client or from panludia, and automate it.
+4. Hitman: stock apworld from BenDipp/Archipelago (`hitman_woa.apworld`); the launcher
+   component "HITMAN World of Assassination Client" is confirmed. Its Options.py has no
+   Death Link option, but the recipe still writes `death_link` (the owner decides; see below).
+5. Sekiro: apworld from yenix4/ArchipelagoSekiro, client `randomizerAP_windows_*.zip`
+   extracted into the game folder. Game 1.06 + offline. Its `death_link` is a Choice with
+   `alias_true` = full_death, so `true` works.
+
+### Open questions for the owner (Death Link, not changed on purpose)
+- Cuphead's apworld names the option `deathlink` (no underscore). The recipe still uses the
+   default `death_link`, so the toggle probably does nothing there. Fix: `"death_link_key": "deathlink"`.
+- Hitman has no Death Link. Per the rule above its recipe should get `"death_link_key": null`.
 
 ## Adding a game
 See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, and test it.
@@ -72,6 +93,6 @@ See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, 
 - Build exe: `build.bat`, or push a tag `v*` and GitHub Actions builds `APReady.exe`.
 
 ## Wanted next (owner asked)
-- More Resident Evil parts. FuzzyGamesOn/REF_Inspect also mentions RE9, so check whether an RE9 AP exists.
-  Also look for RE1/RE0 remasters.
+- More Resident Evil parts. RE9 (Requiem) is added from LechapelierHD/Re9-archipelago.
+  No Archipelago support found for the RE1 / RE0 remasters (Nov 2026). Check again later.
 - Portal 1: no Archipelago support found yet (Nov 2026). Check again later.

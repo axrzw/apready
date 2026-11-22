@@ -12,7 +12,7 @@ import zipfile
 from pathlib import Path
 
 from . import steam
-from .paths import ap_dir, load_settings, save_settings, tools_dir
+from .paths import ap_dir, documents_dir, load_settings, save_settings, tools_dir
 
 GITHUB_API = "https://api.github.com/repos/{repo}/releases"
 UA = {"User-Agent": "APReady", "Accept": "application/vnd.github+json"}
@@ -80,7 +80,7 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
         "ap_dir": str(apd),
         "custom_worlds": str(apd / "custom_worlds"),
         "tools": str(tools_dir() / recipe["id"]),
-        "documents": str(Path.home() / "Documents"),
+        "documents": str(documents_dir()),
         "appdata": os.environ.get("APPDATA", ""),
         "slot": session.get("slot", ""),
         "host": host,
@@ -129,6 +129,59 @@ def download(url: str, dest: Path, task: Task):
     tmp.replace(dest)
 
 
+def extract_zip(zip_path: Path, dest_dir: Path, strip: bool = False, pick: str = None) -> int:
+    """Unzip into dest_dir. strip: drop the top folder. pick: only members matching this glob,
+    copied flat into dest_dir. Some zips are made on Windows with '\\' separators."""
+    count = 0
+    with zipfile.ZipFile(zip_path) as z:
+        for m in z.infolist():
+            name = m.filename.replace("\\", "/")
+            if name.endswith("/"):
+                continue
+            if pick:
+                if not fnmatch.fnmatch(name, pick):
+                    continue
+                name = name.rsplit("/", 1)[-1]
+            elif strip:
+                name = name.split("/", 1)[1] if "/" in name else ""
+            if not name or ".." in name.split("/"):
+                continue
+            target = dest_dir / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with z.open(m) as src, open(target, "wb") as out:
+                shutil.copyfileobj(src, out)
+            count += 1
+    return count
+
+
+def resolve_path(p: str) -> Path:
+    """A path that may contain a glob (e.g. a launcher exe inside a versioned folder)."""
+    if not any(c in p for c in "*?["):
+        return Path(p)
+    anchor = Path(p)
+    parts = anchor.parts
+    i = next(i for i, part in enumerate(parts) if any(c in part for c in "*?["))
+    base = Path(*parts[:i])
+    pattern = "/".join(parts[i:])
+    hits = sorted(base.glob(pattern)) if base.exists() else []
+    return hits[0] if hits else anchor
+
+
+def coerce_ints(d: dict, keys) -> dict:
+    for k in keys or []:
+        v = d.get(k)
+        if isinstance(v, str) and v.strip().lstrip("-").isdigit():
+            d[k] = int(v)
+    return d
+
+
+def read_json(p: Path, default):
+    try:
+        return json.loads(p.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return default
+
+
 def pick_release(repo: str, tag: str = None, prerelease: bool = False) -> dict:
     if tag:
         return http_json(GITHUB_API.format(repo=repo) + f"/tags/{tag}")
@@ -169,6 +222,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
     t = step["type"]
     s = fill(step, ctx)
     key = f"{recipe['id']}:{step.get('id') or step.get('repo') or t}"
+    if t == "github_release":  # one repo can feed several steps (apworld + mod)
+        key += f":{step.get('asset')}:{step.get('pick') or step.get('to')}"
 
     if t == "apworld_builtin":
         task.say("✔ اللعبة مدعومة رسمياً في Archipelago")
@@ -177,7 +232,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         rel = pick_release(s["repo"], s.get("tag"), s.get("prerelease", False))
         version = rel.get("tag_name", "")
         dest_dir = Path(s["to"])
-        if settings["installed"].get(key) == version and dest_dir.exists() and not s.get("always"):
+        check = Path(s["check"]) if s.get("check") else dest_dir
+        if settings["installed"].get(key) == version and check.exists() and not s.get("always"):
             task.say(f"✔ {s.get('label', s['repo'])} محدث ({version})")
             return
         if s["asset"] == "__source__":  # repos that ship "Source code (zip)" only
@@ -192,18 +248,9 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         download(asset["browser_download_url"], cache, task)
         dest_dir.mkdir(parents=True, exist_ok=True)
         if s.get("extract") and cache.suffix.lower() == ".zip":
-            with zipfile.ZipFile(cache) as z:
-                strip = s.get("strip_top_folder", False)
-                for m in z.infolist():
-                    name = m.filename
-                    if strip:
-                        name = name.split("/", 1)[1] if "/" in name else ""
-                    if not name or name.endswith("/"):
-                        continue
-                    target = dest_dir / name
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    with z.open(m) as src, open(target, "wb") as out:
-                        shutil.copyfileobj(src, out)
+            n = extract_zip(cache, dest_dir, s.get("strip_top_folder", False), s.get("pick"))
+            if s.get("pick") and not n:
+                raise RuntimeError(f"ما لقيت '{s['pick']}' داخل {asset['name']}")
         else:
             shutil.copy2(cache, dest_dir / (s.get("rename") or asset["name"]))
         settings["installed"][key] = version
@@ -212,6 +259,10 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
 
     elif t == "workshop":
         sid = step["id"]
+        appid = s.get("appid", recipe["steam_appid"])
+        if steam.workshop_item_dir(appid, s["workshop_id"]):
+            settings["done_steps"][f"{recipe['id']}:{sid}"] = True
+            save_settings(settings)
         if not settings["done_steps"].get(f"{recipe['id']}:{sid}"):
             webbrowser.open(f"steam://url/CommunityFilePage/{s['workshop_id']}")
             raise NeedsUser(step, s.get("text_ar", "اضغط Subscribe في صفحة الورشة اللي انفتحت، وبعدها ارجع واضغط سويتها"), recipe["id"])
@@ -221,9 +272,16 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         task.say("👉 " + s["text_ar"])
 
     elif t == "manual":
+        if s.get("done_if_exists") and resolve_path(s["done_if_exists"]).exists():
+            settings["done_steps"][f"{recipe['id']}:{step['id']}"] = True
+            save_settings(settings)
         if not settings["done_steps"].get(f"{recipe['id']}:{step['id']}"):
             if s.get("url"):
                 webbrowser.open(s["url"])
+            if s.get("open_exe"):  # open the mod's own launcher so the player only has to click in it
+                exe = resolve_path(s["open_exe"])
+                if exe.exists():
+                    subprocess.Popen([str(exe)], cwd=str(exe.parent))
             raise NeedsUser(step, s["text_ar"], recipe["id"])
         task.say(f"✔ {s.get('label', step['id'])}")
 
@@ -240,10 +298,25 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         p = Path(s["path"])
         p.parent.mkdir(parents=True, exist_ok=True)
         content = s["content"]
+        if isinstance(content, dict):
+            content = coerce_ints(dict(content), s.get("ints"))
+            if s.get("merge"):  # keep the other settings the game/mod already wrote
+                old = read_json(p, {})
+                content = {**(old if isinstance(old, dict) else {}), **content}
         if isinstance(content, (dict, list)):
             content = json.dumps(content, ensure_ascii=False, indent=2)
         p.write_text(content, encoding="utf-8")
         task.say(f"✔ كتبت إعدادات {p.name}")
+
+    elif t == "json_list_add":  # e.g. tModLoader's Mods/enabled.json
+        p = Path(s["path"])
+        items = read_json(p, [])
+        items = items if isinstance(items, list) else []
+        added = [x for x in s["items"] if x not in items]
+        if added:
+            p.parent.mkdir(parents=True, exist_ok=True)
+            p.write_text(json.dumps(items + added, indent=2), encoding="utf-8")
+        task.say(f"✔ فعّلت {', '.join(s['items'])}")
 
     elif t == "open_url":
         webbrowser.open(s["url"])
@@ -256,12 +329,16 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         task.say("✔ شغّلت اللعبة من ستيم")
 
     elif t == "run":
-        exe = Path(s["exe"])
+        exe = resolve_path(s["exe"])
         if not exe.exists():
             raise RuntimeError(f"ما لقيت {exe}")
-        cmd = [str(exe)] + s.get("args", [])
+        args = list(s.get("args", []))
+        for flag, val in s.get("optional_args", {}).items():  # e.g. --password only if there is one
+            if val:
+                args += [flag, val]
+        cmd = [str(exe)] + args
         if exe.suffix.lower() in (".cmd", ".bat"):
-            cmd = ["cmd", "/c", "start", "", str(exe)] + s.get("args", [])
+            cmd = ["cmd", "/c", "start", "", str(exe)] + args
         cwd = s.get("cwd") or str(exe.parent)
         if s.get("wait"):
             subprocess.run(cmd, cwd=cwd, check=True)
@@ -273,6 +350,7 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
 def run_phases(task: Task, recipe: dict, phases: list, session: dict = None):
     settings = load_settings()
     if recipe.get("steam_appid") and not steam.game_dir(recipe["steam_appid"]):
+        webbrowser.open(f"steam://install/{recipe['steam_appid']}")
         raise RuntimeError(f"ما لقيت {recipe['name']} في ستيم. ثبّتها من ستيم أول (لو بالفاميلي: من مكتبة العائلة)")
     ensure_archipelago(task, settings)
     ctx = context(recipe, settings, session)

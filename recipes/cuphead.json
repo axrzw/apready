@@ -8,13 +8,14 @@
   "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5.",
   "sources": [
     "https://github.com/JKLeckr/CupheadArchipelagoMod",
-    "https://github.com/JKLeckr/Archipelago-cuphead"
+    "https://github.com/JKLeckr/CupheadArchipelagoMod/blob/main/INSTALLING.md",
+    "https://github.com/JKLeckr/Archipelago-cuphead/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "JKLeckr/Archipelago-cuphead",
-      "asset": "*.apworld",
+      "asset": "cuphead.apworld",
       "to": "{custom_worlds}",
       "label": "Cuphead apworld"
     }
@@ -32,9 +33,10 @@
     {
       "type": "github_release",
       "repo": "JKLeckr/CupheadArchipelagoMod",
-      "asset": "*.zip",
+      "asset": "CupheadArchipelago-*_win64.zip",
       "extract": true,
-      "to": "{game_dir}/BepInEx/plugins/CupheadArchipelago",
+      "to": "{game_dir}/BepInEx/plugins",
+      "check": "{game_dir}/BepInEx/plugins/CupheadArchipelago",
       "label": "Cuphead Archipelago mod"
     }
   ],
@@ -48,7 +50,7 @@
       "type": "manual",
       "id": "connect_cuphead",
       "every_time": true,
-      "text_ar": "اختر سيف فاضي، واضغط C+Z يفتح لك إعداد Archipelago. فعّله واكتب {host} والبورت {port} والاسم {slot}."
+      "text_ar": "المود يحفظ الاتصال داخل السيف نفسه، فلازم تكتبه مرة وحدة: اختر سيف فاضي، واضغط C+Z يفتح لك إعداد Archipelago. فعّله واكتب العنوان {host} والبورت {port} والاسم {slot}. بعدها كل مرة تفتح نفس السيف يتصل لحاله."
     }
   ],
   "options": []

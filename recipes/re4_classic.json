@@ -5,15 +5,17 @@
   "game": "Resident Evil 4 UHD",
   "steam_appid": 254700,
   "verified": false,
-  "notes_ar": "النسخة القديمة (Ultimate HD) على ستيم، مو الريميك. مبنية على re4_tweaks.",
+  "notes_ar": "النسخة القديمة (Ultimate HD) على ستيم، مو الريميك. ابدأ New Game على Normal أو Professional (Easy ما ينفع). استنى رسالة Save linked فوق يسار قبل ما تتحرك.",
   "sources": [
-    "https://github.com/Pegzzzz/RE4-UHD-Archipelago"
+    "https://github.com/Pegzzzz/RE4-UHD-Archipelago/blob/main/TUTORIAL.md",
+    "https://github.com/Pegzzzz/RE4-UHD-Archipelago/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "Pegzzzz/RE4-UHD-Archipelago",
-      "asset": "*.apworld",
+      "asset": "re4uhd.apworld",
+      "prerelease": true,
       "to": "{custom_worlds}",
       "label": "RE4 UHD apworld"
     }
@@ -22,24 +24,121 @@
     {
       "type": "github_release",
       "repo": "Pegzzzz/RE4-UHD-Archipelago",
-      "asset": "*.zip",
+      "asset": "re4uhd.apworld",
+      "prerelease": true,
+      "to": "{custom_worlds}",
+      "label": "RE4 UHD apworld (للكلاينت)"
+    },
+    {
+      "type": "github_release",
+      "repo": "Pegzzzz/RE4-UHD-Archipelago",
+      "asset": "RE4-UHD-Archipelago.zip",
+      "prerelease": true,
       "extract": true,
       "to": "{game_dir}/Bin32",
+      "check": "{game_dir}/Bin32/dinput8.dll",
       "label": "RE4 UHD AP mod (dinput8)"
     }
   ],
   "connect": [],
   "launch": [
     {
-      "type": "steam_launch",
-      "appid": 254700
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "Resident Evil 4 UHD Client",
+      "args": [
+        "Resident Evil 4 UHD Client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
     },
     {
-      "type": "manual",
-      "id": "connect_re4_classic",
-      "every_time": true,
-      "text_ar": "شغّل الكلاينت من Archipelago Launcher، واكتب {address} والاسم {slot}، وبعدها ابدأ اللعبة."
+      "type": "steam_launch",
+      "appid": 254700
     }
   ],
-  "options": []
+  "options": [
+    {
+      "key": "consumable_checks",
+      "label_ar": "الذخيرة والعلاج checks",
+      "help_ar": "كل ذخيرة وعشبة في الخريطة check (~450 زيادة). طفّه للعبة أقصر",
+      "default": true
+    },
+    {
+      "key": "starting_weapon",
+      "label_ar": "سلاح إضافي في البداية",
+      "help_ar": "",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label_ar": "لا"
+        },
+        {
+          "value": "random_handgun",
+          "label_ar": "مسدس عشوائي"
+        },
+        {
+          "value": "random_weapon",
+          "label_ar": "أي سلاح"
+        }
+      ]
+    },
+    {
+      "key": "random_enemy_health",
+      "label_ar": "صحة الأعداء عشوائية",
+      "help_ar": "",
+      "default": "off",
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "لا"
+        },
+        {
+          "value": "mild",
+          "label_ar": "خفيف"
+        },
+        {
+          "value": "tough",
+          "label_ar": "أقوى"
+        },
+        {
+          "value": "wild",
+          "label_ar": "مجنون"
+        },
+        {
+          "value": "chaos",
+          "label_ar": "فوضى"
+        }
+      ],
+      "advanced": true
+    },
+    {
+      "key": "merchant_checks",
+      "label_ar": "checks التاجر",
+      "help_ar": "أول شراء لكل غرض من التاجر يرسل check",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "boss_checks",
+      "label_ar": "checks البوسات",
+      "help_ar": "",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "shooting_gallery_checks",
+      "label_ar": "checks ميدان الرماية",
+      "help_ar": "",
+      "default": true,
+      "advanced": true
+    }
+  ]
 }
