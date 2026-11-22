@@ -16,6 +16,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   official release pages.
 - Only install apworlds from the repos written in the recipes. An .apworld is Python
   code that runs on the player's PC. Don't add "install from any URL".
+- Recipes come only from the app itself and from this project's own repo
+  (`app/updates.py`, default axrzw/apready@main). Never let users add a recipe or repo URL.
 - Friends never see YAML, ports or folder paths unless they open the advanced section.
 
 ## How it works
@@ -26,6 +28,14 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   Each step must be safe to run again (idempotent).
 - `app/steam.py`: finds Steam libraries from the registry and libraryfolders.vdf, and a game
   folder from its appid. Steam Family games are found the same way.
+- `app/updates.py`: at start, syncs `recipes/*.json` from the project repo into
+  `%APPDATA%/APReady/recipes_remote` (GitHub contents API + sha index). Each file is validated;
+  one the app can't read (bad id, unknown step type) is skipped and the shipped one kept.
+  Offline = nothing changes. The UI shows the names of new games once.
+- `tools/new_recipe.py` (dev tool, not in the exe): `--sheet "Game"` or `--repo o/r` writes a
+  recipe draft: reads the apworld with `ast` (never imports it) for game name, options, the
+  Death Link key and whether `true` is a valid value, client components; classifies mod zips;
+  Steam appid from store search; prints the TODO list a human must check.
 - `app/host.py`: installs the apworld for every game in `%APPDATA%/APReady/players`, copies
   the YAMLs to `Archipelago/Players`, runs ArchipelagoGenerate, and opens
   archipelago.gg/uploads. Most of these games are unofficial, so the website can't

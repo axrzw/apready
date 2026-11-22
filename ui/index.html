@@ -68,6 +68,7 @@
     </div>
 
     <h3>١. اختر لعبتك</h3>
+    <p id="newGames" class="muted hidden"></p>
     <div id="games" class="grid"></div>
 
     <div id="gamePanel" class="panel hidden">
@@ -155,6 +156,8 @@ function tab(t) {
 
 async function refresh() {
   S = await api("/api/state");
+  const u = S.update || {};
+  if ((u.new || []).length) { $("newGames").textContent = "✨ ألعاب جديدة وصلت: " + u.new.join("، "); $("newGames").classList.remove("hidden"); }
   $("name").value = S.player_name || "";
   $("games").innerHTML = S.games.map(g => `
     <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">
