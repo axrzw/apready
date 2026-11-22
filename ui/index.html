@@ -36,6 +36,20 @@
   .switch input:checked + span { background:var(--accent); }
   .switch input:checked + span:before { transform:translateX(-26px); }
   .dl.off { opacity:.4; filter:grayscale(1); }
+  .feed { max-height:460px; overflow-y:auto; font-size:14px; }
+  .ev { display:flex; gap:10px; padding:5px 2px; border-bottom:1px solid rgba(255,255,255,.05); }
+  .ev .t { opacity:.5; font-variant-numeric:tabular-nums; flex:none; direction:ltr; }
+  .ev.death { color:#ff8080; } .ev.hint { color:#ffd27a; } .ev.join, .ev.system { opacity:.65; }
+  .ev.goal { color:#8be28b; font-weight:600; } .ev.me { background:rgba(80,160,255,.10); }
+  .ev.prog { font-weight:600; } .ev.trap { color:#ff9f6b; }
+  .chips { gap:6px; margin-bottom:8px; flex-wrap:wrap; }
+  .chip { background:transparent; color:inherit; border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:4px 12px; cursor:pointer; }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .prog-row { margin:8px 0; } .prog-row.me b { color:var(--accent); }
+  .prog-label { display:flex; justify-content:space-between; gap:8px; margin-bottom:4px; }
+  .bar { height:8px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); }
+  .death-chip { display:inline-block; margin:3px; padding:3px 10px; border-radius:12px; background:rgba(255,80,80,.12); color:#ff9a9a; }
   .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
   .guide summary { cursor:pointer; font-weight:600; }
   .guide ol, .guide ul { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
@@ -61,6 +75,7 @@
   <nav class="row">
     <button id="tab-play" class="on" onclick="tab('play')">ألعب</button>
     <button id="tab-host" onclick="tab('host')">أنا المستضيف</button>
+    <button id="tab-watch" onclick="tab('watch')">📡 الروم</button>
   </nav>
 </header>
 <main>
@@ -121,7 +136,7 @@
 
       <h3>٣. العب</h3>
       <div class="row">
-        <input id="room" placeholder="archipelago.gg:38281" style="direction:ltr; min-width:240px">
+        <input id="room" placeholder="رابط الروم من archipelago.gg" style="direction:ltr; min-width:240px">
         <input id="pass" placeholder="كلمة السر (لو فيه)" style="direction:ltr">
         <button class="btn" onclick="play()">▶ العب</button>
       </div>
@@ -148,6 +163,36 @@
     </div>
     <div class="panel"><pre id="hlog" class="log"></pre></div>
   </section>
+  <section id="watch" class="hidden">
+    <div class="panel">
+      <h3>📡 كل اللي يصير في الروم</h3>
+      <p class="muted">يتابع الروم وأنت تلعب: مين مات، مين أرسل وش لمين، وش وصلك، وتقدّم كل واحد. ما يلعب ولا يرسل شي، يتفرج بس. يشتغل لحاله لما تضغط العب.</p>
+      <div class="row">
+        <input id="wroom" placeholder="رابط الروم من archipelago.gg" style="direction:ltr; min-width:260px">
+        <input id="wpass" placeholder="كلمة السر (لو فيه)">
+        <button class="btn" onclick="watch()">تابع الروم</button>
+      </div>
+      <p id="wstatus" class="muted"></p>
+    </div>
+    <div class="panel">
+      <h3>التقدّم</h3>
+      <div id="progress" class="muted">لسا ما فيه أرقام.</div>
+    </div>
+    <div class="panel">
+      <h3>☠ الموتات</h3>
+      <div id="deaths" class="muted">ما مات أحد لسا.</div>
+    </div>
+    <div class="panel">
+      <div class="row chips">
+        <button class="chip on" data-f="all" onclick="setFilter('all')">الكل</button>
+        <button class="chip" data-f="death" onclick="setFilter('death')">☠ الموتات</button>
+        <button class="chip" data-f="item" onclick="setFilter('item')">📦 الأغراض</button>
+        <button class="chip" data-f="mine" onclick="setFilter('mine')">🎁 وصلتني</button>
+        <button class="chip" data-f="hint" onclick="setFilter('hint')">💡 تلميحات</button>
+      </div>
+      <div id="feed" class="feed"></div>
+    </div>
+  </section>
   <div id="need" class="need hidden">
         <p id="needText"></p>
         <div class="row">
@@ -169,7 +214,8 @@ async function api(path, body) {
 }
 
 function tab(t) {
-  for (const x of ["play","host"]) { $(x).classList.toggle("hidden", x!==t); $("tab-"+x).classList.toggle("on", x===t); }
+  for (const x of ["play","host","watch"]) { $(x).classList.toggle("hidden", x!==t); $("tab-"+x).classList.toggle("on", x===t); }
+  if (t === "watch" && !$("wroom").value) $("wroom").value = $("room").value;
   if (t === "host") refresh();
 }
 
@@ -298,6 +344,79 @@ async function play() {
 }
 function generate() { runTask("/api/host/generate", {}, "hlog"); }
 function openFolder(what) { api("/api/open", {what}); }
+
+// ---------- 📡 room watcher ----------
+let FEEDEV = [], FEEDNEXT = 0, FILTER = "all";
+const STATUS = {connecting: "… يتصل", reconnecting: "… انقطع، يعيد الاتصال", connected: "✔ متصل",
+                refused: "✖ الروم رفض الاتصال", off: "ما يتابع روم للحين"};
+async function watch() {
+  if (!$("name").value) return alert("اكتب اسمك أول");
+  if (!$("wroom").value) return alert("الصق رابط الروم");
+  try { await saveName(); await api("/api/watch", {room: $("wroom").value, password: $("wpass").value}); FEEDEV = []; FEEDNEXT = 0; }
+  catch (e) { alert(e.message); }
+}
+function setFilter(f) {
+  FILTER = f;
+  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.f === f));
+  drawFeed();
+}
+function keep(e) {
+  if (FILTER === "all") return true;
+  if (FILTER === "mine") return e.kind === "item" && e.to_me;
+  return e.kind === FILTER;
+}
+function drawFeed() {
+  const box = $("feed");
+  const rows = FEEDEV.filter(keep).slice(-400).reverse();
+  box.replaceChildren(...rows.map(e => {
+    const d = document.createElement("div");
+    d.className = "ev " + e.kind + (e.to_me ? " me" : "") + ((e.flags & 1) ? " prog" : "") + ((e.flags & 4) ? " trap" : "");
+    const t = document.createElement("span"); t.className = "t"; t.textContent = e.t;
+    const x = document.createElement("span"); x.dir = "auto"; x.textContent = e.text;
+    d.append(t, x); return d;
+  }));
+  if (!rows.length) box.innerHTML = '<p class="muted">ما فيه شي هنا لسا.</p>';
+}
+function drawProgress(prog, me) {
+  const names = Object.keys(prog || {});
+  if (!names.length) { $("progress").textContent = "لسا ما فيه أرقام."; return; }
+  names.sort((a, b) => pct(prog[b]) - pct(prog[a]));
+  $("progress").replaceChildren(...names.map(n => {
+    const p = prog[n], v = pct(p);
+    const row = document.createElement("div"); row.className = "prog-row" + (n === me ? " me" : "");
+    const label = document.createElement("div"); label.className = "prog-label";
+    const nm = document.createElement("b"); nm.dir = "ltr"; nm.textContent = n + (p.goal ? " 🏁" : "");
+    const num = document.createElement("span"); num.className = "muted"; num.textContent = `${p.done} / ${p.total} (${v}%)`;
+    label.append(nm, num);
+    const bar = document.createElement("div"); bar.className = "bar";
+    const fill = document.createElement("i"); fill.style.width = v + "%"; bar.append(fill);
+    row.append(label, bar); return row;
+  }));
+}
+const pct = p => p && p.total ? Math.floor(p.done * 100 / p.total) : 0;
+function drawDeaths(d) {
+  const names = Object.keys(d || {});
+  if (!names.length) { $("deaths").textContent = "ما مات أحد لسا."; return; }
+  $("deaths").replaceChildren(...names.map(n => {
+    const s = document.createElement("span"); s.className = "death-chip"; s.dir = "ltr"; s.textContent = `${n} ☠ ${d[n]}`; return s;
+  }));
+}
+async function pollFeed() {
+  try {
+    const f = await api("/api/feed?since=" + FEEDNEXT);
+    if (f.events && f.events.length) {
+      FEEDEV = FEEDEV.concat(f.events).slice(-3000);
+      FEEDNEXT = f.events[f.events.length - 1].i + 1;
+      drawFeed();
+    }
+    $("wstatus").textContent = (STATUS[f.status] || f.status) + (f.room ? "  ·  " + f.room : "") + (f.error && f.status !== "connected" ? "  ·  " + f.error : "");
+    drawProgress(f.progress, f.me);
+    drawDeaths(f.deaths);
+    $("tab-watch").textContent = "📡 الروم" + (f.status === "connected" ? " ●" : "");
+  } catch (e) {}
+  setTimeout(pollFeed, 2000);
+}
+pollFeed();
 
 refresh();
 </script>

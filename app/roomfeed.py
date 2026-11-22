@@ -11,15 +11,50 @@ so the exe stays small. Archipelago rooms answer on wss:// first and ws:// as a 
 import base64
 import json
 import os
+import re
 import socket
 import ssl
 import struct
 import threading
 import time
+import urllib.request
 import uuid
 
 AP_VERSION = {"major": 0, "minor": 6, "build": 0, "class": "Version"}
 FLAG_PROGRESSION, FLAG_USEFUL, FLAG_TRAP = 1, 2, 4
+
+
+# ---------- archipelago.gg room links ----------
+
+WEBHOST = "https://archipelago.gg"
+ROOM_LINK = re.compile(r"archipelago\.gg/room/([A-Za-z0-9_\-]+)")
+
+
+def _get_json(url: str):
+    req = urllib.request.Request(url, headers={"User-Agent": "APReady", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def resolve_room_link(text: str, get_json=_get_json, wake=None):
+    """'https://archipelago.gg/room/<id>' -> {host, port, room, tracker}. Opening the room page wakes
+    a sleeping room (it gets a new port), so friends never have to look for the port."""
+    m = ROOM_LINK.search(text or "")
+    if not m:
+        return None
+    room = m.group(1)
+    (wake or (lambda u: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "APReady"}), timeout=20).read()))(
+        f"{WEBHOST}/room/{room}")
+    status = {}
+    for _ in range(10):  # the room needs a moment to start after being woken
+        status = get_json(f"{WEBHOST}/api/room_status/{room}")
+        if status.get("last_port"):
+            break
+        time.sleep(1)
+    if not status.get("last_port"):
+        raise ConnectionError("الروم ما اشتغل. افتح رابطه في المتصفح وجرب مرة ثانية")
+    tracker = str(status.get("tracker", "")).rstrip("/").split("/")[-1]
+    return {"host": "archipelago.gg", "port": str(status["last_port"]), "room": room, "tracker": tracker}
 
 
 # ---------- a minimal WebSocket client (RFC 6455) ----------
@@ -117,8 +152,12 @@ class WebSocket:
 class RoomFeed:
     """One watched room. Thread-safe; the UI reads snapshot(since)."""
 
-    def __init__(self, host: str, port: int, slot: str, password: str = "", connect=None):
+    def __init__(self, host: str, port: int, slot: str, password: str = "", connect=None, tracker: str = "",
+                 get_json=_get_json):
         self.host, self.port, self.slot, self.password = host, int(port), slot, password or ""
+        self.tracker, self._get_json = tracker, get_json
+        self.progress = {}        # player name -> {"done", "total", "goal"}
+        self.my_checked = self.my_missing = None
         self._connect = connect or self._open
         self.events = []
         self.seq = 0              # event number, keeps growing even when old events are dropped
@@ -137,7 +176,32 @@ class RoomFeed:
     # -- lifecycle --
     def start(self):
         threading.Thread(target=self._run, daemon=True).start()
+        if self.tracker:
+            threading.Thread(target=self._track, daemon=True).start()
         return self
+
+    def _track(self):
+        """Everyone's progress from the archipelago.gg tracker (checks done / total, goal)."""
+        totals = {}
+        while not self.stop_flag.is_set():
+            try:
+                if not totals:
+                    st = self._get_json(f"{WEBHOST}/api/static_tracker/{self.tracker}")
+                    totals = {(t["team"], t["player"]): t["total_locations"] for t in st.get("player_locations_total", [])}
+                tr = self._get_json(f"{WEBHOST}/api/tracker/{self.tracker}")
+                names = {(a["team"], a["player"]): a.get("alias") for a in tr.get("aliases", [])}
+                goal = {(x["team"], x["player"]): x.get("status") == 30 for x in tr.get("player_status", [])}  # 30 = goal done
+                prog = {}
+                for c in tr.get("player_checks_done", []):
+                    k = (c["team"], c["player"])
+                    name = names.get(k) or self.players.get(c["player"]) or f"Player {c['player']}"
+                    prog[name] = {"done": len(c.get("locations", [])), "total": totals.get(k, 0), "goal": goal.get(k, False)}
+                with self.lock:
+                    self.progress = prog
+            except Exception:
+                pass  # tracker hiccup: keep the last numbers
+            if self.stop_flag.wait(30):
+                return
 
     def stop(self):
         self.stop_flag.set()
@@ -192,6 +256,8 @@ class RoomFeed:
                 self.locations[game] = {v: k for k, v in pkg.get("location_name_to_id", {}).items()}
         elif cmd == "Connected":
             self.my_slot = p.get("slot")
+            self.my_checked = set(p.get("checked_locations", []))
+            self.my_missing = set(p.get("missing_locations", []))
             for pl in p.get("players", []):
                 self.players[pl["slot"]] = pl.get("alias") or pl.get("name")
             for s, info in p.get("slot_info", {}).items():
@@ -204,6 +270,10 @@ class RoomFeed:
             self.error = ", ".join(p.get("errors", [])) or "refused"
             self._add("system", "✖ الروم رفض الاتصال: " + self.error)
             raise ConnectionError(self.error)
+        elif cmd == "RoomUpdate" and self.my_checked is not None:
+            new = set(p.get("checked_locations", []))
+            self.my_checked |= new
+            self.my_missing -= new
         elif cmd == "PrintJSON":
             self._print(p)
         elif cmd == "Bounced" and "DeathLink" in p.get("tags", []):
@@ -212,7 +282,7 @@ class RoomFeed:
             with self.lock:
                 self.deaths[who] = self.deaths.get(who, 0) + 1
             cause = d.get("cause") or ""
-            self._add("death", f"☠ {who} مات" + (f": {cause}" if cause else ""), who=who)
+            self._add("death", f"☠ {who}" + (f" · {cause}" if cause else ""), who=who)
 
     # -- rendering --
     def _name(self, slot) -> str:
@@ -269,6 +339,13 @@ class RoomFeed:
     def snapshot(self, since: int = 0) -> dict:
         with self.lock:
             ev = [e for e in self.events if e["i"] >= since]
-            return {"status": self.status, "error": self.error, "events": ev,
+            mine = None
+            if self.my_checked is not None:
+                total = len(self.my_checked) + len(self.my_missing)
+                mine = {"done": len(self.my_checked), "total": total}
+            progress = dict(self.progress)
+            if not progress and mine and self.my_slot is not None:  # not on archipelago.gg: at least my own
+                progress = {self._name(self.my_slot): dict(mine, goal=False)}
+            return {"status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
                     "deaths": dict(sorted(self.deaths.items(), key=lambda kv: -kv[1])),
                     "room": f"{self.host}:{self.port}", "slot": self.slot}

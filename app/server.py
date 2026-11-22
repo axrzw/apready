@@ -10,24 +10,39 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import host, recipes as rec, runner, steam, updates
+from . import host, recipes as rec, roomfeed, runner, steam, updates
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
 RECIPES = {}
 UPDATE = {}  # result of the last recipe update, shown once in the UI
+FEED = {"feed": None}  # the room being watched (one at a time)
 
 
-def parse_room(text: str) -> dict:
-    """Accept 'archipelago.gg:38281', '/connect archipelago.gg:38281' or a room URL with a port."""
+def parse_room(text: str, resolve=None) -> dict:
+    """Accept the archipelago.gg room link (port looked up, room woken), 'archipelago.gg:38281',
+    '/connect archipelago.gg:38281' or just the port."""
     text = (text or "").strip()
+    if "archipelago.gg/room/" in text:
+        return (resolve or roomfeed.resolve_room_link)(text)
     m = re.search(r"([A-Za-z0-9.\-]+):(\d{2,5})", text)
     if m:
         return {"host": m.group(1), "port": m.group(2)}
     m = re.fullmatch(r"\d{2,5}", text)
     if m:
         return {"host": "archipelago.gg", "port": text}
-    raise ValueError("ما فهمت عنوان الروم. لازم يكون مثل archipelago.gg:38281")
+    raise ValueError("ما فهمت عنوان الروم. الصق رابط الروم من archipelago.gg، أو العنوان مثل archipelago.gg:38281")
+
+
+def watch_room(room: dict, slot: str, password: str = ""):
+    """Start (or restart) the read-only room watcher for the 📡 tab."""
+    old = FEED["feed"]
+    if old and (old.host, old.port, old.slot) == (room["host"], int(room["port"]), slot):
+        return old
+    if old:
+        old.stop()
+    FEED["feed"] = roomfeed.RoomFeed(room["host"], room["port"], slot, password, tracker=room.get("tracker", "")).start()
+    return FEED["feed"]
 
 
 def game_list():
@@ -72,6 +87,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(),
                                    "players": host.scan_players(RECIPES),
                                    "last": s.get("last", {}), "update": UPDATE})
+        if self.path.startswith("/api/feed"):
+            since = int((re.search(r"since=(\d+)", self.path) or [0, 0])[1])
+            f = FEED["feed"]
+            return self.send(200, f.snapshot(since) if f else {"status": "off", "events": [], "progress": {}, "deaths": {}})
         if self.path.startswith("/api/task/"):
             t = TASKS.get(self.path.rsplit("/", 1)[1])
             return self.send(200 if t else 404, t.to_json() if t else {"error": "no task"})
@@ -114,7 +133,17 @@ class Handler(BaseHTTPRequestHandler):
                            "password": b.get("password", ""),
                            "death_link": s.get("last", {}).get(b["game"], {}).get("death_link", True)}
                 t = runner.start(runner.run_phases, RECIPES[b["game"]], ["apworld", "install", "connect", "launch"], session)
+                watch_room(room, session["slot"], session["password"])  # the 📡 tab follows the same room
                 return self.send(200, {"task": self._keep(t)})
+            if p == "/api/watch":
+                s = load_settings()
+                f = watch_room(parse_room(b["room"]), rec.safe_slot(s.get("player_name") or "Player"), b.get("password", ""))
+                return self.send(200, {"ok": True, "room": f"{f.host}:{f.port}"})
+            if p == "/api/watch/stop":
+                if FEED["feed"]:
+                    FEED["feed"].stop()
+                FEED["feed"] = None
+                return self.send(200, {"ok": True})
             if p == "/api/done":
                 runner.mark_done(b["game"], b["step"])
                 return self.send(200, {"ok": True})
