@@ -132,5 +132,11 @@
       "default": true,
       "advanced": true
     }
+  ],
+  "guide_ar": [
+    "اضغط ▶ العب: ينفتح كلاينت RE4 UHD متصل بالروم، وتشتغل اللعبة.",
+    "ابدأ New Game على Normal أو Professional (Easy ما ينفع). كل multiworld جديد يبي New Game جديد.",
+    "قبل ما تتحرك استنى رسالة «Save linked to this Archipelago seed» فوق يسار.",
+    "لو علقت ورا باب، استخدم !hint في الكلاينت تشوف وين أغراضك."
   ]
 }

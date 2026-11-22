@@ -167,5 +167,12 @@
       ],
       "advanced": true
     }
+  ],
+  "guide_ar": [
+    "أول مرة: في ستيم كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون Ray Tracing (dx11_non-rt).",
+    "اضغط «جهّز اللعبة»: يركّب REFramework والكلاينت.",
+    "اضغط ▶ العب. تطلع نافذة Archipelago Client for REFramework والعنوان واسمك مكتوبة، اضغط Connect.",
+    "ابدأ New Game بنفس الشخصية والسيناريو والصعوبة اللي اخترتها هنا.",
+    "لو ما طلعت النافذة اضغط Insert."
   ]
 }

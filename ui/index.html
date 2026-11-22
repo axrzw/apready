@@ -36,6 +36,9 @@
   .switch input:checked + span { background:var(--accent); }
   .switch input:checked + span:before { transform:translateX(-26px); }
   .dl.off { opacity:.4; filter:grayscale(1); }
+  .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
+  .guide summary { cursor:pointer; font-weight:600; }
+  .guide ol { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
   .dl.off .switch span { cursor:not-allowed; }
   .opt { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:10px; }
   .opt small { color:var(--dim); display:block; }
@@ -74,6 +77,10 @@
     <div id="gamePanel" class="panel hidden">
       <h3 id="gTitle" dir="auto"></h3>
       <p id="gNotes" class="muted"></p>
+      <details id="guideBox" class="guide" open>
+        <summary>📖 كيف أشغّلها</summary>
+        <ol id="guide"></ol>
+      </details>
 
       <div class="dl" id="dlBox">
         <div><strong>☠ Death Link</strong><br><span class="muted">لو مت أنت، يموت الكل. ولو مات أحد، تموت معه.</span></div>
@@ -192,6 +199,9 @@ function pick(id) {
   $("gamePanel").classList.remove("hidden");
   $("gTitle").textContent = cur.name;
   $("gNotes").textContent = cur.notes_ar || "";
+  const steps = cur.guide_ar || [];
+  $("guideBox").classList.toggle("hidden", !steps.length);
+  $("guide").replaceChildren(...steps.map(t => { const li = document.createElement("li"); li.textContent = t; return li; }));
   // games without Death Link keep the toggle on screen, greyed out and locked
   $("dlBox").classList.toggle("off", !cur.death_link);
   $("deathlink").disabled = !cur.death_link;

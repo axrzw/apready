@@ -209,7 +209,7 @@ def test_friends_never_see_paths_or_yaml(all_recipes):
     hidden = ("{tools}", "{custom_worlds}", "{game_dir}", "{ap_dir}", "{steam}", "{sourcemods}",
               "{documents}", "{appdata}", "YAML", "yaml")
     for r in all_recipes.values():
-        texts = [r.get("notes_ar", "")] + [s.get("text_ar", "") for ph in rec.PHASES for s in r.get(ph, [])]
+        texts = [r.get("notes_ar", "")] + r.get("guide_ar", []) + [s.get("text_ar", "") for ph in rec.PHASES for s in r.get(ph, [])]
         for t in texts:
             assert not any(h in t for h in hidden), (r["id"], t)
 
@@ -329,3 +329,8 @@ def test_cuphead_save_slot_enabled_without_touching_played_slots(tmp_path, monke
     s["new_game"]["cuphead"] = True
     with pytest.raises(RuntimeError):
         runner.run_step(step, dict(ctx), s, r, _T())
+
+
+def test_every_game_has_a_how_to_guide(all_recipes):
+    for r in all_recipes.values():
+        assert 2 <= len(r.get("guide_ar", [])) <= 8, r["id"]

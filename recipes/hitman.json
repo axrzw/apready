@@ -72,5 +72,11 @@
     }
   ],
   "options": [],
-  "death_link_key": null
+  "death_link_key": null,
+  "guide_ar": [
+    "اضغط ▶ العب: البرنامج يشغّل Peacock و PeacockPatcher وكلاينت HITMAN متصل بالروم، ويشغّل اللعبة.",
+    "تأكد إن القائمة الرئيسية فيها «Powered by The Peacock Project».",
+    "المراحل اللي فتحتها تطلع في Campaigns > Archipelago.",
+    "لو وصلتك مرحلة وانت في القائمة، ادخل مرحلة واطلع، أو Go Offline ثم Go Online."
+  ]
 }

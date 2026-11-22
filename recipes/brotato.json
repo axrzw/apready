@@ -49,5 +49,10 @@
       "text_ar": "اضغط Archipelago فوق New Game، واكتب العنوان {address} والاسم {slot}."
     }
   ],
-  "options": []
+  "options": [],
+  "guide_ar": [
+    "أول مرة: اضغط «جهّز اللعبة». تنفتح صفحة [Modders] mode في الورشة، اضغط Subscribe.",
+    "اضغط ▶ العب.",
+    "اضغط زر Archipelago فوق New Game، واكتب عنوان الروم واسمك."
+  ]
 }
