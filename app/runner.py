@@ -108,7 +108,9 @@ def fill(s, ctx: dict):
 
 
 def http_json(url: str):
-    req = urllib.request.Request(url, headers=UA)
+    # GitHub wants its own Accept header; Thunderstore answers 406 to it
+    headers = UA if "api.github.com" in url else {"User-Agent": "APReady", "Accept": "application/json"}
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as r:
         return json.loads(r.read().decode("utf-8"))
 
@@ -227,6 +229,81 @@ def read_json(p: Path, default):
         return default
 
 
+THUNDERSTORE_METRICS = "https://thunderstore.io/api/v1/package-metrics/{ns}/{name}/"
+THUNDERSTORE_DOWNLOAD = "https://thunderstore.io/package/download/{ns}/{name}/{version}/"
+
+
+def _version_key(v: str):
+    return tuple(int(x) if x.isdigit() else 0 for x in v.split("."))
+
+
+def thunderstore_latest(full: str) -> str:
+    ns, name = full.split("-", 1)
+    return http_json(THUNDERSTORE_METRICS.format(ns=ns, name=name))["latest_version"]
+
+
+def thunderstore_resolve(packages: list, fetch) -> list:
+    """The packages (newest version) plus every dependency, read from each package's own
+    manifest.json the way r2modman does; when two packages need different versions of the same
+    dependency, the newest one wins. fetch(full, version) -> path of the downloaded zip.
+    Returns [(full_name, version, zip_path)]."""
+    wanted = {full: thunderstore_latest(full) for full in packages}
+    done = {}
+    while True:
+        todo = [(f, v) for f, v in wanted.items() if done.get(f, (None,))[0] != v]
+        if not todo:
+            break
+        for full, version in todo:
+            zp = fetch(full, version)
+            done[full] = (version, zp)
+            with zipfile.ZipFile(zp) as z:
+                try:
+                    manifest = json.loads(z.read("manifest.json").decode("utf-8-sig"))
+                except KeyError:
+                    manifest = {}
+            for dep in manifest.get("dependencies", []):
+                dfull, dver = dep.rsplit("-", 1)  # "Ns-Name-1.2.3"
+                if dfull not in wanted or _version_key(dver) > _version_key(wanted[dfull]):
+                    wanted[dfull] = dver
+    return [(f, v, zp) for f, (v, zp) in done.items()]
+
+
+def thunderstore_target(full: str, member: str) -> str:
+    """Where r2modman puts a file of a BepInEx package, relative to the game folder ('' = skip)."""
+    if full.split("-", 1)[1].startswith("BepInExPack"):  # BepInExPack, BepInExPack_Valheim, ...: into the game folder
+        top, _, rest = member.partition("/")
+        return rest if top.startswith("BepInExPack") and rest else ""
+    if member in ("manifest.json", "icon.png") or member.lower().startswith(("readme", "changelog", "license")):
+        return ""
+    if member.startswith("BepInEx/"):
+        member = member[len("BepInEx/"):]
+    for folder in ("plugins", "patchers"):
+        if member.startswith(folder + "/"):
+            return f"BepInEx/{folder}/{full}/" + member[len(folder) + 1:]
+    for folder in ("config", "core"):
+        if member.startswith(folder + "/"):
+            return f"BepInEx/{folder}/" + member[len(folder) + 1:]
+    return f"BepInEx/plugins/{full}/" + member
+
+
+def thunderstore_install(zip_path: Path, full: str, game_dir: Path) -> int:
+    n = 0
+    with zipfile.ZipFile(zip_path) as z:
+        for m in z.infolist():
+            name = m.filename.replace("\\", "/").lstrip("/")
+            if name.endswith("/") or ".." in name.split("/") or ":" in name:
+                continue
+            rel = thunderstore_target(full, name)
+            if not rel:
+                continue
+            target = game_dir / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with z.open(m) as src, open(target, "wb") as out:
+                shutil.copyfileobj(src, out)
+            n += 1
+    return n
+
+
 def pick_release(repo: str, tag: str = None, prerelease: bool = False) -> dict:
     if tag:
         return http_json(GITHUB_API.format(repo=repo) + f"/tags/{tag}")
@@ -305,6 +382,29 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         settings["installed"][key] = version
         save_settings(settings)
         task.say(f"✔ {s.get('label', s['repo'])} جاهز")
+
+    elif t == "thunderstore":  # mods from thunderstore.io (the official page for these mods), with dependencies
+        game = Path(s.get("to") or ctx["game_dir"])
+
+        def fetch(full, version):
+            ns, name = full.split("-", 1)
+            cache = tools_dir() / "_downloads" / f"{full}-{version}.zip"
+            if not cache.exists():
+                task.say(f"… {full} {version}")
+                download(THUNDERSTORE_DOWNLOAD.format(ns=ns, name=name, version=version), cache, task)
+            return cache
+
+        for full, version, zp in thunderstore_resolve(s["packages"], fetch):
+            key = f"{recipe['id']}:ts:{full}"
+            # BepInExPack lands in the game root; if Steam "verify files" removed it, install again
+            present = (game / "winhttp.dll").exists() if "-BepInExPack" in full else (game / "BepInEx").exists()
+            if settings["installed"].get(key) == version and present:
+                task.say(f"✔ {full} محدث ({version})")
+                continue
+            thunderstore_install(zp, full, game)
+            settings["installed"][key] = version
+            save_settings(settings)
+            task.say(f"✔ {full} جاهز ({version})")
 
     elif t == "workshop":
         sid = step["id"]

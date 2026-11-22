@@ -1,0 +1,55 @@
+{
+  "id": "valheim",
+  "name": "Valheim",
+  "name_ar": "فالهايم",
+  "game": "Valheim",
+  "steam_appid": 892970,
+  "verified": false,
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx و Jotunn من Thunderstore والمود من GitHub. لما تفتح اللعبة تطلع نافذة الاتصال: خل Randomized مفعّل.",
+  "sources": [
+    "https://github.com/xyzzy44/ValheimArchipelagoRandomizer",
+    "https://github.com/xyzzy44/ValheimArchipelagoRandomizer/releases",
+    "https://thunderstore.io/c/valheim/p/ValheimModding/Jotunn/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "xyzzy44/ValheimArchipelagoRandomizer",
+      "asset": "valheim.apworld",
+      "to": "{custom_worlds}",
+      "label": "Valheim apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "ValheimModding-Jotunn"
+      ],
+      "label": "BepInEx + Jotunn"
+    },
+    {
+      "type": "github_release",
+      "repo": "xyzzy44/ValheimArchipelagoRandomizer",
+      "asset": "ValheimRandomizer-*.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/BepInEx/plugins/ValheimRandomizer",
+      "label": "Valheim Randomizer"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 892970
+    },
+    {
+      "type": "manual",
+      "id": "connect_valheim",
+      "every_time": true,
+      "text_ar": "في نافذة الاتصال اللي تطلع: خل Randomized مفعّل، واكتب العنوان {address} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

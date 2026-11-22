@@ -15,7 +15,7 @@ def all_recipes():
 
 
 def test_all_recipes_load(all_recipes):
-    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "re4r", "re4_classic", "re7", "re8", "cuphead", "portal2", "re9", "bo3_zombies", "pvz_replanted", "balatro", "peak", "buckshot", "dst", "tunic", "brotato", "stardew"} <= set(all_recipes)
+    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "re4r", "re4_classic", "re7", "re8", "cuphead", "portal2", "re9", "bo3_zombies", "pvz_replanted", "balatro", "peak", "buckshot", "dst", "tunic", "brotato", "stardew", "repo", "lethal_company", "content_warning", "cult_of_the_lamb", "valheim", "muck"} <= set(all_recipes)
 
 
 def test_common_advanced_options_added(all_recipes):
@@ -239,3 +239,36 @@ def test_write_file_deep_merge_and_skip_if_exists(tmp_path, monkeypatch):
     runner.run_step({"type": "run", "exe": str(tmp_path / "missing.exe"), "skip_if_exists": str(marker)},
                     {}, _settings(), {"id": "t", "steam_appid": 1}, _T())
     assert calls == []
+
+
+def test_thunderstore_layout_matches_r2modman():
+    t = runner.thunderstore_target
+    assert t("BepInEx-BepInExPack", "BepInExPack/winhttp.dll") == "winhttp.dll"
+    assert t("denikson-BepInExPack_Valheim", "BepInExPack_Valheim/BepInEx/core/x.dll") == "BepInEx/core/x.dll"
+    assert t("BepInEx-BepInExPack", "README.md") == ""
+    assert t("APLC-APLC", "APLC.dll") == "BepInEx/plugins/APLC-APLC/APLC.dll"
+    assert t("APLC-APLC", "manifest.json") == ""
+    assert t("Evaisa-LethalLib", "plugins/LethalLib/LethalLib.dll") == "BepInEx/plugins/Evaisa-LethalLib/LethalLib/LethalLib.dll"
+    assert t("IAmBatby-LethalLevelLoader", "patchers/P.dll") == "BepInEx/patchers/IAmBatby-LethalLevelLoader/P.dll"
+    assert t("Rug-Mycelium", "BepInEx/plugins/M/M.dll") == "BepInEx/plugins/Rug-Mycelium/M/M.dll"
+    assert t("A-B", "config/x.cfg") == "BepInEx/config/x.cfg"
+
+
+def test_thunderstore_resolve_reads_manifests_newest_wins(tmp_path, monkeypatch):
+    deps = {
+        "APLC-APLC": ["BepInEx-BepInExPack-5.4.2100", "Caigan-Scrap-4.1.0"],
+        "Caigan-Scrap": ["BepInEx-BepInExPack-5.4.2305"],
+        "BepInEx-BepInExPack": [],
+    }
+    monkeypatch.setattr(runner, "http_json", lambda url: {"latest_version": "0.8.0"})
+    fetched = []
+
+    def fetch(full, version):
+        fetched.append(f"{full}@{version}")
+        zp = tmp_path / f"{full}-{version}.zip"
+        with zipfile.ZipFile(zp, "w") as z:
+            z.writestr("manifest.json", json.dumps({"dependencies": deps[full]}))
+        return zp
+    got = {f: v for f, v, _ in runner.thunderstore_resolve(["APLC-APLC"], fetch)}
+    assert got == {"APLC-APLC": "0.8.0", "Caigan-Scrap": "4.1.0", "BepInEx-BepInExPack": "5.4.2305"}
+    assert "APLC-APLC@0.8.0" in fetched

@@ -1,0 +1,45 @@
+{
+  "id": "cult_of_the_lamb",
+  "name": "Cult of the Lamb",
+  "name_ar": "كلت أوف ذا لامب",
+  "game": "Cult of the Lamb",
+  "steam_appid": 1313140,
+  "verified": false,
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. سوّ سيف خاص لـ Archipelago. البرنامج يركّب BepInEx والمود من Thunderstore.",
+  "sources": [
+    "https://github.com/IanCichy/CultOfTheLamb_Archipelago",
+    "https://thunderstore.io/c/cult-of-the-lamb/p/chichi2020/Archipelago_CultOfTheLamb/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "IanCichy/CultOfTheLamb_Archipelago",
+      "asset": "cult_of_the_lamb.apworld",
+      "to": "{custom_worlds}",
+      "label": "Cult of the Lamb apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "chichi2020-Archipelago_CultOfTheLamb"
+      ],
+      "label": "مودات Thunderstore"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1313140
+    },
+    {
+      "type": "manual",
+      "id": "connect_cotl",
+      "every_time": true,
+      "text_ar": "افتح سيف جديد مخصص، ومن نافذة Archipelago اكتب العنوان {address} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

@@ -1,0 +1,45 @@
+{
+  "id": "repo",
+  "name": "R.E.P.O.",
+  "name_ar": "ريبو (R.E.P.O.)",
+  "game": "R.E.P.O",
+  "steam_appid": 3241660,
+  "verified": false,
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود ومكتباته من Thunderstore. لو نزل تحديث كبير للعبة ممكن المود يوقف لين يتحدث.",
+  "sources": [
+    "https://github.com/Automagic00/R.E.P.O.-Archipelago-Client-Mod",
+    "https://thunderstore.io/c/repo/p/Automagic/Archipelago_Randomizer_for_REPO/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "Automagic00/R.E.P.O.-Archipelago-Client-Mod",
+      "asset": "repo.apworld",
+      "to": "{custom_worlds}",
+      "label": "R.E.P.O apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "Automagic-Archipelago_Randomizer_for_REPO"
+      ],
+      "label": "مودات Thunderstore"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 3241660
+    },
+    {
+      "type": "manual",
+      "id": "connect_repo",
+      "every_time": true,
+      "text_ar": "في القائمة الرئيسية اضغط ARCHIPELAGO تحت، واكتب العنوان {address} والاسم {slot}، وبعدها ابدأ سيف جديد."
+    }
+  ],
+  "options": []
+}

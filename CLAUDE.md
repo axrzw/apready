@@ -47,7 +47,8 @@ has downloaded it), `manual` (id, text_ar, url, every_time, done_if_exists = pat
 means it's already done, open_exe = launcher to open for the player,
 open_folder = folder to show instead of printing its path), `copy`, `write_file`
 (merge = keep the other keys of an existing JSON, ints = keys to write as numbers),
-`json_list_add` (path, items), `ini_set` (path, section, values, quote: true for
+`thunderstore` (packages: ["Namespace-Name"]; installs them and every dependency
+from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `ini_set` (path, section, values, quote: true for
 MelonPreferences TOML, false for BepInEx .cfg), `open_url`, `steam_launch`, `run` (exe may be a glob,
 optional_args only added when the value isn't empty), `apworld_builtin`.
 Any step can have `skip_if_exists` (path/glob): if it exists the step is skipped (one-time installers).
@@ -61,7 +62,7 @@ Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} 
 {has_password} (1/0)`.
 
 ## Status: what to do first
-All 22 recipes are `"verified": false`. Nov 2026 review: repos, asset names, game strings,
+All 28 recipes are `"verified": false`. Nov 2026 review: repos, asset names, game strings,
 option keys and death_link keys were checked against the sources and release pages (see
 the review notes in the commit history). What is still manual and why:
 Elden Ring (Nexus needs a login), Cuphead connect (stored inside the save slot), Sekiro
@@ -87,7 +88,7 @@ RE9 launchers. None has been run on a real PC yet. In this order:
 ### Open questions for the owner (Death Link, not changed on purpose)
 - Cuphead's apworld names the option `deathlink` (no underscore). The recipe still uses the
    default `death_link`, so the toggle probably does nothing there. Fix: `"death_link_key": "deathlink"`.
-- Hitman, TUNIC and Buckshot Roulette have no Death Link option. Writing `death_link` there only
+- Hitman, TUNIC, Buckshot Roulette and Valheim have no Death Link option. Writing `death_link` there only
   makes Archipelago log a warning (generation still works), but the toggle does nothing.
   Per the rule above they should get `"death_link_key": null`.
 - Slay the Spire (wanted, not added yet): its `death_link` is a Range 0-100 (% of health lost),
@@ -97,8 +98,9 @@ RE9 launchers. None has been run on a real PC yet. In this order:
 ### Games from the Archipelago games sheet still to add
 Hades (Polycosmos needs ModImporter + ModUtil + StyxScribe + Python and a file picker every
 run), Dark Souls III (the client ships its own dark_souls_3.apworld that clashes with the core
-one; per-seed static randomizer), Hollow Knight, Risk of Rain 2 / ULTRAKILL / Lethal Company
-(Thunderstore: needs a `thunderstore` step type), Deep Rock Galactic (mod.io).
+one; per-seed static randomizer), Hollow Knight, Risk of Rain 2 / ULTRAKILL (Thunderstore
+packages exist; check them), Supermarket Simulator (BepInEx 6 bleeding-edge build is not on
+GitHub releases), Silksong (.rar release), WEBFISHING (GDWeave, not BepInEx), TF2 MvM (server plugin), Deep Rock Galactic (mod.io).
 
 ## Adding a game
 See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, and test it.

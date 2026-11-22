@@ -1,0 +1,45 @@
+{
+  "id": "lethal_company",
+  "name": "Lethal Company",
+  "name_ar": "ليثال كومباني",
+  "game": "Lethal Company",
+  "steam_appid": 1966720,
+  "verified": false,
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. ملف واحد يكفي لكل اللوبي: بس صاحب اللوبي يسوي ملفه. الباقين يحتاجون المود بس (جهّز اللعبة) ويدخلون عنده.",
+  "sources": [
+    "https://github.com/T0r1nn/APLC",
+    "https://thunderstore.io/c/lethal-company/p/APLC/APLC/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "T0r1nn/APLC",
+      "asset": "lethal_company.apworld",
+      "to": "{custom_worlds}",
+      "label": "Lethal Company apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "APLC-APLC"
+      ],
+      "label": "مودات Thunderstore"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1966720
+    },
+    {
+      "type": "manual",
+      "id": "connect_lc",
+      "every_time": true,
+      "text_ar": "ادخل سيف، واكتب في الشات (مو التيرمنال): /connect {address} واتبع التعليمات. اللي يدخل متأخر يكتب /connect بس."
+    }
+  ],
+  "options": []
+}
