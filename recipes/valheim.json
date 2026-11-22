@@ -52,5 +52,11 @@
     }
   ],
   "options": [],
-  "death_link_key": null
+  "death_link_key": null,
+  "guide_ar": [
+    "اضغط «جهّز اللعبة» (يركّب BepInEx و Jotunn والمود).",
+    "اضغط ▶ العب. تطلع لك نافذة الاتصال.",
+    "خل Randomized مفعّل، واكتب عنوان الروم واسمك واضغط اتصال.",
+    "الـ checks من طاولة البحث (Research bench) والجوائز (Trophies)."
+  ]
 }

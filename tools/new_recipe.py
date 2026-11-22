@@ -319,6 +319,11 @@ def build(game_name, repo, release, apworld_info, appid, steam_name, mod_zips, t
     launch.append({"type": "manual", "id": f"connect_{rid}", "every_time": True,
                    "text_ar": "في اللعبة افتح نافذة Archipelago واكتب العنوان {address} والاسم {slot}."})
     r["launch"] = launch
+    r["guide_ar"] = [
+        "اضغط «جهّز اللعبة» أول مرة.",
+        "اضغط ▶ العب، وفي اللعبة افتح نافذة Archipelago واكتب عنوان الروم واسمك.",
+    ]
+    todo.append("Write guide_ar from the setup guide: the steps the player does in the game after pressing Play.")
 
     opts = []
     for o in apworld_info["options"]:

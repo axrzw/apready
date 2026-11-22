@@ -71,5 +71,10 @@
   ],
   "options": [],
   "death_link_key": null,
-  "death_link_in_mod": true
+  "death_link_in_mod": true,
+  "guide_ar": [
+    "اضغط «جهّز اللعبة» (يركّب BepInEx 6 والمود). أول تشغيل ياخذ وقت.",
+    "اضغط ▶ العب: البرنامج يكتب الاتصال واختيار Death Link في إعدادات المود.",
+    "في شاشة البداية اختر وضع Archipelago واضغط Connect، وبعدها New Game."
+  ]
 }

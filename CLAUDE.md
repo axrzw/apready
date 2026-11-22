@@ -45,6 +45,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 ```
 id, name, name_ar, game (exact Archipelago game name), steam_appid, verified, notes_ar, sources[]
                  (the UI shows `name`: the game's own official name, owner's choice; name_ar is not shown)
+guide_ar[]       short numbered steps shown under the game ("📖 كيف أشغّلها"): what the player does
+                 after pressing Play (in-game menus, Steam settings). Every recipe needs one (test).
 death_link_key   (default "death_link"; null if the apworld has no Death Link option)
 death_link_in_mod  true when the apworld has no option but the mod has Death Link itself
                  (TUNIC, Buckshot Roulette): the toggle stays live, connect steps use

@@ -58,5 +58,12 @@
       "text_ar": "في اللعبة: Host Game > Create New World، خل Save Type = Local Save، ومن تبويب Mods فعّل Archipelago Randomizer (من Server Mods). لو غيرت الفصول في الخيارات طابقها في إعدادات العالم. الكلاينت يتصل لحاله لما تدخل العالم."
     }
   ],
-  "options": []
+  "options": [],
+  "guide_ar": [
+    "ملف واحد يكفي للعالم كله: اللي يفتح العالم بس يسوي ملفه.",
+    "اضغط ▶ العب: ينفتح كلاينت Don't Starve Together متصل بالروم، وتشتغل اللعبة.",
+    "Host Game > Create New World، وخل Save Type = Local Save.",
+    "من تبويب Mods فعّل Archipelago Randomizer (من Server Mods).",
+    "لو غيرت الفصول في الخيارات طابقها في إعدادات العالم. ادخل العالم والكلاينت يتصل لحاله."
+  ]
 }
