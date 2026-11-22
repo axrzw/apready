@@ -5,7 +5,7 @@
   "game": "Cuphead",
   "steam_appid": 268910,
   "verified": false,
-  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5.",
+  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5. Death Link يشتغل داخل المراحل بس، مو على الخريطة.",
   "sources": [
     "https://github.com/JKLeckr/CupheadArchipelagoMod",
     "https://github.com/JKLeckr/CupheadArchipelagoMod/blob/main/INSTALLING.md",
@@ -53,5 +53,6 @@
       "text_ar": "المود يحفظ الاتصال داخل السيف نفسه، فلازم تكتبه مرة وحدة: اختر سيف فاضي، واضغط C+Z يفتح لك إعداد Archipelago. فعّله واكتب العنوان {host} والبورت {port} والاسم {slot}. بعدها كل مرة تفتح نفس السيف يتصل لحاله."
     }
   ],
-  "options": []
+  "options": [],
+  "death_link_key": "deathlink"
 }

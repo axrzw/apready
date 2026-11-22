@@ -294,3 +294,9 @@ def test_tunic_death_link_written_to_mod_settings(tmp_path, monkeypatch):
         ctx = runner.context({"id": "tunic"}, {"ap_dir": str(tmp_path)}, {"slot": "M", "port": "1", "death_link": on})
         runner.run_step(step, ctx, _settings(), r, _T())
         assert json.loads(f.read_text())["DeathLinkEnabled"] is on
+
+
+def test_cuphead_death_link_uses_its_own_key(all_recipes):
+    """cuphead.apworld reads `deathlink`; `death_link` left Death Link off (owner's test)."""
+    y = rec.build_yaml(all_recipes["cuphead"], "Mishal", {}, True)
+    assert "  deathlink: true" in y and "death_link" not in y

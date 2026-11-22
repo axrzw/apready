@@ -112,7 +112,10 @@ Notes kept from the review:
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 
 ### Death Link per game (owner decided, Nov 2026)
-- Cuphead: the owner played it with Death Link and it works. Leave the recipe as it is.
+- Cuphead: the apworld's option is `deathlink` (no underscore), and its slot data sends
+  `deathlink` = 0 unless that option is on, so the mod never enables Death Link. The recipe
+  wrote `death_link`, so the owner's test (Nov 2026) sent no death. Fixed:
+  `"death_link_key": "deathlink"`. Death Link in Cuphead only works inside levels.
 - Hitman (docs: "Deathlink is not supported") and Valheim (no option, nothing in the mod
   DLL): `death_link_key: null`, toggle greyed out.
 - TUNIC: no apworld option, but the mod has `DeathLinkEnabled` in Settings.json; the connect

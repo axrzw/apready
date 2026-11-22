@@ -120,7 +120,7 @@ def _const(node):
 
 def analyze_apworld(data: bytes) -> dict:
     z = zipfile.ZipFile(io.BytesIO(data))
-    sources = {n: z.read(n).decode("utf-8", "ignore") for n in z.namelist() if n.endswith(".py")}
+    sources = {n: z.read(n).decode("utf-8-sig", "ignore") for n in z.namelist() if n.endswith(".py")}
     game = None
     for n in z.namelist():
         if n.endswith("archipelago.json"):
