@@ -2,53 +2,154 @@
   "id": "elden_ring",
   "name": "Elden Ring",
   "name_ar": "إلدن رنق",
-  "game": "Elden Ring",
+  "game": "EldenRing",
   "steam_appid": 1245620,
   "verified": false,
-  "notes_ar": "المود على Nexus ولازم تنزله بيدك أول مرة (Nexus يطلب تسجيل دخول). Shadow of the Erdtree بس لو فعّلتوا مناطق الـ DLC.",
+  "notes_ar": "⚠ ألفا غير مستقرة. نسخة thefifthmatt (صاحب راندومايزر Elden Ring المشهور) من GitHub، والبرنامج يركّبها كلها. تحتاج Elden Ring 1.17.2، وتستخدم سيف منفصل (سيفك العادي ما ينلمس). لو الويندوز طلب تنزيل .NET وافق.",
   "sources": [
-    "https://www.nexusmods.com/eldenring/mods/10334"
+    "https://github.com/thefifthmatt/SoulsRandomizers/releases",
+    "https://github.com/fswap/Archipelago/blob/er/worlds/eldenring/docs/en_setup_guide.md",
+    "https://github.com/fswap/Archipelago/blob/er/worlds/eldenring/docs/en_Elden_Ring.md"
   ],
   "apworld": [
     {
-      "type": "manual",
-      "id": "host_apworld",
-      "url": "https://www.nexusmods.com/eldenring/mods/10334?tab=files",
-      "text_ar": "(للمستضيف) نزّل ملف elden_ring.apworld من صفحة المود اللي انفتحت، وحطه في المجلد اللي فتحته لك. بعدها اضغط سويتها.",
-      "done_if_exists": "{custom_worlds}/*elden*.apworld",
-      "open_folder": "{custom_worlds}"
+      "type": "github_release",
+      "repo": "thefifthmatt/SoulsRandomizers",
+      "asset": "eldenring.apworld",
+      "to": "{custom_worlds}",
+      "label": "Elden Ring apworld",
+      "tag": "eldenring-ap-0.1.4"
     }
   ],
   "install": [
     {
-      "type": "manual",
-      "id": "nexus_mod",
-      "url": "https://www.nexusmods.com/eldenring/mods/10334?tab=files",
-      "text_ar": "نزّل المود من صفحة Nexus اللي انفتحت (يبي تسجيل دخول)، وفكّه في المجلد اللي فتحته لك، واتبع صفحة المود لربطه باللعبة. أول مرة بس.",
-      "open_folder": "{tools}"
+      "type": "github_release",
+      "repo": "thefifthmatt/SoulsRandomizers",
+      "asset": "EldenRingArchipelagoRandomizer_v*.zip",
+      "extract": true,
+      "to": "{tools}/er",
+      "check": "{tools}/er/randomizer/EldenRingArchipelagoRandomizer.exe",
+      "label": "Elden Ring Archipelago Randomizer",
+      "tag": "eldenring-ap-0.1.4"
     }
   ],
   "connect": [],
   "launch": [
     {
+      "type": "run",
+      "label": "Elden Ring Archipelago Randomizer",
+      "exe": "{tools}/er/randomizer/EldenRingArchipelagoRandomizer.exe"
+    },
+    {
       "type": "manual",
-      "id": "launch_er",
+      "id": "connect_er",
       "every_time": true,
-      "text_ar": "شغّل اللعبة من لانشر المود (مو من ستيم مباشرة)، واكتب العنوان {address} واسمك {slot}."
+      "text_ar": "في البرنامج اللي انفتح: Refresh Archipelago data، اكتب العنوان {address} والاسم {slot} (والباسورد لو فيه) واضغط Load. بعدها Randomize for Archipelago، وبعدها Launch Elden Ring."
     }
   ],
-  "options": [],
   "guide_ar": [
-    "أول مرة: نزّل المود من صفحته في Nexus (يبي تسجيل دخول) واتبع شرح صفحة المود.",
-    "المستضيف: يحط ملف elden_ring.apworld في المجلد اللي يفتحه له البرنامج.",
-    "شغّل اللعبة من لانشر المود، مو من ستيم مباشرة.",
-    "اكتب عنوان الروم واسمك في المود. المود يستخدم سيف خاص، وشخصياتك العادية ما تنلمس."
+    "اللعبة لازم تكون على إصدار 1.17.2 (آخر تحديث في ستيم).",
+    "اضغط «جهّز اللعبة»: ينزّل الراندومايزر (ما تحتاج Nexus ولا حساب).",
+    "اضغط ▶ العب: ينفتح Elden Ring Archipelago Randomizer.",
+    "فيه: Refresh Archipelago data > اكتب العنوان واسمك > Load، وبعدها Randomize for Archipelago.",
+    "اضغط Launch Elden Ring (مو من ستيم). سوّ شخصية جديدة لكل روم."
   ],
-  "checks_ar": "الأغراض في الخريطة. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
+  "checks_ar": "الأغراض في الخريطة، والبوسات، والمحلات، حسب الخيارات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك (الـ DLC يزيد كثير)، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
   "avoid_ar": [
-    "المود يستخدم سيف خاص، شخصياتك العادية ما تنلمس.",
-    "Shadow of the Erdtree بس لو فعّلتوا مناطق الـ DLC.",
-    "المود ما يغيّر الأعداء ولا الكلاسات."
+    "شغّلها من زر Launch Elden Ring في الراندومايزر بس. ستيم يشغّل اللعبة بدون Archipelago.",
+    "فعّل الـ DLC في الخيارات بس لو عندك Shadow of the Erdtree، وإلا ما تقدر تخلّص.",
+    "لو الروم انعاد من الصفر سوّ شخصية جديدة.",
+    "لو طلع Failed to load save data، غالباً مضاد الفيروسات حذف er_archipelago.dll: اضغط «جهّز اللعبة» مرة ثانية.",
+    "مودات تغيّر أماكن الأغراض ما تمشي معها."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص: البوسات اللي لازم تقتلهم",
+      "help_ar": "تقدر تختار أكثر من وحدة",
+      "multi": true,
+      "default": [
+        "Final Boss"
+      ],
+      "choices": [
+        {
+          "value": "Final Boss",
+          "label_ar": "البوس الأخير"
+        },
+        {
+          "value": "Great Rune Boss",
+          "label_ar": "بوسات الـ Great Runes"
+        },
+        {
+          "value": "Remembrance Boss",
+          "label_ar": "بوسات الـ Remembrance"
+        },
+        {
+          "value": "Main Boss",
+          "label_ar": "البوسات الأساسية"
+        },
+        {
+          "value": "Stormveil Castle Boss",
+          "label_ar": "Stormveil Castle"
+        },
+        {
+          "value": "Limgrave Boss",
+          "label_ar": "Limgrave (قصيرة)"
+        },
+        {
+          "value": "All Base Boss",
+          "label_ar": "كل بوسات اللعبة"
+        },
+        {
+          "value": "DLC Final Boss",
+          "label_ar": "البوس الأخير في الـ DLC"
+        },
+        {
+          "value": "All DLC Boss",
+          "label_ar": "كل بوسات الـ DLC"
+        },
+        {
+          "value": "Random",
+          "label_ar": "عشوائي"
+        }
+      ]
+    },
+    {
+      "key": "enable_dlc",
+      "label_ar": "عندي Shadow of the Erdtree",
+      "help_ar": "فعّله بس لو عندك الـ DLC",
+      "default": false
+    },
+    {
+      "key": "enemy_rando",
+      "label_ar": "خلط الأعداء",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "world_logic",
+      "label_ar": "فتح المناطق",
+      "help_ar": "open_world يحتاج المستضيف يسمح فيه",
+      "default": "region_lock",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "region_lock",
+          "label_ar": "كل منطقة تحتاج غرض"
+        },
+        {
+          "value": "open_world",
+          "label_ar": "عالم مفتوح"
+        }
+      ]
+    },
+    {
+      "key": "enable_tp_dlc",
+      "label_ar": "عندي Tarnished Pack",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ]
 }

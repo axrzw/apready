@@ -314,12 +314,16 @@ def thunderstore_install(zip_path: Path, full: str, game_dir: Path) -> int:
     return n
 
 
-def pick_release(repo: str, tag: str = None, prerelease: bool = False) -> dict:
+def pick_release(repo: str, tag: str = None, prerelease: bool = False, tag_prefix: str = "") -> dict:
+    """Newest usable release. tag_prefix: for repos that release several things (SoulsRandomizers:
+    'eldenring-ap-...'), only releases whose tag starts with it."""
     if tag:
         return http_json(GITHUB_API.format(repo=repo) + f"/tags/{tag}")
     releases = http_json(GITHUB_API.format(repo=repo))
     for rel in releases:
         if rel.get("draft"):
+            continue
+        if tag_prefix and not rel.get("tag_name", "").startswith(tag_prefix):
             continue
         if rel.get("prerelease") and not prerelease:
             continue
@@ -365,7 +369,7 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         task.say("✔ اللعبة مدعومة رسمياً في Archipelago")
 
     elif t == "github_release":
-        rel = pick_release(s["repo"], s.get("tag"), s.get("prerelease", False))
+        rel = pick_release(s["repo"], s.get("tag"), s.get("prerelease", False), s.get("tag_prefix", ""))
         version = rel.get("tag_name", "")
         dest_dir = Path(s["to"])
         check = Path(s["check"]) if s.get("check") else dest_dir

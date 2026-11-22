@@ -379,3 +379,11 @@ def test_choice_defaults_are_valid(all_recipes):
             if o.get("choices") and not o.get("multi"):
                 vals = [c["value"] if isinstance(c, dict) else c for c in o["choices"]]
                 assert o["default"] in vals, (r["id"], o["key"])
+
+
+def test_pick_release_tag_prefix(monkeypatch):
+    rels = [{"tag_name": "ds3-1.0"}, {"tag_name": "eldenring-ap-0.2.0", "prerelease": True}, {"tag_name": "eldenring-ap-0.1.4"}]
+    monkeypatch.setattr(runner, "http_json", lambda url: rels)
+    assert runner.pick_release("o/r", tag_prefix="eldenring-ap")["tag_name"] == "eldenring-ap-0.1.4"
+    assert runner.pick_release("o/r", prerelease=True, tag_prefix="eldenring-ap")["tag_name"] == "eldenring-ap-0.2.0"
+    assert runner.pick_release("o/r")["tag_name"] == "ds3-1.0"

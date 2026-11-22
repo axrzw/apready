@@ -71,7 +71,7 @@ launch[]         start the game / client
 ```
 Step types: `github_release` (repo, asset glob or "__source__", to, extract,
 strip_top_folder, pick = glob of one file inside the zip to copy flat, check = path that
-proves it's installed, tag, prerelease), `workshop` (workshop_id; done by itself once Steam
+proves it's installed, tag, prerelease, tag_prefix = only releases whose tag starts with it), `workshop` (workshop_id; done by itself once Steam
 has downloaded it), `manual` (id, text_ar, url, every_time, done_if_exists = path/glob that
 means it's already done, open_exe = launcher to open for the player,
 open_folder = folder to show instead of printing its path), `copy`, `write_file`
@@ -103,7 +103,7 @@ work (PR #1, branch `claude/claude-md-recipes-review-j78ner`) did:
   Thunderstore), twice (the second run downloads and asks nothing). Keep doing this for new
   recipes: see the dry-run approach in the commit history.
 - Automated connect wherever the mod reads host/slot from a file. Still manual, and why:
-  Elden Ring (Nexus needs a login), Sekiro
+  Sekiro
   connect (.NET user settings under a hashed path), RE4R per-seed patch (only the Wizard can),
   the non-RTX Steam beta for RE2/3/7, the one-time install button in the RE4R / Village / RE9
   launchers, typing the room in-game for games whose mod saves nothing (Buckshot, Brotato,
@@ -124,6 +124,11 @@ Notes kept from the review:
 - Sekiro: apworld from yenix4/ArchipelagoSekiro, client `randomizerAP_windows_*.zip`
   extracted into the game folder. Game 1.06 + offline. Its `death_link` is a Choice with
   `alias_true` = full_death, so `true` works.
+- Elden Ring: thefifthmatt/SoulsRandomizers, pinned tag eldenring-ap-0.1.4 (the repo also releases other
+  randomizers; a pin keeps host and players on one version and works on old exes), game "EldenRing"
+  (the Nexus 10334 mod by 4laric is a different implementation and its GitHub repo is private).
+  `death_link_amnesty` and `boss_scaling_percent` exist but are marked "unsupported, till after first
+  release" in options.py (v0.1.4), so the recipe leaves them out. Per-seed steps happen in its own app.
 - Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 
