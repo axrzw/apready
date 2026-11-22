@@ -51,7 +51,44 @@
       "text_ar": "في نافذة الاتصال اللي تطلع: خل Randomized مفعّل، واكتب العنوان {address} والاسم {slot}."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "جائزة أي بوس تحتاج",
+      "default": "Eikthyr",
+      "choices": [
+        {
+          "value": "Eikthyr",
+          "label_ar": "Eikthyr"
+        },
+        {
+          "value": "TheElder",
+          "label_ar": "The Elder"
+        },
+        {
+          "value": "Bonemass",
+          "label_ar": "Bonemass"
+        },
+        {
+          "value": "Moder",
+          "label_ar": "Moder"
+        },
+        {
+          "value": "Yagluth",
+          "label_ar": "Yagluth"
+        },
+        {
+          "value": "Queen",
+          "label_ar": "The Queen"
+        },
+        {
+          "value": "Fader",
+          "label_ar": "Fader"
+        }
+      ]
+    }
+  ],
   "death_link_key": null,
   "guide_ar": [
     "اضغط «جهّز اللعبة» (يركّب BepInEx و Jotunn والمود).",
@@ -64,5 +101,6 @@
     "خل Randomized مفعّل قبل ما تتصل.",
     "التقنية اللي توصلك ما تطلع إلا لما تلقى موادها أول مرة.",
     "هذي اللعبة ما فيها Death Link."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

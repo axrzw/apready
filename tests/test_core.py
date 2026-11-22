@@ -349,3 +349,33 @@ def test_death_link_settings_only_where_the_game_has_death_link(all_recipes):
             assert r.get("death_link_key", "death_link"), r["id"]
     y = rec.build_yaml(all_recipes["cuphead"], "M", {"deathlink_grace_count": 2}, True)
     assert "  deathlink_grace_count: 2" in y and "  deathlink: true" in y
+
+
+def test_multi_select_options_and_bo3_maps(all_recipes):
+    bo3 = all_recipes["bo3_zombies"]
+    y = rec.build_yaml(bo3, "M", {"maps": ["map_origins_enabled", "map_moon_enabled"], "goal_condition": "goal_round"}, True)
+    assert "  map_origins_enabled: true" in y and "  map_moon_enabled: true" in y and "  map_shadows_enabled: false" in y
+    assert "  maps:" not in y and "  goal_condition: goal_round" in y
+    y = rec.build_yaml(all_recipes["re4r"], "M", {"included_content": ["Main Campaign", "Separate Ways"]}, True)
+    assert '  included_content: ["Main Campaign", "Separate Ways"]' in y
+    y = rec.build_yaml(all_recipes["hitman"], "M", {}, False)
+    assert '  included_s2_dlc_locations: []' in y
+
+
+def test_every_game_says_how_many_checks(all_recipes):
+    for r in all_recipes.values():
+        assert r.get("checks_count_ar"), r["id"]
+
+
+def test_multi_default_must_come_from_choices():
+    with pytest.raises(rec.RecipeError):
+        rec.validate({"id": "x", "name": "x", "game": "x", "steam_appid": 1,
+                      "options": [{"key": "k", "default": ["zzz"], "multi": True, "choices": ["a"]}]}, "t")
+
+
+def test_choice_defaults_are_valid(all_recipes):
+    for r in all_recipes.values():
+        for o in r["options"]:
+            if o.get("choices") and not o.get("multi"):
+                vals = [c["value"] if isinstance(c, dict) else c for c in o["choices"]]
+                assert o["default"] in vals, (r["id"], o["key"])

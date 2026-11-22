@@ -43,6 +43,68 @@
   ],
   "options": [
     {
+      "key": "game_mode",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "trophy",
+      "choices": [
+        {
+          "value": "trophy",
+          "label_ar": "تجمع جائزة من كل قمر"
+        },
+        {
+          "value": "collectathon",
+          "label_ar": "تجمع صناديق AP"
+        },
+        {
+          "value": "credit_hunt",
+          "label_ar": "تجمع رصيد الشركة"
+        }
+      ]
+    },
+    {
+      "key": "collectathon_scrap_goal",
+      "label_ar": "كم صندوق AP",
+      "help_ar": "لو الهدف الصناديق",
+      "default": 10,
+      "min": 3,
+      "max": 99,
+      "advanced": true
+    },
+    {
+      "key": "all_moon_required_grade",
+      "label_ar": "التقييم المطلوب في القمر",
+      "help_ar": "",
+      "default": "B",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "S",
+          "label_ar": "S"
+        },
+        {
+          "value": "A",
+          "label_ar": "A"
+        },
+        {
+          "value": "B",
+          "label_ar": "B"
+        },
+        {
+          "value": "C",
+          "label_ar": "C"
+        },
+        {
+          "value": "D",
+          "label_ar": "D"
+        },
+        {
+          "value": "F",
+          "label_ar": "F"
+        }
+      ]
+    },
+    {
       "key": "death_link_percent_scrap_lost",
       "label_ar": "كم ٪ خردة تخسرون",
       "deathlink": true,
@@ -62,5 +124,6 @@
   "avoid_ar": [
     "ملف واحد للوبي كله.",
     "اكتب /connect في الشات مو في التيرمنال."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

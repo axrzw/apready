@@ -64,7 +64,28 @@
       "text_ar": "في نافذة Archipelago داخل اللعبة اكتب العنوان {address} والاسم {slot}، وخل زر DeathLink {death_link_ar}، واضغط اتصال."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "140k",
+      "choices": [
+        {
+          "value": "70k",
+          "label_ar": "تخلّص اللعبة الأساسية (70K)"
+        },
+        {
+          "value": "140k",
+          "label_ar": "140K"
+        },
+        {
+          "value": "1000k",
+          "label_ar": "مليون"
+        }
+      ]
+    }
+  ],
   "death_link_key": null,
   "death_link_in_mod": true,
   "guide_ar": [
@@ -76,5 +97,6 @@
   "checks_ar": "الفوز بالجولات، والطلقات الصحيحة، وسلاسل الفوز، وجولات Double or Nothing. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "شغّلها من زر العب بس: ستيم يشغّل النسخة الأصلية بدون المود."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

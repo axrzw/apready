@@ -1,4 +1,4 @@
-# APReady (AP جاهز)
+# My Ready AP (was APReady / AP جاهز)
 
 One Windows program that lets a group of friends play an Archipelago multiworld without
 fiddly setup. Each player opens the app, picks their game, presses Play. The host presses
@@ -156,7 +156,9 @@ See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, 
 ## Commands
 - Run: `python -m app`
 - Tests: `python -m pytest -q`
-- Build exe: `build.bat`, or push a tag `v*` and GitHub Actions builds `APReady.exe`.
+- Build exe: `build.bat`, or push a tag `v*` (or run the workflow with `release_tag`) and GitHub Actions
+  builds `MyReadyAP.exe` (also uploaded as `APReady.exe` so old links keep working).
+  Internal names (`app/`, `%APPDATA%/APReady`) stay, so settings survive the rename.
 
 ## Wanted next (owner asked)
 - More Resident Evil parts. RE9 (Requiem) is added from LechapelierHD/Re9-archipelago.

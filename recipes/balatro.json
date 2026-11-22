@@ -79,7 +79,52 @@
       "text_ar": "تحت يسار القائمة اختر بروفايل Archipelago. العنوان والاسم مكتوبة لك، اضغط Connect."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "beat_decks",
+      "choices": [
+        {
+          "value": "beat_decks",
+          "label_ar": "تفوز بعدد من الـ Decks"
+        },
+        {
+          "value": "beat_ante",
+          "label_ar": "توصل لـ Ante معين"
+        },
+        {
+          "value": "unlock_jokers",
+          "label_ar": "تجمع عدد من الجوكرات"
+        },
+        {
+          "value": "beat_decks_on_stake",
+          "label_ar": "تفوز بـ Decks على Stake معين"
+        },
+        {
+          "value": "beat_unique_decks",
+          "label_ar": "تفوز بـ Decks مختلفة"
+        }
+      ]
+    },
+    {
+      "key": "decks_win_goal",
+      "label_ar": "كم Deck",
+      "help_ar": "لو الهدف الـ Decks",
+      "default": 4,
+      "min": 1,
+      "max": 15
+    },
+    {
+      "key": "ante_win_goal",
+      "label_ar": "أي Ante",
+      "help_ar": "لو الهدف Ante",
+      "default": 12,
+      "min": 1,
+      "max": 38
+    }
+  ],
   "guide_ar": [
     "اضغط «جهّز اللعبة» (يركّب Lovely و Steamodded والمود).",
     "اضغط ▶ العب.",
@@ -90,5 +135,6 @@
   "avoid_ar": [
     "العب من بروفايل Archipelago بس.",
     "انسخ سيفاتك احتياط قبل أول مرة (ما المفروض تتأثر، بس احتياط)."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

@@ -62,6 +62,106 @@
   ],
   "options": [
     {
+      "key": "goal_condition",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "easter_egg_hunt",
+      "choices": [
+        {
+          "value": "easter_egg_hunt",
+          "label_ar": "تخلّص عدد من الإيستر إيقز"
+        },
+        {
+          "value": "weapon_quest",
+          "label_ar": "مهمة الأسلحة"
+        },
+        {
+          "value": "goal_round",
+          "label_ar": "توصل لجولة معينة"
+        }
+      ]
+    },
+    {
+      "key": "goal_ee_count",
+      "label_ar": "كم إيستر إيق",
+      "help_ar": "لو الهدف الإيستر إيقز",
+      "default": 2,
+      "min": 1,
+      "max": 10
+    },
+    {
+      "key": "goal_round",
+      "label_ar": "أي جولة",
+      "help_ar": "لو الهدف توصل لجولة",
+      "default": 25,
+      "min": 2,
+      "max": 100
+    },
+    {
+      "key": "maps",
+      "label_ar": "الخرائط",
+      "help_ar": "علّم الخرائط اللي تبيها في اللعبة",
+      "multi": true,
+      "as_toggles": true,
+      "default": [
+        "map_shadows_enabled"
+      ],
+      "choices": [
+        {
+          "value": "map_shadows_enabled",
+          "label_ar": "Shadows of Evil"
+        },
+        {
+          "value": "map_the_giant_enabled",
+          "label_ar": "The Giant"
+        },
+        {
+          "value": "map_castle_enabled",
+          "label_ar": "Der Eisendrache"
+        },
+        {
+          "value": "map_zetsubou_enabled",
+          "label_ar": "Zetsubou No Shima"
+        },
+        {
+          "value": "map_gorod_enabled",
+          "label_ar": "Gorod Krovi"
+        },
+        {
+          "value": "map_revelations_enabled",
+          "label_ar": "Revelations"
+        },
+        {
+          "value": "map_nacht_enabled",
+          "label_ar": "Nacht der Untoten"
+        },
+        {
+          "value": "map_kino_enabled",
+          "label_ar": "Kino der Toten"
+        },
+        {
+          "value": "map_moon_enabled",
+          "label_ar": "Moon"
+        },
+        {
+          "value": "map_origins_enabled",
+          "label_ar": "Origins"
+        },
+        {
+          "value": "map_workshop_wanted_enabled",
+          "label_ar": "Wanted (Workshop، غير مستقرة)"
+        }
+      ]
+    },
+    {
+      "key": "starting_maps_unlocked",
+      "label_ar": "كم خريطة مفتوحة من البداية",
+      "help_ar": "الباقي تفتحه أغراض من الـ multiworld",
+      "default": 1,
+      "min": 0,
+      "max": 15
+    },
+    {
       "key": "deathlink_send_mode",
       "label_ar": "وش يرسل Death Link",
       "deathlink": true,
@@ -119,5 +219,6 @@
     "غير مستقرة: توقعوا مشاكل.",
     "شغّل مود bo3_archipelago قبل ما تبدأ أي خريطة.",
     "لو طلع end of file وقت التحقق، جرّب تبدأ اللعب على أي حال."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

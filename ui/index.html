@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AP جاهز</title>
+<title>My Ready AP</title>
 <style>
   :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e8eaf0; --dim:#9aa3b2;
           --accent:#e5484d; --ok:#30a46c; --warn:#f5a524; }
@@ -36,6 +36,11 @@
   .switch input:checked + span { background:var(--accent); }
   .switch input:checked + span:before { transform:translateX(-26px); }
   .dl.off { opacity:.4; filter:grayscale(1); }
+  .multi-opt { flex-direction:column; align-items:stretch; text-align:start; }
+  .multi-opt .multi { width:100%; }
+  .multi { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:4px 12px; margin-top:6px; }
+  .multi label { display:flex; gap:6px; align-items:center; cursor:pointer; }
+  .release { margin-top:10px; background:transparent; border:1px solid rgba(255,120,120,.5); color:#ff9a9a; }
   .feed { max-height:460px; overflow-y:auto; font-size:14px; }
   .ev { display:flex; gap:10px; padding:5px 2px; border-bottom:1px solid rgba(255,255,255,.05); }
   .ev .t { opacity:.5; font-variant-numeric:tabular-nums; flex:none; direction:ltr; }
@@ -71,7 +76,7 @@
 </head>
 <body>
 <header>
-  <h1>AP جاهز</h1>
+  <h1 dir="ltr">My Ready AP</h1>
   <nav class="row">
     <button id="tab-play" class="on" onclick="tab('play')">ألعب</button>
     <button id="tab-host" onclick="tab('host')">أنا المستضيف</button>
@@ -109,6 +114,7 @@
       <details id="checksBox" class="guide">
         <summary>🎯 وش الـ checks وكيف ترسلها</summary>
         <p id="checks"></p>
+        <p id="checksCount" class="muted"></p>
       </details>
       <details id="avoidBox" class="guide warn">
         <summary>⚠ أشياء تجنبها</summary>
@@ -173,6 +179,7 @@
         <button class="btn" onclick="watch()">تابع الروم</button>
       </div>
       <p id="wstatus" class="muted"></p>
+      <button class="btn release" onclick="releaseAll()">🎁 Release: أرسل كل أغراضي الباقية للشباب</button>
     </div>
     <div class="panel">
       <h3>التقدّم</h3>
@@ -238,6 +245,13 @@ async function refresh() {
 function optRow(o, val) {
   const label = `<div>${o.label_ar||o.key}<small>${o.help_ar||''}</small></div>`;
   let input;
+  if (o.multi) {  // tick several (maps, levels, content, goals)
+    const picked = new Set(Array.isArray(val) ? val : []);
+    input = `<div class="multi">` + o.choices.map(c => {
+      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar||c.value) : c;
+      return `<label dir="auto"><input type="checkbox" data-multi="${o.key}" value="${v}" ${picked.has(v)?'checked':''}> ${l}</label>`; }).join("") + `</div>`;
+    return `<div class="opt multi-opt">${label}${input}</div>`;
+  }
   if (o.choices) {
     input = `<select data-key="${o.key}">` + o.choices.map(c => {
       const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar||c.value) : c;
@@ -271,6 +285,7 @@ function pick(id) {
   $("advOpts").innerHTML = cur.options.filter(o=>o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
   showDlOpts();
   $("checks").textContent = cur.checks_ar || "";
+  $("checksCount").textContent = cur.checks_count_ar ? "🔢 كم check: " + cur.checks_count_ar : "";
   $("checksBox").classList.toggle("hidden", !cur.checks_ar);
   $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => { const li = document.createElement("li"); li.textContent = t; return li; }));
   $("avoidBox").classList.toggle("hidden", !(cur.avoid_ar || []).length);
@@ -290,6 +305,11 @@ function collect() {
   document.querySelectorAll("#gamePanel [data-key]").forEach(el => {
     const k = el.dataset.key;
     options[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? Number(el.value) : el.value;
+  });
+  document.querySelectorAll("#gamePanel [data-multi]").forEach(el => {
+    const k = el.dataset.multi;
+    options[k] = options[k] || [];
+    if (el.checked) options[k].push(el.value);
   });
   return {game: cur.id, options, death_link: $("deathlink").checked, extra: $("extra").value};
 }
@@ -353,6 +373,12 @@ async function watch() {
   if (!$("name").value) return alert("اكتب اسمك أول");
   if (!$("wroom").value) return alert("الصق رابط الروم");
   try { await saveName(); await api("/api/watch", {room: $("wroom").value, password: $("wpass").value}); FEEDEV = []; FEEDNEXT = 0; }
+  catch (e) { alert(e.message); }
+}
+async function releaseAll() {
+  if (!confirm("متأكد؟ Release يرسل كل الأغراض الباقية في عالمك للاعبين الثانيين على طول.\nما ينفع تتراجع بعدها.\nعادة تسويه بعد ما تخلّص هدفك.")) return;
+  if (!confirm("آخر تأكيد: أسوي Release الحين؟")) return;
+  try { await api("/api/watch/release", {}); }
   catch (e) { alert(e.message); }
 }
 function setFilter(f) {

@@ -66,7 +66,109 @@
       "text_ar": "أول ما تفتح اللعبة تطلع لك بيانات الاتصال مكتوبة، اضغط اتصال بس. أول تشغيل بعد MelonLoader ياخذ وقت أطول."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "adventure_levels_goal",
+      "label_ar": "متى تخلص: كم مرحلة Adventure",
+      "help_ar": "",
+      "default": 49,
+      "min": 0,
+      "max": 49
+    },
+    {
+      "key": "fast_goal",
+      "label_ar": "هدف سريع",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "minigame_levels",
+      "label_ar": "Mini-games",
+      "help_ar": "",
+      "default": "randomised_order",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "لا"
+        },
+        {
+          "value": "vanilla",
+          "label_ar": "الأصلي"
+        },
+        {
+          "value": "randomised_order",
+          "label_ar": "ترتيب عشوائي"
+        },
+        {
+          "value": "open",
+          "label_ar": "مفتوحة"
+        },
+        {
+          "value": "level_items",
+          "label_ar": "تفتحها أغراض"
+        }
+      ]
+    },
+    {
+      "key": "puzzle_levels",
+      "label_ar": "Puzzle",
+      "help_ar": "",
+      "default": "randomised_order",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "لا"
+        },
+        {
+          "value": "vanilla",
+          "label_ar": "الأصلي"
+        },
+        {
+          "value": "randomised_order",
+          "label_ar": "ترتيب عشوائي"
+        },
+        {
+          "value": "open",
+          "label_ar": "مفتوحة"
+        },
+        {
+          "value": "level_items",
+          "label_ar": "تفتحها أغراض"
+        }
+      ]
+    },
+    {
+      "key": "survival_levels",
+      "label_ar": "Survival",
+      "help_ar": "",
+      "default": "randomised_order",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "لا"
+        },
+        {
+          "value": "vanilla",
+          "label_ar": "الأصلي"
+        },
+        {
+          "value": "randomised_order",
+          "label_ar": "ترتيب عشوائي"
+        },
+        {
+          "value": "open",
+          "label_ar": "مفتوحة"
+        },
+        {
+          "value": "level_items",
+          "label_ar": "تفتحها أغراض"
+        }
+      ]
+    }
+  ],
   "guide_ar": [
     "اضغط «جهّز اللعبة» (يركّب MelonLoader والمود).",
     "اضغط ▶ العب. أول تشغيل بعد MelonLoader ياخذ وقت أطول.",
@@ -75,5 +177,6 @@
   "checks_ar": "إكمال المراحل (Adventure، Mini-games، Puzzle، Survival، I Zombie) والأوضاع الإضافية. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "أول تشغيل بعد MelonLoader ياخذ وقت، لا تسكّره."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

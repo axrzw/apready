@@ -1,9 +1,9 @@
-# AP جاهز
+# My Ready AP
 
 برنامج واحد يسهّل لعب Archipelago مع الشباب: تختار لعبتك وتضغط العب.
 
 ## للاعب
-1. شغّل `APReady.exe`، ويفتح لك صفحة في المتصفح.
+1. نزّل وشغّل [`MyReadyAP.exe`](https://github.com/axrzw/apready/releases/latest/download/MyReadyAP.exe)، ويفتح لك صفحة في المتصفح.
 2. اكتب اسمك واختر لعبتك.
 3. **Death Link** شغال من نفسه، طفّه لو ما تبيه.
 4. اضغط **جهّز اللعبة** (أول مرة بس).

@@ -71,7 +71,284 @@
       "appid": 1659040
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "goal_mode",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "level_completion",
+      "choices": [
+        {
+          "value": "level_completion",
+          "label_ar": "تخلّص مرحلة معينة"
+        },
+        {
+          "value": "contract_collection",
+          "label_ar": "تجمع قطع العقد"
+        },
+        {
+          "value": "contract_collection_level_completion",
+          "label_ar": "قطع العقد + المرحلة"
+        },
+        {
+          "value": "number_of_completions",
+          "label_ar": "تخلّص عدد من المراحل"
+        }
+      ]
+    },
+    {
+      "key": "goal_level",
+      "label_ar": "مرحلة الهدف",
+      "help_ar": "لو الهدف مرحلة معينة",
+      "default": "ica_facility",
+      "choices": [
+        {
+          "value": "ica_facility",
+          "label_ar": "ICA Facility"
+        },
+        {
+          "value": "paris",
+          "label_ar": "Paris"
+        },
+        {
+          "value": "sapienza",
+          "label_ar": "Sapienza"
+        },
+        {
+          "value": "marrakesh",
+          "label_ar": "Marrakesh"
+        },
+        {
+          "value": "bangkok",
+          "label_ar": "Bangkok"
+        },
+        {
+          "value": "colorado",
+          "label_ar": "Colorado"
+        },
+        {
+          "value": "hokkaido",
+          "label_ar": "Hokkaido"
+        },
+        {
+          "value": "hawkes_bay",
+          "label_ar": "Hawke's Bay"
+        },
+        {
+          "value": "miami",
+          "label_ar": "Miami"
+        },
+        {
+          "value": "santa_fortuna",
+          "label_ar": "Santa Fortuna"
+        }
+      ]
+    },
+    {
+      "key": "goal_amount",
+      "label_ar": "كم مرحلة",
+      "help_ar": "لو الهدف عدد مراحل",
+      "default": 5,
+      "min": 1,
+      "max": 22
+    },
+    {
+      "key": "starting_location",
+      "label_ar": "مرحلة البداية",
+      "help_ar": "",
+      "default": "ica_facility",
+      "choices": [
+        {
+          "value": "ica_facility",
+          "label_ar": "ICA Facility"
+        },
+        {
+          "value": "paris",
+          "label_ar": "Paris"
+        },
+        {
+          "value": "sapienza",
+          "label_ar": "Sapienza"
+        },
+        {
+          "value": "marrakesh",
+          "label_ar": "Marrakesh"
+        },
+        {
+          "value": "bangkok",
+          "label_ar": "Bangkok"
+        },
+        {
+          "value": "colorado",
+          "label_ar": "Colorado"
+        },
+        {
+          "value": "hokkaido",
+          "label_ar": "Hokkaido"
+        },
+        {
+          "value": "hawkes_bay",
+          "label_ar": "Hawke's Bay"
+        },
+        {
+          "value": "miami",
+          "label_ar": "Miami"
+        },
+        {
+          "value": "santa_fortuna",
+          "label_ar": "Santa Fortuna"
+        }
+      ]
+    },
+    {
+      "key": "included_s1_locations",
+      "label_ar": "مراحل HITMAN 1",
+      "help_ar": "",
+      "multi": true,
+      "default": [
+        "ica_facility",
+        "paris",
+        "sapienza",
+        "marrakesh",
+        "bangkok",
+        "colorado",
+        "hokkaido"
+      ],
+      "choices": [
+        {
+          "value": "ica_facility",
+          "label_ar": "ICA Facility"
+        },
+        {
+          "value": "paris",
+          "label_ar": "Paris"
+        },
+        {
+          "value": "sapienza",
+          "label_ar": "Sapienza"
+        },
+        {
+          "value": "marrakesh",
+          "label_ar": "Marrakesh"
+        },
+        {
+          "value": "bangkok",
+          "label_ar": "Bangkok"
+        },
+        {
+          "value": "colorado",
+          "label_ar": "Colorado"
+        },
+        {
+          "value": "hokkaido",
+          "label_ar": "Hokkaido"
+        }
+      ]
+    },
+    {
+      "key": "included_s2_locations",
+      "label_ar": "مراحل HITMAN 2",
+      "help_ar": "",
+      "multi": true,
+      "default": [
+        "hawkes_bay",
+        "miami",
+        "santa_fortuna",
+        "mumbai",
+        "whittleton_creek",
+        "isle_of_sgail"
+      ],
+      "choices": [
+        {
+          "value": "hawkes_bay",
+          "label_ar": "Hawke's Bay"
+        },
+        {
+          "value": "miami",
+          "label_ar": "Miami"
+        },
+        {
+          "value": "santa_fortuna",
+          "label_ar": "Santa Fortuna"
+        },
+        {
+          "value": "mumbai",
+          "label_ar": "Mumbai"
+        },
+        {
+          "value": "whittleton_creek",
+          "label_ar": "Whittleton Creek"
+        },
+        {
+          "value": "isle_of_sgail",
+          "label_ar": "Isle of Sgail"
+        }
+      ]
+    },
+    {
+      "key": "included_s3_locations",
+      "label_ar": "مراحل HITMAN 3",
+      "help_ar": "",
+      "multi": true,
+      "default": [
+        "dubai",
+        "dartmoor",
+        "berlin",
+        "chongqing",
+        "mendoza",
+        "carpathian_mountains",
+        "ambrose_island"
+      ],
+      "choices": [
+        {
+          "value": "dubai",
+          "label_ar": "Dubai"
+        },
+        {
+          "value": "dartmoor",
+          "label_ar": "Dartmoor"
+        },
+        {
+          "value": "berlin",
+          "label_ar": "Berlin"
+        },
+        {
+          "value": "chongqing",
+          "label_ar": "Chongqing"
+        },
+        {
+          "value": "mendoza",
+          "label_ar": "Mendoza"
+        },
+        {
+          "value": "carpathian_mountains",
+          "label_ar": "Carpathian Mountains"
+        },
+        {
+          "value": "ambrose_island",
+          "label_ar": "Ambrose Island"
+        }
+      ]
+    },
+    {
+      "key": "included_s2_dlc_locations",
+      "label_ar": "مراحل إضافات HITMAN 2",
+      "help_ar": "لو عندك الـ DLC",
+      "multi": true,
+      "advanced": true,
+      "default": [],
+      "choices": [
+        {
+          "value": "new_york",
+          "label_ar": "New York"
+        },
+        {
+          "value": "haven_island",
+          "label_ar": "Haven Island"
+        }
+      ]
+    }
+  ],
   "death_link_key": null,
   "guide_ar": [
     "اضغط ▶ العب: البرنامج يشغّل Peacock و PeacockPatcher وكلاينت HITMAN متصل بالروم، ويشغّل اللعبة.",
@@ -84,5 +361,6 @@
     "شغّلها دايم من زر العب (مع Peacock). بدونه تتصل بسيرفرات IOI الرسمية.",
     "لا تستخدم Peacock اللي تلعب فيه عادي، البرنامج يستخدم نسخة خاصة.",
     "هذي اللعبة ما فيها Death Link."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

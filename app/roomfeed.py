@@ -203,6 +203,13 @@ class RoomFeed:
             if self.stop_flag.wait(30):
                 return
 
+    def say(self, text: str):
+        """Send a chat / server command (e.g. !release) as this slot."""
+        if self.status != "connected" or not self.ws:
+            raise ConnectionError("مو متصل بالروم للحين")
+        self._send({"cmd": "Say", "text": text})
+        self._add("system", f"› {text}")
+
     def stop(self):
         self.stop_flag.set()
         if self.ws:

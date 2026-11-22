@@ -20,11 +20,16 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install pyinstaller pytest
       - run: python -m pytest -q
-      - run: pyinstaller --onefile --name APReady --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
+      - run: pyinstaller --onefile --name MyReadyAP --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
+      # same exe under the old name too, so the link friends already have keeps working
+      - run: copy dist\MyReadyAP.exe dist\APReady.exe
+        shell: cmd
       - uses: actions/upload-artifact@v4
-        with: { name: APReady, path: dist/APReady.exe }
+        with: { name: MyReadyAP, path: dist/MyReadyAP.exe }
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || inputs.release_tag != ''
         with:
-          files: dist/APReady.exe
+          files: |
+            dist/MyReadyAP.exe
+            dist/APReady.exe
           tag_name: ${{ inputs.release_tag || github.ref_name }}
