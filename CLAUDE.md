@@ -77,29 +77,38 @@ Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} 
 {has_password} (1/0) {death_link} (true/false) {death_link_ar}`. `write_file` also takes
 `bools` (keys to write as JSON true/false).
 
-## Status: what to do first
-All 28 recipes are `"verified": false`. Nov 2026 review: repos, asset names, game strings,
-option keys and death_link keys were checked against the sources and release pages (see
-the review notes in the commit history). What is still manual and why:
-Elden Ring (Nexus needs a login), Cuphead connect (stored inside the save slot), Sekiro
-connect (.NET user settings under a hashed path), RE4R per-seed patch (only the Wizard can),
-the non-RTX Steam beta for RE2/3/7, and the one-time install button in the RE4R / Village /
-RE9 launchers. None has been run on a real PC yet. In this order:
-1. On Windows run `python -m app` and test Terraria end to end, since it's official and simplest.
-2. For each recipe, open its sources and check: the repo names, the asset name globs
-   (look at the actual release assets), the exact `game` string, the option keys and
-   values (read the apworld's Options.py), and whether `death_link` is the right key.
-   Set `"verified": true` once someone has actually played with it.
-3. Replace `manual` steps with automation wherever possible. Examples: write
-   tModLoader's mod config with slot and port, start the Sekiro client with connect
-   args, pass `--connect {address} --name {slot}` to Archipelago clients that
-   support it. The goal is zero manual steps after the first install.
-4. Hitman: stock apworld from BenDipp/Archipelago (`hitman_woa.apworld`); the launcher
-   component "HITMAN World of Assassination Client" is confirmed. Its Options.py has no
-   Death Link option, but the recipe still writes `death_link` (the owner decides; see below).
-5. Sekiro: apworld from yenix4/ArchipelagoSekiro, client `randomizerAP_windows_*.zip`
-   extracted into the game folder. Game 1.06 + offline. Its `death_link` is a Choice with
-   `alias_true` = full_death, so `true` works.
+## Status (Nov 2026)
+28 recipes, all `"verified": false`: nobody has played them on a real PC yet. The Nov 2026
+work (PR #1, branch `claude/claude-md-recipes-review-j78ner`) did:
+- Checked every recipe against its sources and the real release files: repo, asset globs,
+  exact `game` string, option keys/values (from Options.py), Death Link key and type.
+- Ran every recipe end to end on a fake Steam layout with the real downloads (GitHub and
+  Thunderstore), twice (the second run downloads and asks nothing). Keep doing this for new
+  recipes: see the dry-run approach in the commit history.
+- Automated connect wherever the mod reads host/slot from a file. Still manual, and why:
+  Elden Ring (Nexus needs a login), Cuphead connect (stored inside the save slot), Sekiro
+  connect (.NET user settings under a hashed path), RE4R per-seed patch (only the Wizard can),
+  the non-RTX Steam beta for RE2/3/7, the one-time install button in the RE4R / Village / RE9
+  launchers, typing the room in-game for games whose mod saves nothing (Buckshot, Brotato,
+  R.E.P.O., Lethal Company, Content Warning, Cult of the Lamb, Valheim, Stardew first farm).
+
+What to do next, in this order:
+1. On Windows run `python -m app` and test Terraria end to end (official and simplest), then
+   the others. Set `"verified": true` once someone has actually played a game with it.
+2. Recipe updates need the repo to be readable without login: either make axrzw/apready
+   public, or move recipes to a public recipes-only repo and change `DEFAULT_REPO` in
+   `app/updates.py`. Until then friends only get the recipes inside their exe.
+3. Build the first exe with the updater (`build.bat` or a `v*` tag) and give it to friends once.
+4. New games: `python -m tools.new_recipe --sheet "<name>"`, then do its TODO list.
+
+Notes kept from the review:
+- Hitman: stock apworld from BenDipp/Archipelago (`hitman_woa.apworld`); launcher component
+  "HITMAN World of Assassination Client" confirmed.
+- Sekiro: apworld from yenix4/ArchipelagoSekiro, client `randomizerAP_windows_*.zip`
+  extracted into the game folder. Game 1.06 + offline. Its `death_link` is a Choice with
+  `alias_true` = full_death, so `true` works.
+- Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
+- RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 
 ### Death Link per game (owner decided, Nov 2026)
 - Cuphead: the owner played it with Death Link and it works. Leave the recipe as it is.
