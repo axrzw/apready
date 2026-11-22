@@ -38,7 +38,7 @@ def game_list():
             "id": r["id"], "name": r["name"], "name_ar": r.get("name_ar", r["name"]),
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
             "verified": r.get("verified", False), "notes_ar": r.get("notes_ar", ""),
-            "guide_ar": r.get("guide_ar", []),
+            "guide_ar": r.get("guide_ar", []), "checks_ar": r.get("checks_ar", ""), "avoid_ar": r.get("avoid_ar", []),
             "options": r.get("options", []),
             # the toggle is live when the apworld has the option or the mod itself has Death Link
             "death_link": bool(r.get("death_link_key", "death_link")) or bool(r.get("death_link_in_mod")),

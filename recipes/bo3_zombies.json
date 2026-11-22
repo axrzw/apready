@@ -60,11 +60,64 @@
       "text_ar": "في اللعبة: Mods > شغّل bo3_archipelago. بعدها من قائمة Archipelago العنوان والاسم مكتوبة لك، اضغط Validate وابدأ اللعب."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "deathlink_send_mode",
+      "label_ar": "وش يرسل Death Link",
+      "deathlink": true,
+      "help_ar": "للخرائط الصعبة اختر نهاية الجيم",
+      "default": "any_player_down",
+      "choices": [
+        {
+          "value": "any_player_down",
+          "label_ar": "لما يطيح أي لاعب"
+        },
+        {
+          "value": "any_player_death",
+          "label_ar": "لما يموت أي لاعب"
+        },
+        {
+          "value": "end_game",
+          "label_ar": "نهاية الجيم بس"
+        }
+      ]
+    },
+    {
+      "key": "deathlink_recv_mode",
+      "label_ar": "وش يصير لما يجيك Death Link",
+      "deathlink": true,
+      "help_ar": "",
+      "default": "single_player_down",
+      "choices": [
+        {
+          "value": "single_player_down",
+          "label_ar": "يطيح لاعب واحد"
+        },
+        {
+          "value": "single_player_death",
+          "label_ar": "يموت لاعب واحد"
+        },
+        {
+          "value": "all_players_down",
+          "label_ar": "يطيحون الكل"
+        },
+        {
+          "value": "end_game",
+          "label_ar": "ينتهي الجيم"
+        }
+      ]
+    }
+  ],
   "guide_ar": [
     "اضغط ▶ العب: البرنامج يكتب العنوان واسمك في المود ويشغّل اللعبة.",
     "من القائمة الرئيسية: Mods > شغّل bo3_archipelago.",
     "افتح قائمة Archipelago: العنوان واسمك مكتوبة، اضغط Validate.",
     "ابدأ خريطة من الخرائط المفتوحة لك. ننصح بـ t7patch للحماية."
+  ],
+  "checks_ar": "أشياء تسويها داخل الخرائط، والأغراض اللي توصلك (فتح الخرائط، المشروبات، الأسلحة، Pack-a-Punch...). ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
+  "avoid_ar": [
+    "غير مستقرة: توقعوا مشاكل.",
+    "شغّل مود bo3_archipelago قبل ما تبدأ أي خريطة.",
+    "لو طلع end of file وقت التحقق، جرّب تبدأ اللعب على أي حال."
   ]
 }
