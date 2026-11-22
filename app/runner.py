@@ -73,6 +73,8 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
     host = session.get("host", "archipelago.gg")
     port = str(session.get("port", ""))
     sr = steam.steam_root()
+    lib_apps = gd.parent.parent if gd else None  # <library>/steamapps
+    appid = str(recipe.get("steam_appid", ""))
     return {
         "steam": str(sr) if sr else "",
         "sourcemods": str(sr / "steamapps" / "sourcemods") if sr else "",
@@ -82,6 +84,9 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
         "tools": str(tools_dir() / recipe["id"]),
         "documents": str(documents_dir()),
         "appdata": os.environ.get("APPDATA", ""),
+        "locallow": str(Path(os.environ.get("USERPROFILE") or Path.home()) / "AppData" / "LocalLow"),
+        "workshop": str(lib_apps / "workshop" / "content" / appid) if lib_apps else "",
+        "has_password": "1" if session.get("password") else "0",
         "slot": session.get("slot", ""),
         "host": host,
         "port": port,
@@ -176,6 +181,45 @@ def coerce_ints(d: dict, keys) -> dict:
     return d
 
 
+def deep_merge(old: dict, new: dict) -> dict:
+    out = dict(old)
+    for k, v in new.items():
+        out[k] = deep_merge(out[k], v) if isinstance(v, dict) and isinstance(out.get(k), dict) else v
+    return out
+
+
+def ini_set(text: str, section: str, values: dict, quote: bool = False) -> str:
+    """Set keys inside one [section] of an INI / BepInEx .cfg / MelonPreferences TOML file,
+    keeping everything else as it is. Section headers may be written [Name] or ["Name"]."""
+    def fmt(v):
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, (int, float)) or not quote:
+            return str(v)
+        return json.dumps(str(v), ensure_ascii=False)
+
+    lines = text.splitlines()
+    norm = lambda h: h.strip()[1:-1].strip().strip('"') if h.strip().startswith("[") and h.strip().endswith("]") else None
+    start = next((i for i, l in enumerate(lines) if norm(l) == section), None)
+    if start is None:
+        head = f'["{section}"]' if quote and " " in section else f"[{section}]"
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines += [head] + [f"{k} = {fmt(v)}" for k, v in values.items()]
+        return "\n".join(lines) + "\n"
+    end = next((i for i in range(start + 1, len(lines)) if norm(lines[i]) is not None), len(lines))
+    todo = dict(values)
+    for i in range(start + 1, end):
+        key = lines[i].split("=", 1)[0].strip() if "=" in lines[i] and not lines[i].lstrip().startswith(("#", ";")) else None
+        if key in todo:
+            lines[i] = f"{key} = {fmt(todo.pop(key))}"
+    insert_at = end
+    while insert_at > start + 1 and not lines[insert_at - 1].strip():
+        insert_at -= 1
+    lines[insert_at:insert_at] = [f"{k} = {fmt(v)}" for k, v in todo.items()]
+    return "\n".join(lines) + "\n"
+
+
 def read_json(p: Path, default):
     try:
         return json.loads(p.read_text(encoding="utf-8-sig"))
@@ -225,6 +269,10 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
     key = f"{recipe['id']}:{step.get('id') or step.get('repo') or t}"
     if t == "github_release":  # one repo can feed several steps (apworld + mod)
         key += f":{step.get('asset')}:{step.get('pick') or step.get('to')}"
+
+    if s.get("skip_if_exists") and resolve_path(s["skip_if_exists"]).exists():
+        task.say(f"✔ {s.get('label', step.get('id') or t)}")
+        return
 
     if t == "apworld_builtin":
         task.say("✔ اللعبة مدعومة رسمياً في Archipelago")
@@ -305,12 +353,23 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         content = s["content"]
         if isinstance(content, dict):
             content = coerce_ints(dict(content), s.get("ints"))
+            for k, v in list(content.items()):  # ints inside nested sections too
+                if isinstance(v, dict):
+                    content[k] = coerce_ints(dict(v), s.get("ints"))
             if s.get("merge"):  # keep the other settings the game/mod already wrote
                 old = read_json(p, {})
-                content = {**(old if isinstance(old, dict) else {}), **content}
+                content = deep_merge(old if isinstance(old, dict) else {}, content)
         if isinstance(content, (dict, list)):
             content = json.dumps(content, ensure_ascii=False, indent=2)
         p.write_text(content, encoding="utf-8")
+        task.say(f"✔ كتبت إعدادات {p.name}")
+
+    elif t == "ini_set":  # BepInEx .cfg, MelonPreferences.cfg
+        p = Path(s["path"])
+        old = p.read_text(encoding="utf-8-sig") if p.exists() else ""
+        values = coerce_ints(dict(s["values"]), s.get("ints"))
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(ini_set(old, s["section"], values, s.get("quote", False)), encoding="utf-8")
         task.say(f"✔ كتبت إعدادات {p.name}")
 
     elif t == "json_list_add":  # e.g. tModLoader's Mods/enabled.json

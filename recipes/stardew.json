@@ -1,0 +1,101 @@
+{
+  "id": "stardew",
+  "name": "Stardew Valley",
+  "name_ar": "ستاردو فالي",
+  "game": "Stardew Valley",
+  "steam_appid": 413150,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب SMAPI والمود (لازم نسخة 7 عشان تطابق Archipelago) ويشغّل اللعبة مع SMAPI.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Stardew%20Valley/setup/en",
+    "https://github.com/agilbert1412/StardewArchipelago/releases",
+    "https://github.com/Pathoschild/SMAPI/releases"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Pathoschild/SMAPI",
+      "asset": "SMAPI-*-installer.zip",
+      "extract": true,
+      "strip_top_folder": true,
+      "to": "{tools}/smapi",
+      "label": "SMAPI installer"
+    },
+    {
+      "type": "run",
+      "label": "تثبيت SMAPI",
+      "exe": "{tools}/smapi/internal/windows/SMAPI.Installer.exe",
+      "cwd": "{tools}/smapi",
+      "args": [
+        "--install",
+        "--game-path",
+        "{game_dir}",
+        "--no-prompt"
+      ],
+      "wait": true,
+      "skip_if_exists": "{game_dir}/StardewModdingAPI.exe"
+    },
+    {
+      "type": "github_release",
+      "repo": "agilbert1412/StardewArchipelago",
+      "asset": "StardewArchipelago.7.*.zip",
+      "extract": true,
+      "to": "{game_dir}/Mods",
+      "check": "{game_dir}/Mods/StardewArchipelago",
+      "label": "StardewArchipelago mod"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "label": "Stardew Valley (SMAPI)",
+      "exe": "{game_dir}/StardewModdingAPI.exe"
+    },
+    {
+      "type": "manual",
+      "id": "connect_stardew",
+      "every_time": true,
+      "text_ar": "أول مرة: سوّ مزرعة جديدة، وفي صفحة الشخصية اكتب Server = {address} والاسم {slot}. بعدها السيف يتصل لحاله."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "الهدف",
+      "help_ar": "وش لازم تسوي عشان تخلص",
+      "default": "community_center",
+      "choices": [
+        {
+          "value": "community_center",
+          "label_ar": "Community Center"
+        },
+        {
+          "value": "grandpa_evaluation",
+          "label_ar": "تقييم الجد"
+        },
+        {
+          "value": "bottom_of_the_mines",
+          "label_ar": "آخر المنجم (قصيرة)"
+        },
+        {
+          "value": "cryptic_note",
+          "label_ar": "Cryptic Note"
+        },
+        {
+          "value": "master_angler",
+          "label_ar": "صياد محترف"
+        },
+        {
+          "value": "perfection",
+          "label_ar": "Perfection (طويلة جداً)"
+        }
+      ]
+    }
+  ]
+}

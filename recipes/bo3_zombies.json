@@ -1,0 +1,64 @@
+{
+  "id": "bo3_zombies",
+  "name": "Call of Duty: Black Ops III - Zombies",
+  "name_ar": "كود بلاك أوبس 3 زومبي",
+  "game": "Black Ops 3 - Zombies",
+  "steam_appid": 311210,
+  "verified": false,
+  "death_link_key": "deathlink_enabled",
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة (Unstable)، توقعوا مشاكل. تحتاج الزومبي من اللعبة الأساسية والخرائط اللي عندك. ننصح تثبتون t7patch (حماية لنسخة الكمبيوتر). البرنامج يكتب العنوان والاسم في المود.",
+  "sources": [
+    "https://github.com/colin969/bo3_archipelago",
+    "https://github.com/colin969/bo3_archipelago/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "colin969/bo3_archipelago",
+      "asset": "cod_bo3.apworld",
+      "to": "{custom_worlds}",
+      "label": "BO3 Zombies apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "colin969/bo3_archipelago",
+      "asset": "BO3APMod.zip",
+      "extract": true,
+      "to": "{game_dir}/mods",
+      "check": "{game_dir}/mods/bo3_archipelago",
+      "label": "BO3 Archipelago mod"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "path": "{game_dir}/archipelago.json",
+      "merge": true,
+      "ints": [
+        "usePassword"
+      ],
+      "content": {
+        "server": "{address}",
+        "slot": "{slot}",
+        "password": "{password}",
+        "usePassword": "{has_password}"
+      }
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 311210
+    },
+    {
+      "type": "manual",
+      "id": "connect_bo3",
+      "every_time": true,
+      "text_ar": "في اللعبة: Mods > شغّل bo3_archipelago. بعدها من قائمة Archipelago العنوان والاسم مكتوبة لك، اضغط Validate وابدأ اللعب."
+    }
+  ],
+  "options": []
+}

@@ -15,7 +15,7 @@ def all_recipes():
 
 
 def test_all_recipes_load(all_recipes):
-    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "re4r", "re4_classic", "re7", "re8", "cuphead", "portal2", "re9"} <= set(all_recipes)
+    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "re4r", "re4_classic", "re7", "re8", "cuphead", "portal2", "re9", "bo3_zombies", "pvz_replanted", "balatro", "peak", "buckshot", "dst", "tunic", "brotato", "stardew"} <= set(all_recipes)
 
 
 def test_common_advanced_options_added(all_recipes):
@@ -212,3 +212,30 @@ def test_friends_never_see_paths_or_yaml(all_recipes):
         texts = [r.get("notes_ar", "")] + [s.get("text_ar", "") for ph in rec.PHASES for s in r.get(ph, [])]
         for t in texts:
             assert not any(h in t for h in hidden), (r["id"], t)
+
+
+def test_ini_set_keeps_other_lines_and_sections():
+    t = "## Settings\n\n[Connection]\n\n# Host\nServer = archipelago.gg\n\n[Other]\nX = 1\n"
+    out = runner.ini_set(t, "Connection", {"Server": "h:1", "Slot": "Mishal"})
+    assert "# Host\nServer = h:1\nSlot = Mishal\n\n[Other]\nX = 1" in out
+    melon = '["Archipelago Connection"]\nHost = "archipelago.gg:"\n\n[MelonLoader]\nX = 1\n'
+    out = runner.ini_set(melon, "Archipelago Connection", {"Host": "h:1", "Password": ""}, quote=True)
+    assert out.startswith('["Archipelago Connection"]\nHost = "h:1"\nPassword = ""\n')
+    assert runner.ini_set("", "A B", {"k": "v"}, quote=True) == '["A B"]\nk = "v"\n'
+
+
+def test_write_file_deep_merge_and_skip_if_exists(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "save_settings", lambda s: None)
+    f = tmp_path / "Settings.json"
+    f.write_text('{"Mode": 2, "ConnectionSettings": {"Player": "old", "Port": "1"}}')
+    step = {"type": "write_file", "path": str(f), "merge": True,
+            "content": {"ConnectionSettings": {"Player": "{slot}", "Hostname": "h"}}}
+    runner.run_step(step, {"slot": "Mishal"}, _settings(), {"id": "t", "steam_appid": 1}, _T())
+    assert json.loads(f.read_text()) == {"Mode": 2, "ConnectionSettings": {"Player": "Mishal", "Port": "1", "Hostname": "h"}}
+    marker = tmp_path / "done.exe"
+    marker.write_text("")
+    calls = []
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda *a, **k: calls.append(a))
+    runner.run_step({"type": "run", "exe": str(tmp_path / "missing.exe"), "skip_if_exists": str(marker)},
+                    {}, _settings(), {"id": "t", "steam_appid": 1}, _T())
+    assert calls == []

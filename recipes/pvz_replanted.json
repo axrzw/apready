@@ -1,0 +1,70 @@
+{
+  "id": "pvz_replanted",
+  "name": "Plants vs. Zombies: Replanted",
+  "name_ar": "النباتات ضد الزومبي (Replanted)",
+  "game": "Plants vs. Zombies",
+  "steam_appid": 3654560,
+  "verified": false,
+  "notes_ar": "النسخة الجديدة Replanted على ستيم. البرنامج يركّب MelonLoader والمود ويكتب الاتصال لك.",
+  "sources": [
+    "https://github.com/dannybonz/replanted_archipelago/blob/main/apworld/docs/setup.md",
+    "https://github.com/dannybonz/replanted_archipelago/releases",
+    "https://github.com/LavaGang/MelonLoader/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "dannybonz/replanted_archipelago",
+      "asset": "pvzr.apworld",
+      "to": "{custom_worlds}",
+      "label": "PvZ apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "LavaGang/MelonLoader",
+      "asset": "MelonLoader.x64.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/version.dll",
+      "label": "MelonLoader"
+    },
+    {
+      "type": "github_release",
+      "repo": "dannybonz/replanted_archipelago",
+      "asset": "replanted_archipelago_*.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/Mods/ReplantedArchipelago.dll",
+      "label": "Replanted Archipelago mod"
+    }
+  ],
+  "connect": [
+    {
+      "type": "ini_set",
+      "label": "بيانات الاتصال",
+      "path": "{game_dir}/UserData/MelonPreferences.cfg",
+      "section": "Archipelago Connection",
+      "quote": true,
+      "values": {
+        "Host": "{address}",
+        "SlotName": "{slot}",
+        "Password": "{password}"
+      }
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 3654560
+    },
+    {
+      "type": "manual",
+      "id": "connect_pvz",
+      "every_time": true,
+      "text_ar": "أول ما تفتح اللعبة تطلع لك بيانات الاتصال مكتوبة، اضغط اتصال بس. أول تشغيل بعد MelonLoader ياخذ وقت أطول."
+    }
+  ],
+  "options": []
+}

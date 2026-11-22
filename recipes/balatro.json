@@ -1,0 +1,83 @@
+{
+  "id": "balatro",
+  "name": "Balatro",
+  "name_ar": "بالاترو",
+  "game": "Balatro",
+  "steam_appid": 2379780,
+  "verified": false,
+  "death_link_key": "deathlink",
+  "notes_ar": "البرنامج يركّب Lovely و Steamodded والمود. سيفاتك العادية ما تتأثر، والمود يسوي بروفايل خاص اسمه Archipelago.",
+  "sources": [
+    "https://github.com/BurndiL/BalatroAP",
+    "https://github.com/Steamodded/smods/wiki",
+    "https://github.com/ethangreen-dev/lovely-injector/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "BurndiL/BalatroAP",
+      "asset": "balatro.apworld",
+      "to": "{custom_worlds}",
+      "label": "Balatro apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "ethangreen-dev/lovely-injector",
+      "asset": "lovely-x86_64-pc-windows-msvc.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/winmm.dll",
+      "label": "Lovely injector"
+    },
+    {
+      "type": "github_release",
+      "repo": "Steamodded/smods",
+      "asset": "__source__",
+      "extract": true,
+      "strip_top_folder": true,
+      "to": "{appdata}/Balatro/Mods/smods",
+      "label": "Steamodded"
+    },
+    {
+      "type": "github_release",
+      "repo": "BurndiL/BalatroAP",
+      "asset": "BalatroAP.zip",
+      "extract": true,
+      "strip_top_folder": true,
+      "to": "{appdata}/Balatro/Mods/BalatroAP",
+      "label": "Balatro AP mod"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "path": "{appdata}/Balatro/APSettings.json",
+      "merge": true,
+      "ints": [
+        "APPort"
+      ],
+      "content": {
+        "APAddress": "{host}",
+        "APPort": "{port}",
+        "APSlot": "{slot}",
+        "APPassword": "{password}"
+      }
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 2379780
+    },
+    {
+      "type": "manual",
+      "id": "connect_balatro",
+      "every_time": true,
+      "text_ar": "تحت يسار القائمة اختر بروفايل Archipelago. العنوان والاسم مكتوبة لك، اضغط Connect."
+    }
+  ],
+  "options": []
+}

@@ -7,7 +7,7 @@ from .paths import base_dir
 
 STEP_TYPES = {
     "github_release", "workshop", "manual", "copy", "write_file",
-    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add",
+    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "ini_set",
 }
 PHASES = ("apworld", "install", "connect", "launch")
 
