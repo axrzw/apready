@@ -202,3 +202,13 @@ def test_recipes_have_no_ambiguous_assets(all_recipes):
             for step in r.get(phase, []):
                 if step["type"] == "github_release":
                     assert step["asset"] not in ("*.zip", "*.apworld"), (r["id"], step)
+
+
+def test_friends_never_see_paths_or_yaml(all_recipes):
+    """CLAUDE.md: no YAML or folder paths in what players read (notes and step texts)."""
+    hidden = ("{tools}", "{custom_worlds}", "{game_dir}", "{ap_dir}", "{steam}", "{sourcemods}",
+              "{documents}", "{appdata}", "YAML", "yaml")
+    for r in all_recipes.values():
+        texts = [r.get("notes_ar", "")] + [s.get("text_ar", "") for ph in rec.PHASES for s in r.get(ph, [])]
+        for t in texts:
+            assert not any(h in t for h in hidden), (r["id"], t)

@@ -47,9 +47,9 @@
   ],
   "options": [
     {
-      "key": "goal",
+      "key": "goal_option",
       "label_ar": "الهدف",
-      "help_ar": "full_game: النهاية العادية. shura: نهاية شورا (أقصر)",
+      "help_ar": "shura أقصر: تخلص لما تطيع Owl بعد أول غزو. اختيار النهاية تسويه انت داخل اللعبة",
       "default": "full_game",
       "choices": [
         {
@@ -61,6 +61,20 @@
           "label_ar": "نهاية Shura (أقصر)"
         }
       ]
+    },
+    {
+      "key": "enemy_randomizer",
+      "label_ar": "خلط الأعداء",
+      "help_ar": "يغيّر الأعداء والبوسات",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "randomize_skills_and_prosthetics",
+      "label_ar": "خلط المهارات والأدوات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
     }
   ]
 }

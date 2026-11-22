@@ -24,14 +24,6 @@
     {
       "type": "github_release",
       "repo": "Pegzzzz/RE4-UHD-Archipelago",
-      "asset": "re4uhd.apworld",
-      "prerelease": true,
-      "to": "{custom_worlds}",
-      "label": "RE4 UHD apworld (للكلاينت)"
-    },
-    {
-      "type": "github_release",
-      "repo": "Pegzzzz/RE4-UHD-Archipelago",
       "asset": "RE4-UHD-Archipelago.zip",
       "prerelease": true,
       "extract": true,

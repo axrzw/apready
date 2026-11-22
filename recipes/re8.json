@@ -5,7 +5,7 @@
   "game": "Resident Evil Village",
   "steam_appid": 1196590,
   "verified": false,
-  "notes_ar": "لسا ألفا. يجي مع لانشر يركّب المود مرة وحدة. البرنامج يكتب الاتصال داخل اللعبة فتتصل لحالها. ابدأ New Game بنفس الصعوبة اللي في الـ YAML. الـ DLC ما ينفع.",
+  "notes_ar": "لسا ألفا. يجي مع لانشر يركّب المود مرة وحدة. البرنامج يكتب الاتصال داخل اللعبة فتتصل لحالها. ابدأ New Game بنفس الصعوبة اللي اخترتها هنا. الـ DLC ما ينفع.",
   "sources": [
     "https://github.com/Snokay/Archipelago-RE-Village",
     "https://github.com/Snokay/Archipelago-RE-Village/blob/main/SETUP_GUIDE.md",
@@ -64,5 +64,54 @@
       "appid": 1196590
     }
   ],
-  "options": []
+  "options": [
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "لو اخترت صعوبة، لازم تلعب عليها وإلا ما تنحسب الـ checks",
+      "default": "any",
+      "choices": [
+        {
+          "value": "any",
+          "label_ar": "أي صعوبة"
+        },
+        {
+          "value": "casual",
+          "label_ar": "Casual"
+        },
+        {
+          "value": "standard",
+          "label_ar": "Standard"
+        },
+        {
+          "value": "hardcore",
+          "label_ar": "Hardcore"
+        },
+        {
+          "value": "village_of_shadows",
+          "label_ar": "Village of Shadows"
+        }
+      ]
+    },
+    {
+      "key": "goal",
+      "label_ar": "الهدف",
+      "help_ar": "وش لازم تسوي عشان تخلص",
+      "default": "game_ending",
+      "choices": [
+        {
+          "value": "game_ending",
+          "label_ar": "نهاية اللعبة (Miranda)"
+        },
+        {
+          "value": "four_lords",
+          "label_ar": "الأسياد الأربعة"
+        },
+        {
+          "value": "dimitrescu",
+          "label_ar": "Dimitrescu بس (قصيرة)"
+        }
+      ]
+    }
+  ]
 }

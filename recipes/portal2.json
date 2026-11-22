@@ -23,13 +23,6 @@
     {
       "type": "github_release",
       "repo": "GlassToadstool/Portal2ArchipelagoMod",
-      "asset": "portal2.apworld",
-      "to": "{custom_worlds}",
-      "label": "Portal 2 apworld + client (للكلاينت)"
-    },
-    {
-      "type": "github_release",
-      "repo": "GlassToadstool/Portal2ArchipelagoMod",
       "asset": "Portal2Archipelago.zip",
       "extract": true,
       "to": "{sourcemods}",
@@ -65,6 +58,12 @@
         "-netconport",
         "3000"
       ]
+    },
+    {
+      "type": "manual",
+      "id": "connect_portal2",
+      "every_time": true,
+      "text_ar": "الكلاينت يتصل بالروم لحاله. لو سألك عن الاسم اكتب {slot}. اللعبة تفتح مباشرة (خل ستيم مفتوح)."
     }
   ],
   "options": []

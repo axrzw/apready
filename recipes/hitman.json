@@ -23,13 +23,6 @@
   "install": [
     {
       "type": "github_release",
-      "repo": "BenDipp/Archipelago",
-      "asset": "hitman_woa.apworld",
-      "to": "{custom_worlds}",
-      "label": "Hitman apworld (للكلاينت)"
-    },
-    {
-      "type": "github_release",
       "repo": "thepeacockproject/Peacock",
       "asset": "Peacock-v*[0-9].zip",
       "extract": true,

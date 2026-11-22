@@ -5,7 +5,7 @@
   "game": "Resident Evil Requiem",
   "steam_appid": 3764200,
   "verified": false,
-  "notes_ar": "ألفا. يجي مع لانشر يركّب REFramework والكلاينت مرة وحدة (يحتاج .NET 8 Desktop Runtime). البرنامج يكتب الاتصال داخل اللعبة. لازم تلعب بنفس الصعوبة اللي في الـ YAML.",
+  "notes_ar": "ألفا. يجي مع لانشر يركّب REFramework والكلاينت مرة وحدة (لو طلب الويندوز تنزيل .NET وافق). البرنامج يكتب الاتصال داخل اللعبة. لازم تلعب بنفس الصعوبة اللي اخترتها هنا.",
   "sources": [
     "https://github.com/LechapelierHD/Re9-archipelago",
     "https://github.com/LechapelierHD/Re9-archipelago/releases"

@@ -44,14 +44,15 @@ Step types: `github_release` (repo, asset glob or "__source__", to, extract,
 strip_top_folder, pick = glob of one file inside the zip to copy flat, check = path that
 proves it's installed, tag, prerelease), `workshop` (workshop_id; done by itself once Steam
 has downloaded it), `manual` (id, text_ar, url, every_time, done_if_exists = path/glob that
-means it's already done, open_exe = launcher to open for the player), `copy`, `write_file`
+means it's already done, open_exe = launcher to open for the player,
+open_folder = folder to show instead of printing its path), `copy`, `write_file`
 (merge = keep the other keys of an existing JSON, ints = keys to write as numbers),
 `json_list_add` (path, items), `open_url`, `steam_launch`, `run` (exe may be a glob,
 optional_args only added when the value isn't empty), `apworld_builtin`.
 Asset globs must match exactly one file of the release (a test rejects bare `*.zip`).
 Clients inside an apworld (Archipelago Launcher components) are opened with
-`ArchipelagoLauncher.exe "<Component>" -- --connect {address} --name {slot}`, so players need
-the apworld too (put the same step in `install`).
+`ArchipelagoLauncher.exe "<Component>" -- --connect {address} --name {slot}`. Players get the
+apworld too, because the setup and play buttons also run the `apworld` phase.
 Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
 {slot} {host} {port} {address} {password}`.
 

@@ -144,7 +144,8 @@ def extract_zip(zip_path: Path, dest_dir: Path, strip: bool = False, pick: str =
                 name = name.rsplit("/", 1)[-1]
             elif strip:
                 name = name.split("/", 1)[1] if "/" in name else ""
-            if not name or ".." in name.split("/"):
+            name = name.lstrip("/")
+            if not name or ".." in name.split("/") or ":" in name:  # never write outside dest_dir
                 continue
             target = dest_dir / name
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -278,6 +279,10 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         if not settings["done_steps"].get(f"{recipe['id']}:{step['id']}"):
             if s.get("url"):
                 webbrowser.open(s["url"])
+            if s.get("open_folder"):  # show the folder instead of printing its path
+                folder = Path(s["open_folder"])
+                folder.mkdir(parents=True, exist_ok=True)
+                webbrowser.open(folder.as_uri())
             if s.get("open_exe"):  # open the mod's own launcher so the player only has to click in it
                 exe = resolve_path(s["open_exe"])
                 if exe.exists():
