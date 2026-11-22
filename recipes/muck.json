@@ -1,0 +1,62 @@
+{
+  "id": "muck",
+  "name": "Muck",
+  "name_ar": "ماك",
+  "game": "Muck",
+  "steam_appid": 1625450,
+  "verified": false,
+  "death_link_key": "deathlink",
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. ببلاش في ستيم. اللعب الجماعي ما ينفع فيها للحين: لازم تكون لحالك في اللوبي.",
+  "sources": [
+    "https://github.com/PGMProductions/Muck-for-Archipelago/blob/main/HOW%20TO%20USE.md",
+    "https://thunderstore.io/c/muck/p/PGM_Productions/Muck_For_Archipelago/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "PGMProductions/Muck-for-Archipelago",
+      "asset": "muck.apworld",
+      "to": "{custom_worlds}",
+      "label": "Muck apworld + client"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "PGM_Productions-Muck_For_Archipelago"
+      ],
+      "label": "مودات Thunderstore"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "Muck Client",
+      "args": [
+        "muck client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
+    },
+    {
+      "type": "steam_launch",
+      "appid": 1625450
+    },
+    {
+      "type": "manual",
+      "id": "connect_muck",
+      "every_time": true,
+      "text_ar": "لو سألك الكلاينت عن مجلد اللعبة اختر المجلد اللي فيه Muck.exe (أول مرة بس). ولو سألك عن الاسم اكتب {slot}."
+    }
+  ],
+  "options": []
+}

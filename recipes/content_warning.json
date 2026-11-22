@@ -1,0 +1,45 @@
+{
+  "id": "content_warning",
+  "name": "Content Warning",
+  "name_ar": "كونتنت وورنينق",
+  "game": "Content Warning",
+  "steam_appid": 2881650,
+  "verified": false,
+  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود من Thunderstore.",
+  "sources": [
+    "https://github.com/Jakeodude/cw-apworld",
+    "https://thunderstore.io/c/content-warning/p/Faust/ContentWarningArchipelago/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "Jakeodude/cw-apworld",
+      "asset": "content_warning.apworld",
+      "to": "{custom_worlds}",
+      "label": "Content Warning apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "Faust-ContentWarningArchipelago"
+      ],
+      "label": "مودات Thunderstore"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 2881650
+    },
+    {
+      "type": "manual",
+      "id": "connect_cw",
+      "every_time": true,
+      "text_ar": "في القائمة الرئيسية افتح نافذة Archipelago، واكتب العنوان {address} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

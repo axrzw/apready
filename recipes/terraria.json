@@ -5,10 +5,12 @@
   "game": "Terraria",
   "steam_appid": 1281930,
   "verified": false,
-  "notes_ar": "تشتغل عن طريق tModLoader (ببلاش في ستيم). اللعبة أصعب مع الراندومايزر، فاختاروا صعوبة أقل من العادة.",
+  "notes_ar": "تشتغل عن طريق tModLoader (ببلاش في ستيم). البرنامج يفعّل المود ويكتب إعدادات الاتصال لحاله. اللعبة أصعب مع الراندومايزر، فاختاروا صعوبة أقل من العادة.",
   "sources": [
     "https://archipelago.gg/tutorial/Terraria/setup/en",
-    "https://steamcommunity.com/sharedfiles/filedetails/?id=2922217554"
+    "https://steamcommunity.com/sharedfiles/filedetails/?id=2922217554",
+    "https://github.com/Seldom-SE/archipelago_terraria_client",
+    "https://github.com/ArchipelagoMW/Archipelago/blob/main/worlds/terraria/Options.py"
   ],
   "apworld": [
     {
@@ -17,27 +19,36 @@
   ],
   "install": [
     {
-      "type": "manual",
-      "id": "tmodloader",
-      "label": "tModLoader",
-      "url": "steam://install/1281930",
-      "text_ar": "ثبّت tModLoader من ستيم (ببلاش). انفتح لك ستيم، اضغط تثبيت وبعدها ارجع واضغط سويتها."
-    },
-    {
       "type": "workshop",
       "id": "workshop_mod",
       "workshop_id": "2922217554",
       "label": "مود Archipelago",
-      "text_ar": "انفتحت صفحة مود Archipelago في الورشة. اضغط Subscribe، وبعدها افتح tModLoader مرة وحدة > Workshop > Manage Mods وفعّل المود. بعدها ارجع واضغط سويتها."
+      "text_ar": "انفتحت صفحة مود Archipelago في الورشة. اضغط Subscribe واستنى ستيم ينزله، وبعدها ارجع واضغط سويتها."
+    },
+    {
+      "type": "json_list_add",
+      "label": "تفعيل المود",
+      "path": "{documents}/My Games/Terraria/tModLoader/Mods/enabled.json",
+      "items": [
+        "SeldomArchipelago"
+      ]
     }
   ],
   "connect": [
     {
-      "type": "manual",
-      "id": "connect_every_time",
+      "type": "write_file",
       "label": "بيانات الاتصال",
-      "text_ar": "في tModLoader: Workshop > Manage Mods > إعدادات Archipelago Randomizer. خل Name = {slot} و Port = {port}. لو السيرفر مو archipelago.gg غيّر Address إلى {host}.",
-      "every_time": true
+      "path": "{documents}/My Games/Terraria/tModLoader/ModConfigs/SeldomArchipelago_Config.json",
+      "merge": true,
+      "ints": [
+        "port"
+      ],
+      "content": {
+        "name": "{slot}",
+        "port": "{port}",
+        "address": "{host}",
+        "password": "{password}"
+      }
     }
   ],
   "launch": [
@@ -74,6 +85,51 @@
           "label_ar": "Moon Lord (طويلة)"
         }
       ]
+    },
+    {
+      "key": "early_achievements",
+      "label_ar": "إنجازات البداية",
+      "help_ar": "تضيف checks من إنجازات أول اللعبة (تسرّع البداية)",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "normal_achievements",
+      "label_ar": "الإنجازات العادية",
+      "help_ar": "باقي الإنجازات اللي مو بوسات أو أحداث",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "grindy_achievements",
+      "label_ar": "الإنجازات الطويلة",
+      "help_ar": "إنجازات تبي تفريم كثير",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "fishing_achievements",
+      "label_ar": "إنجازات الصيد",
+      "help_ar": "مهمات الصياد",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "fill_extra_checks_with",
+      "label_ar": "وش يجي في الـ checks الزايدة",
+      "help_ar": "useful_items يخفف التفريم في البداية",
+      "default": "useful_items",
+      "choices": [
+        {
+          "value": "useful_items",
+          "label_ar": "أغراض مفيدة"
+        },
+        {
+          "value": "coins",
+          "label_ar": "فلوس"
+        }
+      ],
+      "advanced": true
     }
   ]
 }

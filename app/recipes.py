@@ -7,7 +7,7 @@ from .paths import base_dir
 
 STEP_TYPES = {
     "github_release", "workshop", "manual", "copy", "write_file",
-    "steam_launch", "run", "open_url", "apworld_builtin",
+    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "ini_set", "thunderstore",
 }
 PHASES = ("apworld", "install", "connect", "launch")
 
@@ -20,6 +20,8 @@ def validate(r: dict, source: str = "") -> dict:
     for key in ("id", "name", "game", "steam_appid"):
         if key not in r:
             raise RecipeError(f"{source}: missing '{key}'")
+    if not re.fullmatch(r"[a-z0-9_]{1,40}", str(r["id"])):  # the id becomes a folder name
+        raise RecipeError(f"{source}: bad id '{r['id']}'")
     for phase in PHASES:
         for i, step in enumerate(r.get(phase, [])):
             t = step.get("type")
@@ -44,14 +46,28 @@ COMMON_OPTIONS = [
 ]
 
 
-def load_all(folder: Path = None) -> dict:
+def _prepare(r: dict) -> dict:
+    keys = {o["key"] for o in r.get("options", [])}
+    r["options"] = r.get("options", []) + [dict(o) for o in COMMON_OPTIONS if o["key"] not in keys]
+    return r
+
+
+def load_all(folder: Path = None, extra: Path = None) -> dict:
+    """Recipes shipped with the app, then the ones downloaded from the project repo (extra),
+    which replace a shipped one with the same id. A downloaded recipe this version of the
+    app can't read (e.g. a newer step type) is skipped and the shipped one is kept."""
     folder = folder or base_dir() / "recipes"
     out = {}
     for f in sorted(folder.glob("*.json")):
         r = validate(json.loads(f.read_text(encoding="utf-8")), f.name)
-        keys = {o["key"] for o in r.get("options", [])}
-        r["options"] = r.get("options", []) + [dict(o) for o in COMMON_OPTIONS if o["key"] not in keys]
-        out[r["id"]] = r
+        out[r["id"]] = _prepare(r)
+    if extra and extra.exists():
+        for f in sorted(extra.glob("*.json")):
+            try:
+                r = validate(json.loads(f.read_text(encoding="utf-8")), f.name)
+            except (ValueError, OSError):
+                continue
+            out[r["id"]] = _prepare(r)
     return out
 
 

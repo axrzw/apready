@@ -1,0 +1,70 @@
+{
+  "id": "buckshot",
+  "name": "Buckshot Roulette",
+  "name_ar": "باكشوت رولت",
+  "game": "Buckshot Roulette",
+  "steam_appid": 2835570,
+  "verified": false,
+  "notes_ar": "أول مرة البرنامج يركّب Godot Mod Loader: تنفتح اللعبة وتطلب إعادة تشغيل، سكّرها بس. بعدها البرنامج يشغّل النسخة المعدّلة (من ستيم تشتغل الأصلية بدون المود).",
+  "sources": [
+    "https://github.com/asdfwyay/APBuckshot/blob/main/worlds/buckshot/docs/setup_en.md",
+    "https://github.com/asdfwyay/APBuckshot/releases",
+    "https://github.com/asdfwyay/APBuckshot-Client/releases/tag/gml-7.0.1-custom"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "asdfwyay/APBuckshot",
+      "asset": "buckshot.apworld",
+      "to": "{custom_worlds}",
+      "label": "Buckshot Roulette apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "asdfwyay/APBuckshot-Client",
+      "tag": "gml-7.0.1-custom",
+      "asset": "gml-7.0.1-custom.zip",
+      "extract": true,
+      "to": "{game_dir}/Buckshot Roulette_windows",
+      "check": "{game_dir}/Buckshot Roulette_windows/addons/mod_loader",
+      "label": "Godot Mod Loader"
+    },
+    {
+      "type": "run",
+      "label": "تجهيز Mod Loader (مرة وحدة)",
+      "exe": "{game_dir}/Buckshot Roulette_windows/Buckshot Roulette.exe",
+      "args": [
+        "--script",
+        "addons/mod_loader/mod_loader_setup.gd"
+      ],
+      "wait": true,
+      "skip_if_exists": "{game_dir}/Buckshot Roulette_windows/Buckshot Roulette-vanilla.exe"
+    },
+    {
+      "type": "github_release",
+      "repo": "asdfwyay/APBuckshot",
+      "asset": "asdfwyay-APBuckshot-*.zip",
+      "to": "{game_dir}/Buckshot Roulette_windows/mods",
+      "label": "Buckshot Roulette AP mod"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "label": "Buckshot Roulette (مع المود)",
+      "exe": "{game_dir}/Buckshot Roulette_windows/Buckshot Roulette.exe"
+    },
+    {
+      "type": "manual",
+      "id": "connect_buckshot",
+      "every_time": true,
+      "text_ar": "في نافذة Archipelago داخل اللعبة اكتب العنوان {address} والاسم {slot}، وخل زر DeathLink {death_link_ar}، واضغط اتصال."
+    }
+  ],
+  "options": [],
+  "death_link_key": null,
+  "death_link_in_mod": true
+}

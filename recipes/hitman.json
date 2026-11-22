@@ -5,16 +5,17 @@
   "game": "HITMAN World of Assassination",
   "steam_appid": 1659040,
   "verified": false,
-  "notes_ar": "يشتغل عن طريق Peacock (سيرفر محلي بدل سيرفرات IOI). البرنامج يشغّل Peacock لك كل مرة.",
+  "notes_ar": "يشتغل عن طريق Peacock (سيرفر محلي بدل سيرفرات IOI). البرنامج يشغّل Peacock والكلاينت متصل لحاله. المراحل تطلع في Campaigns > Archipelago.",
   "sources": [
-    "https://multiworld.gg/tutorial/HITMAN%20World%20of%20Assassination/setup_en",
-    "https://github.com/BenDipp/Archipelago/releases"
+    "https://github.com/BenDipp/Archipelago/releases",
+    "https://thepeacockproject.org/wiki/intel/installation/",
+    "https://github.com/thepeacockproject/Peacock/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "BenDipp/Archipelago",
-      "asset": "*.apworld",
+      "asset": "hitman_woa.apworld",
       "to": "{custom_worlds}",
       "label": "Hitman apworld"
     }
@@ -23,7 +24,7 @@
     {
       "type": "github_release",
       "repo": "thepeacockproject/Peacock",
-      "asset": "Peacock-*.zip",
+      "asset": "Peacock-v*[0-9].zip",
       "extract": true,
       "strip_top_folder": true,
       "to": "{tools}/Peacock",
@@ -52,20 +53,24 @@
     {
       "type": "run",
       "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "HITMAN World of Assassination Client",
       "args": [
-        "HITMAN World of Assassination Client"
-      ]
+        "HITMAN World of Assassination Client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
     },
     {
       "type": "steam_launch",
       "appid": 1659040
-    },
-    {
-      "type": "manual",
-      "id": "connect_hitman",
-      "every_time": true,
-      "text_ar": "في نافذة HITMAN Client اكتب {address} واضغط Connect، وبعدها اسمك {slot}. المراحل تطلع في Campaigns > Archipelago."
     }
   ],
-  "options": []
+  "options": [],
+  "death_link_key": null
 }

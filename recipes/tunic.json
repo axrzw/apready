@@ -1,0 +1,75 @@
+{
+  "id": "tunic",
+  "name": "TUNIC",
+  "name_ar": "تونك",
+  "game": "TUNIC",
+  "steam_appid": 553420,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب BepInEx 6 والمود ويكتب الاتصال. أول تشغيل بعد BepInEx ياخذ وقت أطول.",
+  "sources": [
+    "https://github.com/silent-destroyer/tunic-randomizer#installation",
+    "https://github.com/silent-destroyer/tunic-randomizer/releases",
+    "https://archipelago.gg/tutorial/TUNIC/setup/en"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "BepInEx/BepInEx",
+      "tag": "v6.0.0-pre.1",
+      "asset": "BepInEx_UnityIL2CPP_x64_6.0.0-pre.1.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/BepInEx/core",
+      "label": "BepInEx 6 (IL2CPP)"
+    },
+    {
+      "type": "github_release",
+      "repo": "silent-destroyer/tunic-randomizer",
+      "asset": "TunicRandomizer.zip",
+      "extract": true,
+      "to": "{game_dir}/BepInEx/plugins",
+      "check": "{game_dir}/BepInEx/plugins/Tunic Randomizer",
+      "label": "Tunic Randomizer"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "merge": true,
+      "path": "{locallow}/Andrew Shouldice/Secret Legend/Randomizer/Settings.json",
+      "content": {
+        "ConnectionSettings": {
+          "Player": "{slot}",
+          "Hostname": "{host}",
+          "Port": "{port}",
+          "Password": "{password}"
+        },
+        "DeathLinkEnabled": "{death_link}"
+      },
+      "bools": [
+        "DeathLinkEnabled"
+      ]
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 553420
+    },
+    {
+      "type": "manual",
+      "id": "connect_tunic",
+      "every_time": true,
+      "text_ar": "في شاشة البداية اختر وضع Archipelago. البيانات مكتوبة لك، اضغط Connect وابدأ New Game."
+    }
+  ],
+  "options": [],
+  "death_link_key": null,
+  "death_link_in_mod": true
+}

@@ -56,5 +56,20 @@ def save_settings(s: dict) -> None:
     f.write_text(json.dumps(s, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def documents_dir() -> Path:
+    """The real Documents folder (it can be moved, e.g. into OneDrive)."""
+    if sys.platform == "win32":
+        try:
+            import winreg
+            key = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key) as k:
+                p = Path(os.path.expandvars(winreg.QueryValueEx(k, "Personal")[0]))
+                if p.exists():
+                    return p
+        except OSError:
+            pass
+    return Path.home() / "Documents"
+
+
 def ap_dir(settings: dict) -> Path:
     return Path(settings.get("ap_dir") or default_ap_dir())

@@ -5,42 +5,76 @@
   "game": "Sekiro: Shadows Die Twice",
   "steam_appid": 814380,
   "verified": false,
-  "notes_ar": "يحتاج إصدار اللعبة 1.06 وتلعب أوفلاين. الكلاينت يولّد ملفات الراندومايزر لحاله بعد ما يتصل.",
+  "notes_ar": "يحتاج إصدار اللعبة 1.06 (آخر إصدار في ستيم) وتلعب أوفلاين. الكلاينت يولّد ملفات الراندومايزر لحاله بعد ما يتصل.",
   "sources": [
-    "https://github.com/antonovanton000/SekiroArchipelagoClient/releases",
-    "https://www.panludia.com/games/sekiro-shadows-die-twice/releases"
+    "https://github.com/yenix4/ArchipelagoSekiro/blob/main/worlds/sekiro/docs/setup_en.md",
+    "https://github.com/yenix4/ArchipelagoSekiro/releases",
+    "https://github.com/antonovanton000/SekiroArchipelagoClient/releases"
   ],
   "apworld": [
     {
-      "type": "manual",
-      "id": "host_apworld",
-      "url": "https://www.panludia.com/games/sekiro-shadows-die-twice/releases",
-      "text_ar": "(للمستضيف) نزّل sekiro.apworld (نفس إصدار الكلاينت 1.0.1) وحطه في {custom_worlds}، وبعدها اضغط سويتها."
+      "type": "github_release",
+      "repo": "yenix4/ArchipelagoSekiro",
+      "asset": "sekiro.apworld",
+      "to": "{custom_worlds}",
+      "label": "Sekiro apworld"
     }
   ],
   "install": [
     {
       "type": "github_release",
       "repo": "antonovanton000/SekiroArchipelagoClient",
-      "asset": "*win*.zip",
+      "asset": "randomizerAP_windows_*.zip",
       "extract": true,
-      "to": "{tools}/client",
+      "to": "{game_dir}",
+      "check": "{game_dir}/randomizerAP/SekiroAPClient.exe",
       "label": "Sekiro Archipelago Client"
-    },
-    {
-      "type": "manual",
-      "id": "version_106",
-      "text_ar": "تأكد إن سيكيرو على إصدار 1.06، وخل ستيم أوفلاين وقت اللعب (Steam > Go Offline). سويتها؟"
     }
   ],
   "connect": [],
   "launch": [
     {
+      "type": "run",
+      "exe": "{game_dir}/randomizerAP/SekiroAPClient.exe",
+      "label": "Sekiro AP Client"
+    },
+    {
       "type": "manual",
       "id": "launch_client",
       "every_time": true,
-      "text_ar": "افتح الكلاينت من مجلد {tools}\\client، واكتب العنوان {address} والاسم {slot} واضغط Connect، وبعدها شغّل اللعبة."
+      "text_ar": "انفتح لك الكلاينت: اكتب العنوان {address} والاسم {slot} واضغط Connect (يحفظها للمرات الجاية). استنى لين يطلع الـ tracker، وخل اللعبة أوفلاين من إعداداتها، وبعدها اضغط Launch Game."
     }
   ],
-  "options": []
+  "options": [
+    {
+      "key": "goal_option",
+      "label_ar": "الهدف",
+      "help_ar": "shura أقصر: تخلص لما تطيع Owl بعد أول غزو. اختيار النهاية تسويه انت داخل اللعبة",
+      "default": "full_game",
+      "choices": [
+        {
+          "value": "full_game",
+          "label_ar": "اللعبة كاملة"
+        },
+        {
+          "value": "shura",
+          "label_ar": "نهاية Shura (أقصر)"
+        }
+      ]
+    },
+    {
+      "key": "enemy_randomizer",
+      "label_ar": "خلط الأعداء",
+      "help_ar": "يغيّر الأعداء والبوسات",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "randomize_skills_and_prosthetics",
+      "label_ar": "خلط المهارات والأدوات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ]
 }

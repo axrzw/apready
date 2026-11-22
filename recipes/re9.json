@@ -1,0 +1,140 @@
+{
+  "id": "re9",
+  "name": "Resident Evil Requiem",
+  "name_ar": "ريزدنت إيفل 9 (ريكوييم)",
+  "game": "Resident Evil Requiem",
+  "steam_appid": 3764200,
+  "verified": false,
+  "notes_ar": "ألفا. يجي مع لانشر يركّب REFramework والكلاينت مرة وحدة (لو طلب الويندوز تنزيل .NET وافق). البرنامج يكتب الاتصال داخل اللعبة. لازم تلعب بنفس الصعوبة اللي اخترتها هنا.",
+  "sources": [
+    "https://github.com/LechapelierHD/Re9-archipelago",
+    "https://github.com/LechapelierHD/Re9-archipelago/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "LechapelierHD/Re9-archipelago",
+      "asset": "resident_evil_requiem.apworld",
+      "to": "{custom_worlds}",
+      "label": "RE Requiem apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "LechapelierHD/Re9-archipelago",
+      "asset": "RE9_AP_Launcher_*.zip",
+      "extract": true,
+      "to": "{tools}/launcher",
+      "check": "{tools}/launcher/RE9.AP.Launcher.exe",
+      "label": "RE9 AP Launcher"
+    },
+    {
+      "type": "manual",
+      "id": "re9_setup",
+      "open_exe": "{tools}/launcher/RE9.AP.Launcher.exe",
+      "done_if_exists": "{game_dir}/reframework/autorun/ArchipelagoRE9.lua",
+      "text_ar": "انفتح لك لانشر RE9. روح لـ «État de la configuration / Setup status» وركّب REFramework والكلاينت (واللعبة مقفلة). مرة وحدة بس. سويتها؟"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "merge": true,
+      "path": "{game_dir}/reframework/data/ArchipelagoRE9/ap_connection.json",
+      "content": {
+        "server_address": "{address}",
+        "slot_name": "{slot}",
+        "password": "{password}"
+      }
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 3764200
+    },
+    {
+      "type": "manual",
+      "id": "connect_re9",
+      "every_time": true,
+      "text_ar": "العنوان والاسم مكتوبة داخل اللعبة. لو ما اتصل لحاله اضغط Insert وافتح نافذة Archipelago - Resident Evil Requiem."
+    }
+  ],
+  "options": [
+    {
+      "key": "game_difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "لازم تلعب بنفس الصعوبة داخل اللعبة",
+      "default": "modern",
+      "choices": [
+        {
+          "value": "casual",
+          "label_ar": "Casual"
+        },
+        {
+          "value": "modern",
+          "label_ar": "Modern"
+        },
+        {
+          "value": "classic",
+          "label_ar": "Classic"
+        },
+        {
+          "value": "insanity",
+          "label_ar": "Insanity"
+        }
+      ]
+    },
+    {
+      "key": "key_items",
+      "label_ar": "خلط المفاتيح",
+      "help_ar": "vanilla: المفاتيح في أماكنها. shuffled: ممكن تطلع عند غيرك",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label_ar": "في أماكنها"
+        },
+        {
+          "value": "shuffled",
+          "label_ar": "مخلوطة"
+        }
+      ]
+    },
+    {
+      "key": "flag_items",
+      "label_ar": "أغراض القصة",
+      "help_ar": "vanilla أأمن للقصة",
+      "default": "vanilla",
+      "choices": [
+        {
+          "value": "vanilla",
+          "label_ar": "في أماكنها"
+        },
+        {
+          "value": "shuffled",
+          "label_ar": "مخلوطة"
+        }
+      ],
+      "advanced": true
+    },
+    {
+      "key": "supply_box",
+      "label_ar": "Supply Box checks",
+      "help_ar": "مشتريات صندوق الإمداد تصير checks (يفتح بعد ما تخلص اللعبة مرة)",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "enemy_drops",
+      "label_ar": "checks من الأعداء",
+      "help_ar": "عدد checks من دروب الأعداء والجرار (0 يطفيها)",
+      "default": 50,
+      "min": 0,
+      "max": 50,
+      "advanced": true
+    }
+  ]
+}

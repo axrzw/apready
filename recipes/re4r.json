@@ -5,15 +5,17 @@
   "game": "Resident Evil 4 Remake",
   "steam_appid": 2050650,
   "verified": false,
-  "notes_ar": "ريميك 2023 على ستيم، ويدعم Separate Ways و Treasure Map لو عندك الـ DLC. يجي مع لانشر (Wizard) يجهز الباتش.",
+  "notes_ar": "ريميك 2023 على ستيم، ويحتاج Separate Ways و Treasure Map. يجي مع Wizard يركّب REFramework والمود، ويجهز باتش لكل سيد.",
   "sources": [
-    "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard"
+    "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard",
+    "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard/releases"
   ],
   "apworld": [
     {
       "type": "github_release",
       "repo": "LiterallyMetaphorical/RE4R-AP-Wizard",
-      "asset": "*.apworld",
+      "asset": "RE4R.apworld",
+      "prerelease": true,
       "to": "{custom_worlds}",
       "label": "RE4R apworld"
     }
@@ -22,7 +24,8 @@
     {
       "type": "github_release",
       "repo": "LiterallyMetaphorical/RE4R-AP-Wizard",
-      "asset": "*.zip",
+      "asset": "RE4R-AP-Wizard-*-win-x64.zip",
+      "prerelease": true,
       "extract": true,
       "to": "{tools}/wizard",
       "label": "RE4R AP Wizard"
@@ -30,20 +33,35 @@
     {
       "type": "manual",
       "id": "wizard_setup",
-      "text_ar": "افتح مجلد {tools}\\wizard وشغّل الـ Wizard، وسوّ التثبيت مرة وحدة (يركّب REFramework والمود). سويتها؟"
+      "open_exe": "{tools}/wizard/**/RE4R.AP.Launcher.exe",
+      "done_if_exists": "{game_dir}/reframework/autorun/ArchipelagoRE4R.lua",
+      "text_ar": "انفتح لك الـ Wizard. سوّ فيه التثبيت مرة وحدة (يركّب REFramework والمود) واللعبة مقفلة. سويتها؟"
     }
   ],
-  "connect": [],
+  "connect": [
+    {
+      "type": "write_file",
+      "label": "بيانات الاتصال",
+      "merge": true,
+      "path": "{game_dir}/reframework/data/ArchipelagoRE4R/ap_connection.json",
+      "content": {
+        "server_address": "{address}",
+        "slot_name": "{slot}",
+        "password": "{password}"
+      }
+    }
+  ],
   "launch": [
     {
-      "type": "steam_launch",
-      "appid": 2050650
+      "type": "run",
+      "exe": "{tools}/wizard/**/RE4R.AP.Launcher.exe",
+      "label": "RE4R AP Wizard"
     },
     {
       "type": "manual",
       "id": "connect_re4r",
       "every_time": true,
-      "text_ar": "قبل تشغيل اللعبة جهّز الباتش من الـ Wizard بنفس السيد. بعدها داخل اللعبة اضغط Insert تطلع نافذة Archipelago، واكتب {address} والاسم {slot}."
+      "text_ar": "انفتح لك الـ Wizard: جهّز الباتش لهذا السيد (العنوان {address} والاسم {slot}) وشغّل اللعبة منه. داخل اللعبة Insert يفتح نافذة Archipelago."
     }
   ],
   "options": []

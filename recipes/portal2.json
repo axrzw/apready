@@ -5,7 +5,7 @@
   "game": "Portal 2",
   "steam_appid": 620,
   "verified": false,
-  "notes_ar": "المود يطلع في مكتبة ستيم كلعبة اسمها Portal 2 Archipelago Mod. لازم نسخة المود والـ apworld من نفس الإصدار.",
+  "notes_ar": "المود ينحط في sourcemods والبرنامج يشغّله لك مباشرة مع الكلاينت. لازم ستيم يكون مفتوح. نسخة المود والـ apworld من نفس الإصدار.",
   "sources": [
     "https://github.com/GlassToadstool/Portal2ArchipelagoMod",
     "https://github.com/GlassToadstool/Portal2ArchipelagoMod/releases"
@@ -14,7 +14,7 @@
     {
       "type": "github_release",
       "repo": "GlassToadstool/Portal2ArchipelagoMod",
-      "asset": "*.apworld",
+      "asset": "portal2.apworld",
       "to": "{custom_worlds}",
       "label": "Portal 2 apworld + client"
     }
@@ -23,16 +23,11 @@
     {
       "type": "github_release",
       "repo": "GlassToadstool/Portal2ArchipelagoMod",
-      "asset": "*.zip",
+      "asset": "Portal2Archipelago.zip",
       "extract": true,
       "to": "{sourcemods}",
+      "check": "{sourcemods}/Portal2Archipelago",
       "label": "Portal 2 Archipelago Mod"
-    },
-    {
-      "type": "manual",
-      "id": "restart_steam",
-      "text_ar": "سكّر ستيم وافتحه من جديد. بعدها بتلقى Portal 2 Archipelago Mod في مكتبتك. كلك يمين عليه > Properties، وحط خيارات التشغيل اللي في صفحة المود. سويتها؟",
-      "url": "https://github.com/GlassToadstool/Portal2ArchipelagoMod#installation"
     }
   ],
   "connect": [],
@@ -40,15 +35,35 @@
     {
       "type": "run",
       "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "Portal 2 Client",
       "args": [
-        "Portal 2 Client"
+        "Portal 2 Client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
+    },
+    {
+      "type": "run",
+      "exe": "{game_dir}/portal2.exe",
+      "label": "Portal 2 Archipelago Mod",
+      "args": [
+        "-game",
+        "{sourcemods}/Portal2Archipelago",
+        "-netconport",
+        "3000"
       ]
     },
     {
       "type": "manual",
       "id": "connect_portal2",
       "every_time": true,
-      "text_ar": "في نافذة Portal 2 Client اكتب {address} واضغط Connect، والاسم {slot}. بعدها شغّل Portal 2 Archipelago Mod من ستيم."
+      "text_ar": "الكلاينت يتصل بالروم لحاله. لو سألك عن الاسم اكتب {slot}. اللعبة تفتح مباشرة (خل ستيم مفتوح)."
     }
   ],
   "options": []

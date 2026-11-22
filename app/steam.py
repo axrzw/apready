@@ -68,3 +68,12 @@ def game_dir(appid: int) -> Optional[Path]:
                 if d.exists():
                     return d
     return None
+
+
+def workshop_item_dir(appid: int, workshop_id: str) -> Optional[Path]:
+    """Folder of a subscribed Workshop item, or None if Steam hasn't downloaded it yet."""
+    for lib in library_folders():
+        d = lib / "steamapps" / "workshop" / "content" / str(appid) / str(workshop_id)
+        if d.exists() and any(d.iterdir()):
+            return d
+    return None

@@ -1,0 +1,53 @@
+{
+  "id": "brotato",
+  "name": "Brotato",
+  "name_ar": "بروتاتو",
+  "game": "Brotato",
+  "steam_appid": 1942280,
+  "verified": false,
+  "notes_ar": "المود ينحط داخل مود الورشة [Modders] mode (هذي طريقة المطور لنسخة ستيم). زر Archipelago يطلع فوق New Game.",
+  "sources": [
+    "https://github.com/SpenserHaddad/Brotato-ArchipelagoClient#steam-manual-install",
+    "https://github.com/SpenserHaddad/Brotato-ArchipelagoClient/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "SpenserHaddad/Brotato-ArchipelagoClient",
+      "asset": "brotato.apworld",
+      "to": "{custom_worlds}",
+      "label": "Brotato apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "workshop",
+      "id": "modders_mode",
+      "workshop_id": "3369699033",
+      "label": "مود [Modders] mode",
+      "text_ar": "انفتحت صفحة [Modders] mode في الورشة. اضغط Subscribe واستنى ستيم ينزله، وبعدها ارجع واضغط سويتها."
+    },
+    {
+      "type": "github_release",
+      "repo": "SpenserHaddad/Brotato-ArchipelagoClient",
+      "asset": "RampagingHippy-Archipelago.zip",
+      "to": "{workshop}/3369699033",
+      "check": "{workshop}/3369699033/RampagingHippy-Archipelago.zip",
+      "label": "Brotato Archipelago mod"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1942280
+    },
+    {
+      "type": "manual",
+      "id": "connect_brotato",
+      "every_time": true,
+      "text_ar": "اضغط Archipelago فوق New Game، واكتب العنوان {address} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

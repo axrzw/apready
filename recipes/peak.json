@@ -1,0 +1,62 @@
+{
+  "id": "peak",
+  "name": "PEAK",
+  "name_ar": "بيك",
+  "game": "PEAK",
+  "steam_appid": 3527290,
+  "verified": false,
+  "notes_ar": "لعبة تسلق مع الشباب. في اللعب الجماعي، بس سلوت صاحب اللوبي (الهوست) هو اللي يتأثر، والباقين يدخلون عنده عادي.",
+  "sources": [
+    "https://github.com/Mickemoose/peak-archipelago/blob/main/README.md",
+    "https://github.com/Mickemoose/peak-archipelago/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "Mickemoose/peak-archipelago",
+      "asset": "peak.apworld",
+      "to": "{custom_worlds}",
+      "label": "PEAK apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "BepInEx/BepInEx",
+      "asset": "BepInEx_win_x64_5.*.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/winhttp.dll",
+      "label": "BepInEx 5"
+    },
+    {
+      "type": "github_release",
+      "repo": "Mickemoose/peak-archipelago",
+      "asset": "peakpelago_*.zip",
+      "extract": true,
+      "to": "{game_dir}/BepInEx/plugins",
+      "check": "{game_dir}/BepInEx/plugins/peakpelago",
+      "label": "PEAK Archipelago mod"
+    }
+  ],
+  "connect": [
+    {
+      "type": "ini_set",
+      "label": "بيانات الاتصال",
+      "path": "{game_dir}/BepInEx/config/com.mickemoose.peak.ap.cfg",
+      "section": "Connection",
+      "values": {
+        "Server": "{address}",
+        "Slot": "{slot}",
+        "Password": "{password}"
+      }
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 3527290
+    }
+  ],
+  "options": []
+}

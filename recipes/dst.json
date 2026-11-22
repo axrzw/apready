@@ -1,0 +1,62 @@
+{
+  "id": "dst",
+  "name": "Don't Starve Together",
+  "name_ar": "دونت ستارف توقذر",
+  "game": "Don't Starve Together",
+  "steam_appid": 322330,
+  "verified": false,
+  "notes_ar": "ملف واحد يكفي للسيرفر كله: اللي يفتح العالم بس يسوي ملفه، والباقين يدخلون عنده عادي بدون Archipelago. اللعبة صعبة، اختاروا Relaxed.",
+  "sources": [
+    "https://github.com/DragonWolfLeo/Archipelago-DST/blob/main/worlds/dst/docs/setup_en.md",
+    "https://github.com/DragonWolfLeo/Archipelago-DST/releases",
+    "https://steamcommunity.com/sharedfiles/filedetails/?id=3218471273"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "DragonWolfLeo/Archipelago-DST",
+      "asset": "dontstarvetogether.apworld",
+      "to": "{custom_worlds}",
+      "label": "DST apworld + client"
+    }
+  ],
+  "install": [
+    {
+      "type": "workshop",
+      "id": "workshop_mod",
+      "workshop_id": "3218471273",
+      "label": "مود Archipelago Randomizer",
+      "text_ar": "انفتحت صفحة مود Archipelago Randomizer في الورشة. اضغط Subscribe واستنى ستيم ينزله، وبعدها ارجع واضغط سويتها."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "Don't Starve Together Client",
+      "args": [
+        "Don't Starve Together Client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
+    },
+    {
+      "type": "steam_launch",
+      "appid": 322330
+    },
+    {
+      "type": "manual",
+      "id": "connect_dst",
+      "every_time": true,
+      "text_ar": "في اللعبة: Host Game > Create New World، خل Save Type = Local Save، ومن تبويب Mods فعّل Archipelago Randomizer (من Server Mods). لو غيرت الفصول في الخيارات طابقها في إعدادات العالم. الكلاينت يتصل لحاله لما تدخل العالم."
+    }
+  ],
+  "options": []
+}
