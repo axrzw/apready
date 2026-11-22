@@ -8,6 +8,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 - **Death Link is a first-class feature.** Every game that supports it shows the big
   Death Link toggle, default ON. The toggle always wins over anything typed in the
   advanced box (`build_yaml` enforces this; a test covers it). Never remove or hide it.
+  A game with no Death Link at all (checked in the apworld AND the mod) keeps the toggle on
+  screen, greyed out and locked, with a short note (owner's choice).
 - Two levels of options: basic (shown) and advanced (`"advanced": true`, inside the
   collapsible "خيارات متقدمة"), plus a free `key: value` box for any other option.
 - Never download, bundle or share game files. Only mods / apworlds / tools from their
@@ -32,7 +34,10 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 ## Recipe format (recipes/<id>.json)
 ```
 id, name, name_ar, game (exact Archipelago game name), steam_appid, verified, notes_ar, sources[]
-death_link_key   (default "death_link"; set null if the game has no Death Link)
+death_link_key   (default "death_link"; null if the apworld has no Death Link option)
+death_link_in_mod  true when the apworld has no option but the mod has Death Link itself
+                 (TUNIC, Buckshot Roulette): the toggle stays live, connect steps use
+                 {death_link} / {death_link_ar}. null key without this = toggle greyed out.
 options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
 fixed_options{}  always written
 apworld[]        steps the HOST needs (apworld install)
@@ -59,7 +64,8 @@ Clients inside an apworld (Archipelago Launcher components) are opened with
 apworld too, because the setup and play buttons also run the `apworld` phase.
 Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
 {locallow} {workshop} (this game's Workshop content folder) {slot} {host} {port} {address} {password}
-{has_password} (1/0)`.
+{has_password} (1/0) {death_link} (true/false) {death_link_ar}`. `write_file` also takes
+`bools` (keys to write as JSON true/false).
 
 ## Status: what to do first
 All 28 recipes are `"verified": false`. Nov 2026 review: repos, asset names, game strings,
@@ -85,15 +91,16 @@ RE9 launchers. None has been run on a real PC yet. In this order:
    extracted into the game folder. Game 1.06 + offline. Its `death_link` is a Choice with
    `alias_true` = full_death, so `true` works.
 
-### Open questions for the owner (Death Link, not changed on purpose)
-- Cuphead's apworld names the option `deathlink` (no underscore). The recipe still uses the
-   default `death_link`, so the toggle probably does nothing there. Fix: `"death_link_key": "deathlink"`.
-- Hitman, TUNIC, Buckshot Roulette and Valheim have no Death Link option. Writing `death_link` there only
-  makes Archipelago log a warning (generation still works), but the toggle does nothing.
-  Per the rule above they should get `"death_link_key": null`.
+### Death Link per game (owner decided, Nov 2026)
+- Cuphead: the owner played it with Death Link and it works. Leave the recipe as it is.
+- Hitman (docs: "Deathlink is not supported") and Valheim (no option, nothing in the mod
+  DLL): `death_link_key: null`, toggle greyed out.
+- TUNIC: no apworld option, but the mod has `DeathLinkEnabled` in Settings.json; the connect
+  step writes it from the toggle. Buckshot Roulette: the mod has a DeathLink checkbox in its
+  connect window (not saved anywhere), so the hint tells the player how to set it.
 - Slay the Spire (wanted, not added yet): its `death_link` is a Range 0-100 (% of health lost),
   default 0, so `death_link: true` makes generation fail. Needs a per-recipe value for "on"
-  (e.g. 100) in `build_yaml`. Waiting for the owner because it touches Death Link code.
+  (e.g. 100) in `build_yaml`. Ask the owner first.
 
 ### Games from the Archipelago games sheet still to add
 Hades (Polycosmos needs ModImporter + ModUtil + StyxScribe + Python and a file picker every

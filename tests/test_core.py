@@ -272,3 +272,25 @@ def test_thunderstore_resolve_reads_manifests_newest_wins(tmp_path, monkeypatch)
     got = {f: v for f, v, _ in runner.thunderstore_resolve(["APLC-APLC"], fetch)}
     assert got == {"APLC-APLC": "0.8.0", "Caigan-Scrap": "4.1.0", "BepInEx-BepInExPack": "5.4.2305"}
     assert "APLC-APLC@0.8.0" in fetched
+
+
+def test_death_link_greyed_or_live_per_game(all_recipes):
+    from app.server import game_list
+    RECIPES.update(all_recipes)
+    dl = {g["id"]: g["death_link"] for g in game_list()}
+    assert dl["hitman"] is False and dl["valheim"] is False          # greyed out in the UI
+    assert dl["tunic"] is True and dl["buckshot"] is True            # Death Link lives in the mod
+    assert dl["cuphead"] is True and dl["terraria"] is True
+    y = rec.build_yaml(all_recipes["tunic"], "Mishal", {}, True)
+    assert "death_link" not in y                                      # not an apworld option there
+
+
+def test_tunic_death_link_written_to_mod_settings(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "save_settings", lambda s: None)
+    r = rec.load_all()["tunic"]
+    f = tmp_path / "Settings.json"
+    step = dict(r["connect"][0], path=str(f))
+    for on in (True, False):
+        ctx = runner.context({"id": "tunic"}, {"ap_dir": str(tmp_path)}, {"slot": "M", "port": "1", "death_link": on})
+        runner.run_step(step, ctx, _settings(), r, _T())
+        assert json.loads(f.read_text())["DeathLinkEnabled"] is on

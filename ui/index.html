@@ -35,6 +35,8 @@
   .switch span:before { content:""; position:absolute; width:24px; height:24px; top:4px; right:4px; background:#fff; border-radius:50%; transition:.2s; }
   .switch input:checked + span { background:var(--accent); }
   .switch input:checked + span:before { transform:translateX(-26px); }
+  .dl.off { opacity:.4; filter:grayscale(1); }
+  .dl.off .switch span { cursor:not-allowed; }
   .opt { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:10px; }
   .opt small { color:var(--dim); display:block; }
   details { margin-top:14px; }
@@ -187,9 +189,11 @@ function pick(id) {
   $("gamePanel").classList.remove("hidden");
   $("gTitle").textContent = cur.name_ar;
   $("gNotes").textContent = cur.notes_ar || "";
-  $("dlBox").classList.toggle("hidden", !cur.death_link);
+  // games without Death Link keep the toggle on screen, greyed out and locked
+  $("dlBox").classList.toggle("off", !cur.death_link);
+  $("deathlink").disabled = !cur.death_link;
   $("noDl").classList.toggle("hidden", cur.death_link);
-  $("deathlink").checked = last.death_link !== undefined ? last.death_link : true;
+  $("deathlink").checked = cur.death_link ? (last.death_link !== undefined ? last.death_link : true) : false;
   $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced).map(o=>optRow(o, vals[o.key])).join("");
   $("advOpts").innerHTML = cur.options.filter(o=>o.advanced).map(o=>optRow(o, vals[o.key])).join("");
   $("extra").value = last.extra || "";

@@ -37,7 +37,8 @@ def game_list():
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
             "verified": r.get("verified", False), "notes_ar": r.get("notes_ar", ""),
             "options": r.get("options", []),
-            "death_link": bool(r.get("death_link_key", "death_link")),
+            # the toggle is live when the apworld has the option or the mod itself has Death Link
+            "death_link": bool(r.get("death_link_key", "death_link")) or bool(r.get("death_link_in_mod")),
             "ready": all(s["done_steps"].get(f"{r['id']}:{st['id']}") for st in r.get("install", [])
                          if st["type"] in ("manual", "workshop") and not st.get("every_time")),
         })
@@ -106,7 +107,8 @@ class Handler(BaseHTTPRequestHandler):
                 room = parse_room(b["room"])
                 s = load_settings()
                 session = {**room, "slot": rec.safe_slot(s.get("player_name") or "Player"),
-                           "password": b.get("password", "")}
+                           "password": b.get("password", ""),
+                           "death_link": s.get("last", {}).get(b["game"], {}).get("death_link", True)}
                 t = runner.start(runner.run_phases, RECIPES[b["game"]], ["apworld", "install", "connect", "launch"], session)
                 return self.send(200, {"task": self._keep(t)})
             if p == "/api/done":

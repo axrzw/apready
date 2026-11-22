@@ -61,8 +61,10 @@
       "type": "manual",
       "id": "connect_buckshot",
       "every_time": true,
-      "text_ar": "في اللعبة اكتب العنوان {address} والاسم {slot} في نافذة Archipelago واضغط اتصال."
+      "text_ar": "في نافذة Archipelago داخل اللعبة اكتب العنوان {address} والاسم {slot}، وخل زر DeathLink {death_link_ar}، واضغط اتصال."
     }
   ],
-  "options": []
+  "options": [],
+  "death_link_key": null,
+  "death_link_in_mod": true
 }

@@ -49,8 +49,12 @@
           "Hostname": "{host}",
           "Port": "{port}",
           "Password": "{password}"
-        }
-      }
+        },
+        "DeathLinkEnabled": "{death_link}"
+      },
+      "bools": [
+        "DeathLinkEnabled"
+      ]
     }
   ],
   "launch": [
@@ -65,5 +69,7 @@
       "text_ar": "في شاشة البداية اختر وضع Archipelago. البيانات مكتوبة لك، اضغط Connect وابدأ New Game."
     }
   ],
-  "options": []
+  "options": [],
+  "death_link_key": null,
+  "death_link_in_mod": true
 }

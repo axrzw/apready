@@ -51,5 +51,6 @@
       "text_ar": "في نافذة الاتصال اللي تطلع: خل Randomized مفعّل، واكتب العنوان {address} والاسم {slot}."
     }
   ],
-  "options": []
+  "options": [],
+  "death_link_key": null
 }

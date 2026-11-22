@@ -87,6 +87,9 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
         "locallow": str(Path(os.environ.get("USERPROFILE") or Path.home()) / "AppData" / "LocalLow"),
         "workshop": str(lib_apps / "workshop" / "content" / appid) if lib_apps else "",
         "has_password": "1" if session.get("password") else "0",
+        # for mods that keep Death Link in their own settings (TUNIC, Buckshot Roulette)
+        "death_link": "true" if session.get("death_link", True) else "false",
+        "death_link_ar": "شغّال" if session.get("death_link", True) else "طافي",
         "slot": session.get("slot", ""),
         "host": host,
         "port": port,
@@ -220,6 +223,13 @@ def ini_set(text: str, section: str, values: dict, quote: bool = False) -> str:
         insert_at -= 1
     lines[insert_at:insert_at] = [f"{k} = {fmt(v)}" for k, v in todo.items()]
     return "\n".join(lines) + "\n"
+
+
+def coerce_bools(d: dict, keys) -> dict:
+    for k in keys or []:
+        if isinstance(d.get(k), str) and d[k].lower() in ("true", "false"):
+            d[k] = d[k].lower() == "true"
+    return d
 
 
 def read_json(p: Path, default):
@@ -452,10 +462,10 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         p.parent.mkdir(parents=True, exist_ok=True)
         content = s["content"]
         if isinstance(content, dict):
-            content = coerce_ints(dict(content), s.get("ints"))
-            for k, v in list(content.items()):  # ints inside nested sections too
+            content = coerce_bools(coerce_ints(dict(content), s.get("ints")), s.get("bools"))
+            for k, v in list(content.items()):  # inside nested sections too
                 if isinstance(v, dict):
-                    content[k] = coerce_ints(dict(v), s.get("ints"))
+                    content[k] = coerce_bools(coerce_ints(dict(v), s.get("ints")), s.get("bools"))
             if s.get("merge"):  # keep the other settings the game/mod already wrote
                 old = read_json(p, {})
                 content = deep_merge(old if isinstance(old, dict) else {}, content)
