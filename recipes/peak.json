@@ -60,6 +60,33 @@
   ],
   "options": [
     {
+      "key": "goals",
+      "label_ar": "متى تخلص",
+      "help_ar": "لازم تخلّص كل اللي تعلّمه",
+      "multi": true,
+      "default": [
+        "Reach Peak"
+      ],
+      "choices": [
+        {
+          "value": "Reach Peak",
+          "label_ar": "توصل للقمة"
+        },
+        {
+          "value": "Collect Badges",
+          "label_ar": "تجمع الشارات"
+        },
+        {
+          "value": "24 Karat Badge",
+          "label_ar": "شارة 24 Karat"
+        },
+        {
+          "value": "Free The Soul",
+          "label_ar": "Free The Soul"
+        }
+      ]
+    },
+    {
       "key": "death_link_send_behavior",
       "label_ar": "متى يرسل Death Link",
       "deathlink": true,
@@ -103,5 +130,6 @@
   "avoid_ar": [
     "في اللعب الجماعي بس سلوت صاحب اللوبي يتأثر.",
     "مودات تغيّر المناطق ممكن تخرب المنطق."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

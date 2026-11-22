@@ -41,7 +41,36 @@
       "text_ar": "في القائمة الرئيسية افتح نافذة Archipelago، واكتب العنوان {address} والاسم {slot}."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "quota_goal",
+      "label_ar": "الهدف: تخلّص عدد من الكوتا",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "quota_count",
+      "label_ar": "كم كوتا",
+      "help_ar": "",
+      "default": 5,
+      "min": 1,
+      "max": 21
+    },
+    {
+      "key": "views_goal",
+      "label_ar": "الهدف: توصل لعدد مشاهدات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "hat_collector",
+      "label_ar": "الهدف: تشتري قبعات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ],
   "guide_ar": [
     "اضغط «جهّز اللعبة» (يركّب BepInEx والمود).",
     "اضغط ▶ العب، وفي القائمة الرئيسية افتح نافذة Archipelago.",
@@ -50,5 +79,6 @@
   "checks_ar": "المشاهدات، والكوتا، وتصوير الوحوش، وشراء القبعات، والرعايات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "لو تلعب لحالك خل Multiplayer Mode طافي في الخيارات."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

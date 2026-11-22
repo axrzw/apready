@@ -33,11 +33,15 @@ def validate(r: dict, source: str = "") -> dict:
         v = r.get(k, [])
         if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
             raise RecipeError(f"{source}: {k} must be a list of strings")
-    if not isinstance(r.get("checks_ar", ""), str):
+    if not isinstance(r.get("checks_ar", ""), str) or not isinstance(r.get("checks_count_ar", ""), str):
         raise RecipeError(f"{source}: checks_ar must be a string")
     for opt in r.get("options", []):
         if "key" not in opt or "default" not in opt:
             raise RecipeError(f"{source}: option needs 'key' and 'default'")
+        if opt.get("multi"):
+            vals = {c["value"] if isinstance(c, dict) else c for c in opt.get("choices", [])}
+            if not isinstance(opt["default"], list) or not set(opt["default"]) <= vals:
+                raise RecipeError(f"{source}: multi option {opt['key']} needs a default list from its choices")
     return r
 
 
@@ -78,6 +82,8 @@ def load_all(folder: Path = None, extra: Path = None) -> dict:
 
 
 def _yaml_value(v) -> str:
+    if isinstance(v, (list, tuple, set)):  # OptionSet / OptionList: a YAML flow list
+        return json.dumps(sorted(v) if isinstance(v, set) else list(v), ensure_ascii=False)
     if isinstance(v, bool):
         return "true" if v else "false"
     if isinstance(v, (int, float)):
@@ -125,7 +131,15 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
         "",
         f"{_yaml_value(game)}:",
     ]
-    values = {o["key"]: chosen.get(o["key"], o["default"]) for o in recipe.get("options", [])}
+    values = {}
+    for o in recipe.get("options", []):
+        v = chosen.get(o["key"], o["default"])
+        if o.get("as_toggles"):  # one tick list in the UI, one on/off option per choice in the apworld (BO3 maps)
+            picked = set(v if isinstance(v, list) else [])
+            for c in o["choices"]:
+                values[c["value"]] = c["value"] in picked
+        else:
+            values[o["key"]] = v
     dl_key = recipe.get("death_link_key", "death_link")
     if dl_key:
         values[dl_key] = death_link

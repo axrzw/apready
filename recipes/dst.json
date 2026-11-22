@@ -58,7 +58,78 @@
       "text_ar": "في اللعبة: Host Game > Create New World، خل Save Type = Local Save، ومن تبويب Mods فعّل Archipelago Randomizer (من Server Mods). لو غيرت الفصول في الخيارات طابقها في إعدادات العالم. الكلاينت يتصل لحاله لما تدخل العالم."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "survival",
+      "choices": [
+        {
+          "value": "survival",
+          "label_ar": "تعيش عدد من الأيام"
+        },
+        {
+          "value": "bosses_any",
+          "label_ar": "تقتل أي بوس من المطلوبين"
+        },
+        {
+          "value": "bosses_all",
+          "label_ar": "تقتل كل البوسات المطلوبة"
+        }
+      ]
+    },
+    {
+      "key": "cave_regions",
+      "label_ar": "الكهوف",
+      "help_ar": "كم تدخل الكهوف في اللعبة",
+      "default": "auto",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "none",
+          "label_ar": "لا"
+        },
+        {
+          "value": "auto",
+          "label_ar": "تلقائي"
+        },
+        {
+          "value": "light",
+          "label_ar": "شوي"
+        },
+        {
+          "value": "full",
+          "label_ar": "كاملة"
+        }
+      ]
+    },
+    {
+      "key": "ocean_regions",
+      "label_ar": "البحر",
+      "help_ar": "",
+      "default": "auto",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "none",
+          "label_ar": "لا"
+        },
+        {
+          "value": "auto",
+          "label_ar": "تلقائي"
+        },
+        {
+          "value": "light",
+          "label_ar": "شوي"
+        },
+        {
+          "value": "full",
+          "label_ar": "كامل"
+        }
+      ]
+    }
+  ],
   "guide_ar": [
     "ملف واحد يكفي للعالم كله: اللي يفتح العالم بس يسوي ملفه.",
     "اضغط ▶ العب: ينفتح كلاينت Don't Starve Together متصل بالروم، وتشتغل اللعبة.",
@@ -72,5 +143,6 @@
     "Save Type = Local Save.",
     "طابق الفصول وإعدادات العالم مع الخيارات.",
     "إعادة تعيين العالم تمسح تقدمك لو هدفك Survival."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

@@ -43,6 +43,58 @@
   ],
   "options": [
     {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "bishops",
+      "choices": [
+        {
+          "value": "bishops",
+          "label_ar": "تهزم الأساقفة"
+        },
+        {
+          "value": "witnesses",
+          "label_ar": "تهزم الشهود"
+        },
+        {
+          "value": "narinder",
+          "label_ar": "تهزم Narinder"
+        }
+      ]
+    },
+    {
+      "key": "region_access_order",
+      "label_ar": "ترتيب المناطق",
+      "help_ar": "",
+      "default": "randomized_safe_start",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "vanilla_order",
+          "label_ar": "الأصلي"
+        },
+        {
+          "value": "randomized",
+          "label_ar": "عشوائي"
+        },
+        {
+          "value": "randomized_safe_start",
+          "label_ar": "عشوائي مع بداية آمنة"
+        },
+        {
+          "value": "all_unlocked",
+          "label_ar": "كلها مفتوحة"
+        }
+      ]
+    },
+    {
+      "key": "include_woolhaven",
+      "label_ar": "محتوى Woolhaven",
+      "help_ar": "بس لو عندك الـ DLC",
+      "default": false,
+      "advanced": true
+    },
+    {
       "key": "death_link_cooldown",
       "label_ar": "مهلة بعد كل موتة (ثواني)",
       "deathlink": true,
@@ -70,5 +122,6 @@
   "avoid_ar": [
     "استخدم سيف خاص لـ Archipelago.",
     "مع خلط بطاقات التاروت: البطاقات تنشال من مجموعتك وترجع لما تقطع الاتصال، وبطاقة تفتحها وأنت مو متصل ما ترسل check."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

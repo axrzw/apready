@@ -53,7 +53,7 @@ def game_list():
             "id": r["id"], "name": r["name"], "name_ar": r.get("name_ar", r["name"]),
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
             "verified": r.get("verified", False), "notes_ar": r.get("notes_ar", ""),
-            "guide_ar": r.get("guide_ar", []), "checks_ar": r.get("checks_ar", ""), "avoid_ar": r.get("avoid_ar", []),
+            "guide_ar": r.get("guide_ar", []), "checks_ar": r.get("checks_ar", ""), "checks_count_ar": r.get("checks_count_ar", ""), "avoid_ar": r.get("avoid_ar", []),
             "options": r.get("options", []),
             # the toggle is live when the apworld has the option or the mod itself has Death Link
             "death_link": bool(r.get("death_link_key", "death_link")) or bool(r.get("death_link_in_mod")),
@@ -139,6 +139,11 @@ class Handler(BaseHTTPRequestHandler):
                 s = load_settings()
                 f = watch_room(parse_room(b["room"]), rec.safe_slot(s.get("player_name") or "Player"), b.get("password", ""))
                 return self.send(200, {"ok": True, "room": f"{f.host}:{f.port}"})
+            if p == "/api/watch/release":  # the UI asks twice before calling this
+                if not FEED["feed"]:
+                    raise ValueError("تابع الروم أول (اضغط العب أو تابع الروم)")
+                FEED["feed"].say("!release")
+                return self.send(200, {"ok": True})
             if p == "/api/watch/stop":
                 if FEED["feed"]:
                     FEED["feed"].stop()

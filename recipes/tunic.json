@@ -69,7 +69,40 @@
       "text_ar": "في شاشة البداية اختر وضع Archipelago. البيانات مكتوبة لك، اضغط Connect وابدأ New Game."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "hexagon_quest",
+      "label_ar": "هدف Hexagon Quest",
+      "help_ar": "تجمع Gold Questagons بدل النهاية العادية (أقصر)",
+      "default": false
+    },
+    {
+      "key": "hexagon_goal",
+      "label_ar": "كم Questagon",
+      "help_ar": "",
+      "default": 20,
+      "min": 1,
+      "max": 100,
+      "advanced": true
+    },
+    {
+      "key": "entrance_rando",
+      "label_ar": "خلط المداخل",
+      "help_ar": "",
+      "default": "no",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "no",
+          "label_ar": "لا"
+        },
+        {
+          "value": "yes",
+          "label_ar": "إيه"
+        }
+      ]
+    }
+  ],
   "death_link_key": null,
   "death_link_in_mod": true,
   "guide_ar": [
@@ -81,5 +114,6 @@
   "avoid_ar": [
     "العبها عادي قبل الراندومايزر، مو منصوح تبدأ فيه.",
     "ابدأ New Game بعد ما تتصل."
-  ]
+  ],
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
 }

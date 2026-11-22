@@ -64,7 +64,31 @@
       "text_ar": "انفتح لك الـ Wizard: جهّز الباتش لهذا السيد (العنوان {address} والاسم {slot}) وشغّل اللعبة منه. داخل اللعبة Insert يفتح نافذة Archipelago."
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "included_content",
+      "label_ar": "وش تلعب",
+      "help_ar": "Separate Ways يحتاج الـ DLC",
+      "multi": true,
+      "default": [
+        "Main Campaign"
+      ],
+      "choices": [
+        {
+          "value": "Main Campaign",
+          "label_ar": "القصة الأساسية"
+        },
+        {
+          "value": "Separate Ways",
+          "label_ar": "Separate Ways"
+        },
+        {
+          "value": "Mercenaries",
+          "label_ar": "Mercenaries"
+        }
+      ]
+    }
+  ],
   "guide_ar": [
     "تحتاج Separate Ways و Treasure Map: Expansion.",
     "أول مرة: اضغط «جهّز اللعبة»، وينفتح لك الـ Wizard. سوّ فيه التثبيت (واللعبة مقفلة).",
@@ -75,5 +99,6 @@
   "avoid_ar": [
     "ممكن يجيك غرض مهم بدري، بس استخدامه بدري ممكن يعلّقك. لو مو متأكد امش على ترتيب القصة.",
     "جهّز الباتش من الـ Wizard لكل سيد جديد."
-  ]
+  ],
+  "checks_count_ar": "456 check في قصة Leon (455 على Hardcore و Professional)."
 }
