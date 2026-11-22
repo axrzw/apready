@@ -1,0 +1,46 @@
+{
+  "id": "sekiro",
+  "name": "Sekiro",
+  "name_ar": "سيكيرو",
+  "game": "Sekiro: Shadows Die Twice",
+  "steam_appid": 814380,
+  "verified": false,
+  "notes_ar": "يحتاج إصدار اللعبة 1.06 وتلعب أوفلاين. الكلاينت يولّد ملفات الراندومايزر لحاله بعد ما يتصل.",
+  "sources": [
+    "https://github.com/antonovanton000/SekiroArchipelagoClient/releases",
+    "https://www.panludia.com/games/sekiro-shadows-die-twice/releases"
+  ],
+  "apworld": [
+    {
+      "type": "manual",
+      "id": "host_apworld",
+      "url": "https://www.panludia.com/games/sekiro-shadows-die-twice/releases",
+      "text_ar": "(للمستضيف) نزّل sekiro.apworld (نفس إصدار الكلاينت 1.0.1) وحطه في {custom_worlds}، وبعدها اضغط سويتها."
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "antonovanton000/SekiroArchipelagoClient",
+      "asset": "*win*.zip",
+      "extract": true,
+      "to": "{tools}/client",
+      "label": "Sekiro Archipelago Client"
+    },
+    {
+      "type": "manual",
+      "id": "version_106",
+      "text_ar": "تأكد إن سيكيرو على إصدار 1.06، وخل ستيم أوفلاين وقت اللعب (Steam > Go Offline). سويتها؟"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "manual",
+      "id": "launch_client",
+      "every_time": true,
+      "text_ar": "افتح الكلاينت من مجلد {tools}\\client، واكتب العنوان {address} والاسم {slot} واضغط Connect، وبعدها شغّل اللعبة."
+    }
+  ],
+  "options": []
+}

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AP جاهز</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e8eaf0; --dim:#9aa3b2;
+          --accent:#e5484d; --ok:#30a46c; --warn:#f5a524; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI",Tahoma,sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:18px 24px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; }
+  header h1 { margin:0; font-size:22px; }
+  nav button { background:none; border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:8px; cursor:pointer; }
+  nav button.on { border-color:var(--accent); }
+  main { max-width:960px; margin:0 auto; padding:20px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  input, select, textarea { background:#0b0d11; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 11px; font:inherit; }
+  textarea { width:100%; min-height:110px; direction:ltr; font-family:Consolas,monospace; }
+  .btn { background:var(--accent); color:#fff; border:0; padding:11px 18px; border-radius:10px; font-size:16px; cursor:pointer; }
+  .btn.alt { background:#2a2f3a; }
+  .btn:disabled { opacity:.5; cursor:default; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:12px; margin:16px 0; }
+  .game { background:var(--card); border:2px solid var(--line); border-radius:12px; padding:14px; cursor:pointer; }
+  .game.sel { border-color:var(--accent); }
+  .game b { display:block; font-size:16px; }
+  .tag { font-size:12px; color:var(--dim); }
+  .tag.no { color:var(--warn); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:12px; }
+  .dl { display:flex; justify-content:space-between; align-items:center; padding:14px; border-radius:10px; background:#2a1416; border:1px solid var(--accent); margin-bottom:14px; }
+  .dl strong { font-size:18px; }
+  .switch { position:relative; width:58px; height:32px; }
+  .switch input { display:none; }
+  .switch span { position:absolute; inset:0; background:#444; border-radius:32px; transition:.2s; cursor:pointer; }
+  .switch span:before { content:""; position:absolute; width:24px; height:24px; top:4px; right:4px; background:#fff; border-radius:50%; transition:.2s; }
+  .switch input:checked + span { background:var(--accent); }
+  .switch input:checked + span:before { transform:translateX(-26px); }
+  .opt { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:10px; }
+  .opt small { color:var(--dim); display:block; }
+  details { margin-top:14px; }
+  summary { cursor:pointer; color:var(--dim); font-size:15px; padding:6px 0; }
+  pre.log { background:#0b0d11; border:1px solid var(--line); border-radius:8px; padding:12px; min-height:60px; max-height:260px; overflow:auto; white-space:pre-wrap; }
+  .err { color:#ff8a8a; }
+  .need { background:#2b2410; border:1px solid var(--warn); border-radius:10px; padding:14px; margin-top:10px; }
+  .hidden { display:none; }
+  .muted { color:var(--dim); font-size:14px; }
+  table { width:100%; border-collapse:collapse; } td { padding:6px; border-bottom:1px solid var(--line); }
+</style>
+</head>
+<body>
+<header>
+  <h1>AP جاهز</h1>
+  <nav class="row">
+    <button id="tab-play" class="on" onclick="tab('play')">ألعب</button>
+    <button id="tab-host" onclick="tab('host')">أنا المستضيف</button>
+  </nav>
+</header>
+<main>
+  <!-- PLAYER -->
+  <section id="play">
+    <div class="row">
+      <label>اسمك في اللعبة:</label>
+      <input id="name" maxlength="16" placeholder="مثلاً Mishal" style="direction:ltr">
+      <button class="btn alt" onclick="saveName()">حفظ</button>
+      <span class="muted">إنجليزي وبدون مسافات، ١٦ حرف بالكثير</span>
+    </div>
+
+    <h3>١. اختر لعبتك</h3>
+    <div id="games" class="grid"></div>
+
+    <div id="gamePanel" class="panel hidden">
+      <h3 id="gTitle"></h3>
+      <p id="gNotes" class="muted"></p>
+
+      <div class="dl" id="dlBox">
+        <div><strong>☠ Death Link</strong><br><span class="muted">لو مت أنت، يموت الكل. ولو مات أحد، تموت معه.</span></div>
+        <label class="switch"><input type="checkbox" id="deathlink" checked><span></span></label>
+      </div>
+      <p id="noDl" class="muted hidden">⚠ هذي اللعبة ما تدعم Death Link</p>
+
+      <div id="basicOpts"></div>
+
+      <details id="adv">
+        <summary>⚙ خيارات متقدمة</summary>
+        <div id="advOpts"></div>
+        <p class="muted">تخصيص حر: اكتب أي خيار من خيارات اللعبة، كل واحد في سطر بالشكل <code>key: value</code>. اللي تكتبه هنا يغلب الخيارات اللي فوق، بس Death Link يمشي على الزر حقه.</p>
+        <textarea id="extra" placeholder="mirror_mode: true&#10;starting_items: 3"></textarea>
+      </details>
+
+      <h3>٢. جهّز وارسل ملفك</h3>
+      <div class="row">
+        <button class="btn alt" onclick="setup()">جهّز اللعبة (أول مرة بس)</button>
+        <button class="btn alt" onclick="makeYaml()">طلّع ملفي للمستضيف</button>
+      </div>
+      <div id="yamlOut" class="hidden">
+        <p class="muted">انحفظ في: <span id="yamlFile" style="direction:ltr"></span>. ارسل الملف للمستضيف في ديسكورد.
+          <button class="btn alt" onclick="openFolder('mine')">افتح المجلد</button></p>
+      </div>
+
+      <h3>٣. العب</h3>
+      <div class="row">
+        <input id="room" placeholder="archipelago.gg:38281" style="direction:ltr; min-width:240px">
+        <input id="pass" placeholder="كلمة السر (لو فيه)" style="direction:ltr">
+        <button class="btn" onclick="play()">▶ العب</button>
+      </div>
+    </div>
+
+    <div id="taskBox" class="panel hidden">
+      <pre id="log" class="log"></pre>
+    </div>
+  </section>
+
+  <!-- HOST -->
+  <section id="host" class="hidden">
+    <div class="panel">
+      <h3>ملفات الشباب</h3>
+      <p class="muted">حط ملفات YAML اللي أرسلها لك الشباب (وملفك أنت) في مجلد اللاعبين.</p>
+      <div class="row">
+        <button class="btn alt" onclick="openFolder('players')">افتح مجلد اللاعبين</button>
+        <button class="btn alt" onclick="refresh()">تحديث</button>
+      </div>
+      <table id="players"></table>
+      <p class="muted" id="dlSummary"></p>
+      <button class="btn" onclick="generate()">ولّد السيد وجهّز الروم</button>
+      <p class="muted">البرنامج يثبّت الـ apworld حق كل لعبة، ويولّد السيد، ويفتح لك صفحة الرفع في archipelago.gg. ترفع الملف وترسل عنوان الروم للشباب.</p>
+    </div>
+    <div class="panel"><pre id="hlog" class="log"></pre></div>
+  </section>
+  <div id="need" class="need hidden">
+        <p id="needText"></p>
+        <div class="row">
+          <button class="btn alt hidden" id="needUrl">افتح الرابط</button>
+          <button class="btn" onclick="needDone()">سويتها ✔</button>
+        </div>
+      </div>
+</main>
+
+<script>
+let S = null, cur = null, lastTask = null;
+const $ = id => document.getElementById(id);
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || "خطأ");
+  return j;
+}
+
+function tab(t) {
+  for (const x of ["play","host"]) { $(x).classList.toggle("hidden", x!==t); $("tab-"+x).classList.toggle("on", x===t); }
+  if (t === "host") refresh();
+}
+
+async function refresh() {
+  S = await api("/api/state");
+  $("name").value = S.player_name || "";
+  $("games").innerHTML = S.games.map(g => `
+    <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">
+      <b>${g.name_ar}</b>
+      <span class="tag ${g.installed?'':'no'}">${g.installed?'موجودة في ستيم':'مو مثبتة'}</span><br>
+      ${g.verified?'':'<span class="tag no">وصفة تجريبية</span>'}
+    </div>`).join("");
+  $("players").innerHTML = S.players.length
+    ? S.players.map(p => `<tr><td style="direction:ltr">${p.file}</td><td>${p.game||'؟'}</td><td>${p.recipe?'✔':'⚠ ما لها وصفة'}</td></tr>`).join("")
+    : "<tr><td class='muted'>ما فيه ملفات لسا</td></tr>";
+}
+
+function optRow(o, val) {
+  const label = `<div>${o.label_ar||o.key}<small>${o.help_ar||''}</small></div>`;
+  let input;
+  if (o.choices) {
+    input = `<select data-key="${o.key}">` + o.choices.map(c => {
+      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar||c.value) : c;
+      return `<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`; }).join("") + `</select>`;
+  } else if (typeof o.default === "boolean") {
+    input = `<label class="switch"><input type="checkbox" data-key="${o.key}" ${val?'checked':''}><span></span></label>`;
+  } else {
+    input = `<input type="number" data-key="${o.key}" value="${val}" ${o.min!=null?`min="${o.min}"`:''} ${o.max!=null?`max="${o.max}"`:''} style="width:110px">`;
+  }
+  return `<div class="opt">${label}${input}</div>`;
+}
+
+function pick(id) {
+  cur = S.games.find(g => g.id === id);
+  const last = (S.last||{})[id] || {};
+  const vals = Object.assign({}, ...cur.options.map(o => ({[o.key]: o.default})), last.options||{});
+  $("gamePanel").classList.remove("hidden");
+  $("gTitle").textContent = cur.name_ar;
+  $("gNotes").textContent = cur.notes_ar || "";
+  $("dlBox").classList.toggle("hidden", !cur.death_link);
+  $("noDl").classList.toggle("hidden", cur.death_link);
+  $("deathlink").checked = last.death_link !== undefined ? last.death_link : true;
+  $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced).map(o=>optRow(o, vals[o.key])).join("");
+  $("advOpts").innerHTML = cur.options.filter(o=>o.advanced).map(o=>optRow(o, vals[o.key])).join("");
+  $("extra").value = last.extra || "";
+  $("yamlOut").classList.add("hidden");
+  refresh();
+}
+
+function collect() {
+  const options = {};
+  document.querySelectorAll("#gamePanel [data-key]").forEach(el => {
+    const k = el.dataset.key;
+    options[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? Number(el.value) : el.value;
+  });
+  return {game: cur.id, options, death_link: $("deathlink").checked, extra: $("extra").value};
+}
+
+async function saveName() {
+  try { const j = await api("/api/name", {name: $("name").value}); $("name").value = j.name; } catch(e) { alert(e.message); }
+}
+
+async function makeYaml() {
+  if (!$("name").value) return alert("اكتب اسمك أول");
+  await saveName();
+  try {
+    const j = await api("/api/yaml", collect());
+    $("yamlFile").textContent = j.file; $("yamlOut").classList.remove("hidden");
+  } catch(e) { alert(e.message); }
+}
+
+async function runTask(path, body, logEl) {
+  $("taskBox").classList.remove("hidden"); $("need").classList.add("hidden");
+  lastTask = {path, body, logEl};
+  const el = $(logEl); el.textContent = "…";
+  let j;
+  try { j = await api(path, body); } catch(e) { el.innerHTML = `<span class="err">${e.message}</span>`; return; }
+  const poll = async () => {
+    const t = await api("/api/task/" + j.task);
+    el.textContent = t.log.join("\n");
+    if (t.error) el.innerHTML += `\n<span class="err">✖ ${t.error}</span>`;
+    if (t.needs_user) {
+      $("need").classList.remove("hidden");
+      $("needText").textContent = t.needs_user.text;
+      $("need").dataset.step = t.needs_user.id; $("need").dataset.game = t.needs_user.game;
+      const u = $("needUrl");
+      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => window.open(t.needs_user.url); } else u.classList.add("hidden");
+    }
+    if (!t.done) setTimeout(poll, 700);
+    else if (!t.error && !t.needs_user) el.textContent += "\n\n✅ تم";
+  };
+  poll();
+}
+
+async function needDone() {
+  await api("/api/done", {game: $("need").dataset.game, step: $("need").dataset.step});
+  runTask(lastTask.path, lastTask.body, lastTask.logEl);
+}
+
+function setup() { if (cur) runTask("/api/setup", {game: cur.id}, "log"); }
+async function play() {
+  if (!$("name").value) return alert("اكتب اسمك أول");
+  if (!$("room").value) return alert("الصق عنوان الروم اللي أرسله المستضيف");
+  await saveName();
+  runTask("/api/play", {game: cur.id, room: $("room").value, password: $("pass").value}, "log");
+}
+function generate() { runTask("/api/host/generate", {}, "hlog"); }
+function openFolder(what) { api("/api/open", {what}); }
+
+refresh();
+</script>
+</body>
+</html>

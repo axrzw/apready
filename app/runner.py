@@ -1,0 +1,285 @@
+"""Runs the steps of a recipe. Every step is safe to run twice."""
+import fnmatch
+import json
+import os
+import shutil
+import subprocess
+import sys
+import threading
+import urllib.request
+import webbrowser
+import zipfile
+from pathlib import Path
+
+from . import steam
+from .paths import ap_dir, load_settings, save_settings, tools_dir
+
+GITHUB_API = "https://api.github.com/repos/{repo}/releases"
+UA = {"User-Agent": "APReady", "Accept": "application/vnd.github+json"}
+
+
+class NeedsUser(Exception):
+    """A manual step the player has to do once. Carries the text to show."""
+
+    def __init__(self, step: dict, text: str, recipe_id: str = ""):
+        super().__init__(text)
+        self.step = step
+        self.text = text
+        self.recipe_id = recipe_id
+
+
+class Task:
+    """A background job the UI polls for log lines."""
+
+    def __init__(self):
+        self.log = []
+        self.done = False
+        self.error = None
+        self.needs_user = None
+        self.result = None
+
+    def say(self, msg: str):
+        self.log.append(msg)
+
+    def to_json(self):
+        return {"log": self.log, "done": self.done, "error": self.error,
+                "needs_user": self.needs_user, "result": self.result}
+
+
+def start(fn, *args) -> Task:
+    t = Task()
+
+    def run():
+        try:
+            t.result = fn(t, *args)
+        except NeedsUser as e:
+            t.needs_user = {"id": e.step.get("id"), "game": e.recipe_id,
+                            "text": e.text, "url": e.step.get("url")}
+        except Exception as e:  # shown to the player in Arabic + raw error
+            t.error = f"{type(e).__name__}: {e}"
+        finally:
+            t.done = True
+
+    threading.Thread(target=run, daemon=True).start()
+    return t
+
+
+# ---------- helpers ----------
+
+def context(recipe: dict, settings: dict, session: dict = None) -> dict:
+    gd = steam.game_dir(recipe["steam_appid"]) if recipe.get("steam_appid") else None
+    apd = ap_dir(settings)
+    session = session or {}
+    host = session.get("host", "archipelago.gg")
+    port = str(session.get("port", ""))
+    return {
+        "game_dir": str(gd) if gd else "",
+        "ap_dir": str(apd),
+        "custom_worlds": str(apd / "custom_worlds"),
+        "tools": str(tools_dir() / recipe["id"]),
+        "documents": str(Path.home() / "Documents"),
+        "appdata": os.environ.get("APPDATA", ""),
+        "slot": session.get("slot", ""),
+        "host": host,
+        "port": port,
+        "address": f"{host}:{port}" if port else host,
+        "password": session.get("password", ""),
+    }
+
+
+def fill(s, ctx: dict):
+    if isinstance(s, str):
+        for k, v in ctx.items():
+            s = s.replace("{" + k + "}", v)
+        return s
+    if isinstance(s, list):
+        return [fill(x, ctx) for x in s]
+    if isinstance(s, dict):
+        return {k: fill(v, ctx) for k, v in s.items()}
+    return s
+
+
+def http_json(url: str):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def download(url: str, dest: Path, task: Task):
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    req = urllib.request.Request(url, headers={"User-Agent": "APReady"})
+    with urllib.request.urlopen(req, timeout=60) as r, open(tmp, "wb") as f:
+        total = int(r.headers.get("Content-Length") or 0)
+        got, last = 0, -10
+        while True:
+            chunk = r.read(1 << 16)
+            if not chunk:
+                break
+            f.write(chunk)
+            got += len(chunk)
+            if total:
+                pct = got * 100 // total
+                if pct >= last + 10:
+                    task.say(f"  تحميل {dest.name}: {pct}%")
+                    last = pct
+    tmp.replace(dest)
+
+
+def pick_release(repo: str, tag: str = None, prerelease: bool = False) -> dict:
+    if tag:
+        return http_json(GITHUB_API.format(repo=repo) + f"/tags/{tag}")
+    releases = http_json(GITHUB_API.format(repo=repo))
+    for rel in releases:
+        if rel.get("draft"):
+            continue
+        if rel.get("prerelease") and not prerelease:
+            continue
+        return rel
+    raise RuntimeError(f"ما لقيت إصدار في {repo}")
+
+
+# ---------- Archipelago itself ----------
+
+def ensure_archipelago(task: Task, settings: dict):
+    apd = ap_dir(settings)
+    if (apd / "ArchipelagoLauncher.exe").exists() or (apd / "ArchipelagoGenerate.exe").exists():
+        task.say("✔ Archipelago موجود")
+        return
+    if sys.platform != "win32":
+        raise RuntimeError("تثبيت Archipelago التلقائي يشتغل على ويندوز بس")
+    task.say("… أنزّل Archipelago")
+    rel = pick_release("ArchipelagoMW/Archipelago")
+    asset = next((a for a in rel["assets"] if fnmatch.fnmatch(a["name"], "Setup.Archipelago.*.exe")), None)
+    if not asset:
+        raise RuntimeError("ما لقيت ملف تثبيت Archipelago في آخر إصدار")
+    exe = tools_dir() / asset["name"]
+    download(asset["browser_download_url"], exe, task)
+    task.say("… أثبّت Archipelago (ممكن يطلب صلاحية)")
+    subprocess.run([str(exe), "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"], check=True)
+    task.say("✔ تم تثبيت Archipelago")
+
+
+# ---------- steps ----------
+
+def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
+    t = step["type"]
+    s = fill(step, ctx)
+    key = f"{recipe['id']}:{step.get('id') or step.get('repo') or t}"
+
+    if t == "apworld_builtin":
+        task.say("✔ اللعبة مدعومة رسمياً في Archipelago")
+
+    elif t == "github_release":
+        rel = pick_release(s["repo"], s.get("tag"), s.get("prerelease", False))
+        version = rel.get("tag_name", "")
+        dest_dir = Path(s["to"])
+        if settings["installed"].get(key) == version and dest_dir.exists() and not s.get("always"):
+            task.say(f"✔ {s.get('label', s['repo'])} محدث ({version})")
+            return
+        if s["asset"] == "__source__":  # repos that ship "Source code (zip)" only
+            asset = {"name": f"{s['repo'].replace('/', '_')}_{version}.zip", "browser_download_url": rel["zipball_url"]}
+        else:
+            asset = next((a for a in rel["assets"] if fnmatch.fnmatch(a["name"], s["asset"])), None)
+        if not asset:
+            names = ", ".join(a["name"] for a in rel["assets"])
+            raise RuntimeError(f"ما لقيت ملف يطابق '{s['asset']}' في {s['repo']} {version}. الموجود: {names}")
+        task.say(f"… {s.get('label', s['repo'])} {version}")
+        cache = tools_dir() / "_downloads" / asset["name"]
+        download(asset["browser_download_url"], cache, task)
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        if s.get("extract") and cache.suffix.lower() == ".zip":
+            with zipfile.ZipFile(cache) as z:
+                strip = s.get("strip_top_folder", False)
+                for m in z.infolist():
+                    name = m.filename
+                    if strip:
+                        name = name.split("/", 1)[1] if "/" in name else ""
+                    if not name or name.endswith("/"):
+                        continue
+                    target = dest_dir / name
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    with z.open(m) as src, open(target, "wb") as out:
+                        shutil.copyfileobj(src, out)
+        else:
+            shutil.copy2(cache, dest_dir / (s.get("rename") or asset["name"]))
+        settings["installed"][key] = version
+        save_settings(settings)
+        task.say(f"✔ {s.get('label', s['repo'])} جاهز")
+
+    elif t == "workshop":
+        sid = step["id"]
+        if not settings["done_steps"].get(f"{recipe['id']}:{sid}"):
+            webbrowser.open(f"steam://url/CommunityFilePage/{s['workshop_id']}")
+            raise NeedsUser(step, s.get("text_ar", "اضغط Subscribe في صفحة الورشة اللي انفتحت، وبعدها ارجع واضغط سويتها"), recipe["id"])
+        task.say(f"✔ {s.get('label', 'مود الورشة')}")
+
+    elif t == "manual" and step.get("every_time"):
+        task.say("👉 " + s["text_ar"])
+
+    elif t == "manual":
+        if not settings["done_steps"].get(f"{recipe['id']}:{step['id']}"):
+            if s.get("url"):
+                webbrowser.open(s["url"])
+            raise NeedsUser(step, s["text_ar"], recipe["id"])
+        task.say(f"✔ {s.get('label', step['id'])}")
+
+    elif t == "copy":
+        src, dst = Path(s["from"]), Path(s["to"])
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        if src.is_dir():
+            shutil.copytree(src, dst, dirs_exist_ok=True)
+        else:
+            shutil.copy2(src, dst)
+        task.say(f"✔ نسخت {src.name}")
+
+    elif t == "write_file":
+        p = Path(s["path"])
+        p.parent.mkdir(parents=True, exist_ok=True)
+        content = s["content"]
+        if isinstance(content, (dict, list)):
+            content = json.dumps(content, ensure_ascii=False, indent=2)
+        p.write_text(content, encoding="utf-8")
+        task.say(f"✔ كتبت إعدادات {p.name}")
+
+    elif t == "open_url":
+        webbrowser.open(s["url"])
+        task.say(f"✔ فتحت {s['url']}")
+
+    elif t == "steam_launch":
+        args = " ".join(s.get("args", []))
+        url = f"steam://run/{s.get('appid', recipe['steam_appid'])}" + (f"//{args}" if args else "")
+        webbrowser.open(url)
+        task.say("✔ شغّلت اللعبة من ستيم")
+
+    elif t == "run":
+        exe = Path(s["exe"])
+        if not exe.exists():
+            raise RuntimeError(f"ما لقيت {exe}")
+        cmd = [str(exe)] + s.get("args", [])
+        if exe.suffix.lower() in (".cmd", ".bat"):
+            cmd = ["cmd", "/c", "start", "", str(exe)] + s.get("args", [])
+        cwd = s.get("cwd") or str(exe.parent)
+        if s.get("wait"):
+            subprocess.run(cmd, cwd=cwd, check=True)
+        else:
+            subprocess.Popen(cmd, cwd=cwd)
+        task.say(f"✔ شغّلت {exe.name}")
+
+
+def run_phases(task: Task, recipe: dict, phases: list, session: dict = None):
+    settings = load_settings()
+    if recipe.get("steam_appid") and not steam.game_dir(recipe["steam_appid"]):
+        raise RuntimeError(f"ما لقيت {recipe['name']} في ستيم. ثبّتها من ستيم أول (لو بالفاميلي: من مكتبة العائلة)")
+    ensure_archipelago(task, settings)
+    ctx = context(recipe, settings, session)
+    for phase in phases:
+        for step in recipe.get(phase, []):
+            run_step(step, ctx, settings, recipe, task)
+    return "ok"
+
+
+def mark_done(recipe_id: str, step_id: str):
+    s = load_settings()
+    s["done_steps"][f"{recipe_id}:{step_id}"] = True
+    save_settings(s)

@@ -1,0 +1,59 @@
+{
+  "id": "re3",
+  "name": "Resident Evil 3 Remake",
+  "name_ar": "ريزدنت إيفل 3",
+  "game": "Resident Evil 3 Remake",
+  "steam_appid": 952060,
+  "verified": false,
+  "notes_ar": "لازم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas). الاتصال يكون من نافذة Archipelago داخل اللعبة.",
+  "sources": [
+    "https://therealsolidussnake.github.io/RE3R_AP_SetupGuide/"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "TheRealSolidusSnake/RE3R_AP_World",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "RE3R apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "manual",
+      "id": "non_rtx",
+      "text_ar": "في ستيم: كلك يمين على اللعبة > Properties > Betas واختر النسخة اللي بدون RTX (dx11_non-rt). سويتها؟"
+    },
+    {
+      "type": "github_release",
+      "repo": "praydog/REFramework",
+      "asset": "RE3_TDB67.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "label": "REFramework"
+    },
+    {
+      "type": "github_release",
+      "repo": "TheRealSolidusSnake/RE3R_AP_Client",
+      "asset": "__source__",
+      "extract": true,
+      "strip_top_folder": true,
+      "to": "{game_dir}",
+      "label": "RE3R AP client"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 952060
+    },
+    {
+      "type": "manual",
+      "id": "connect_re",
+      "every_time": true,
+      "text_ar": "في نافذة Archipelago Client for REFramework اكتب Host = {address} و Slot = {slot}، وبعدها ابدأ قيم بنفس الشخصية والصعوبة اللي تطلع لك."
+    }
+  ],
+  "options": []
+}

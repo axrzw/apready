@@ -1,0 +1,71 @@
+{
+  "id": "hitman",
+  "name": "HITMAN World of Assassination",
+  "name_ar": "هيتمان",
+  "game": "HITMAN World of Assassination",
+  "steam_appid": 1659040,
+  "verified": false,
+  "notes_ar": "يشتغل عن طريق Peacock (سيرفر محلي بدل سيرفرات IOI). البرنامج يشغّل Peacock لك كل مرة.",
+  "sources": [
+    "https://multiworld.gg/tutorial/HITMAN%20World%20of%20Assassination/setup_en",
+    "https://github.com/BenDipp/Archipelago/releases"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "BenDipp/Archipelago",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "Hitman apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "thepeacockproject/Peacock",
+      "asset": "Peacock-*.zip",
+      "extract": true,
+      "strip_top_folder": true,
+      "to": "{tools}/Peacock",
+      "label": "Peacock"
+    },
+    {
+      "type": "github_release",
+      "repo": "BenDipp/Archipelago",
+      "asset": "archipelago.plugin.js",
+      "to": "{tools}/Peacock/plugins",
+      "label": "Archipelago plugin for Peacock"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{tools}/Peacock/Start Server.cmd",
+      "label": "Peacock server"
+    },
+    {
+      "type": "run",
+      "exe": "{tools}/Peacock/PeacockPatcher.exe",
+      "label": "PeacockPatcher"
+    },
+    {
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "args": [
+        "HITMAN World of Assassination Client"
+      ]
+    },
+    {
+      "type": "steam_launch",
+      "appid": 1659040
+    },
+    {
+      "type": "manual",
+      "id": "connect_hitman",
+      "every_time": true,
+      "text_ar": "في نافذة HITMAN Client اكتب {address} واضغط Connect، وبعدها اسمك {slot}. المراحل تطلع في Campaigns > Archipelago."
+    }
+  ],
+  "options": []
+}

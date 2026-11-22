@@ -1,0 +1,55 @@
+{
+  "id": "cuphead",
+  "name": "Cuphead",
+  "name_ar": "كب هيد",
+  "game": "Cuphead",
+  "steam_appid": 268910,
+  "verified": false,
+  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5.",
+  "sources": [
+    "https://github.com/JKLeckr/CupheadArchipelagoMod",
+    "https://github.com/JKLeckr/Archipelago-cuphead"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "JKLeckr/Archipelago-cuphead",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "Cuphead apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "BepInEx/BepInEx",
+      "tag": "v5.4.23.2",
+      "asset": "BepInEx_win_x64_5.4.23.2.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "label": "BepInEx 5"
+    },
+    {
+      "type": "github_release",
+      "repo": "JKLeckr/CupheadArchipelagoMod",
+      "asset": "*.zip",
+      "extract": true,
+      "to": "{game_dir}/BepInEx/plugins/CupheadArchipelago",
+      "label": "Cuphead Archipelago mod"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 268910
+    },
+    {
+      "type": "manual",
+      "id": "connect_cuphead",
+      "every_time": true,
+      "text_ar": "اختر سيف فاضي، واضغط C+Z يفتح لك إعداد Archipelago. فعّله واكتب {host} والبورت {port} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

@@ -1,0 +1,38 @@
+{
+  "id": "elden_ring",
+  "name": "Elden Ring",
+  "name_ar": "إلدن رنق",
+  "game": "Elden Ring",
+  "steam_appid": 1245620,
+  "verified": false,
+  "notes_ar": "المود على Nexus ولازم تنزله بيدك أول مرة (Nexus يطلب تسجيل دخول). Shadow of the Erdtree بس لو فعّلتوا مناطق الـ DLC.",
+  "sources": [
+    "https://www.nexusmods.com/eldenring/mods/10334"
+  ],
+  "apworld": [
+    {
+      "type": "manual",
+      "id": "host_apworld",
+      "url": "https://www.nexusmods.com/eldenring/mods/10334?tab=files",
+      "text_ar": "(للمستضيف) نزّل ملف elden_ring.apworld من صفحة المود وحطه في {custom_worlds}، وبعدها اضغط سويتها."
+    }
+  ],
+  "install": [
+    {
+      "type": "manual",
+      "id": "nexus_mod",
+      "url": "https://www.nexusmods.com/eldenring/mods/10334?tab=files",
+      "text_ar": "نزّل المود من صفحة Nexus اللي انفتحت وفكّه في مجلد {tools}، واتبع صفحة المود لربطه باللعبة. هذي أول مرة بس."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "manual",
+      "id": "launch_er",
+      "every_time": true,
+      "text_ar": "شغّل اللعبة من لانشر المود (مو من ستيم مباشرة)، واكتب العنوان {address} واسمك {slot}."
+    }
+  ],
+  "options": []
+}
