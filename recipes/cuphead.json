@@ -5,7 +5,7 @@
   "game": "Cuphead",
   "steam_appid": 268910,
   "verified": false,
-  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5. Death Link يشتغل داخل المراحل بس، مو على الخريطة.",
+  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5. البرنامج يفعّل Archipelago على سيف فاضي خاص بالمود (سيفاتك العادية ما تنلمس). Death Link يشتغل داخل المراحل بس، مو على الخريطة.",
   "sources": [
     "https://github.com/JKLeckr/CupheadArchipelagoMod",
     "https://github.com/JKLeckr/CupheadArchipelagoMod/blob/main/INSTALLING.md",
@@ -40,7 +40,25 @@
       "label": "Cuphead Archipelago mod"
     }
   ],
-  "connect": [],
+  "connect": [
+    {
+      "type": "save_slot_json",
+      "label": "تجهيز السيف",
+      "dir": "{appdata}/Cuphead",
+      "slots": 3,
+      "file": "cuphead_player_data_v1_ap_slot_{n}_apdata.sav",
+      "game_file": "cuphead_player_data_v1_ap_slot_{n}.sav",
+      "values": {
+        "address": "{host}",
+        "port": "{port}",
+        "player": "{slot}",
+        "password": "{password}"
+      },
+      "ints": [
+        "port"
+      ]
+    }
+  ],
   "launch": [
     {
       "type": "steam_launch",
@@ -50,7 +68,7 @@
       "type": "manual",
       "id": "connect_cuphead",
       "every_time": true,
-      "text_ar": "المود يحفظ الاتصال داخل السيف نفسه، فلازم تكتبه مرة وحدة: اختر سيف فاضي، واضغط C+Z يفتح لك إعداد Archipelago. فعّله واكتب العنوان {host} والبورت {port} والاسم {slot}. بعدها كل مرة تفتح نفس السيف يتصل لحاله."
+      "text_ar": "اختر السيف رقم {save_slot} (عليه AP، وكل شي مكتوب فيه)، وابدأ اللعب. لو طلع لك Seed mismatch يعني لعبة جديدة: اضغط طلّع ملفي مرة ثانية وبعدها العب."
     }
   ],
   "options": [],

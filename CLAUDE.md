@@ -63,7 +63,10 @@ has downloaded it), `manual` (id, text_ar, url, every_time, done_if_exists = pat
 means it's already done, open_exe = launcher to open for the player,
 open_folder = folder to show instead of printing its path), `copy`, `write_file`
 (merge = keep the other keys of an existing JSON, ints = keys to write as numbers),
-`thunderstore` (packages: ["Namespace-Name"]; installs them and every dependency
+`save_slot_json` (dir, slots, file / game_file with {n}, values, ints: Cuphead keeps
+Archipelago per save slot; a new YAML marks a new game, so Play enables a slot that has no game
+save and is not enabled yet, and later Plays only update address/port of that slot; never
+touches a played slot; sets {save_slot} for the launch hint), `thunderstore` (packages: ["Namespace-Name"]; installs them and every dependency
 from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `ini_set` (path, section, values, quote: true for
 MelonPreferences TOML, false for BepInEx .cfg), `open_url`, `steam_launch`, `run` (exe may be a glob,
 optional_args only added when the value isn't empty), `apworld_builtin`.
@@ -87,7 +90,7 @@ work (PR #1, branch `claude/claude-md-recipes-review-j78ner`) did:
   Thunderstore), twice (the second run downloads and asks nothing). Keep doing this for new
   recipes: see the dry-run approach in the commit history.
 - Automated connect wherever the mod reads host/slot from a file. Still manual, and why:
-  Elden Ring (Nexus needs a login), Cuphead connect (stored inside the save slot), Sekiro
+  Elden Ring (Nexus needs a login), Sekiro
   connect (.NET user settings under a hashed path), RE4R per-seed patch (only the Wizard can),
   the non-RTX Steam beta for RE2/3/7, the one-time install button in the RE4R / Village / RE9
   launchers, typing the room in-game for games whose mod saves nothing (Buckshot, Brotato,
@@ -116,6 +119,8 @@ Notes kept from the review:
   `deathlink` = 0 unless that option is on, so the mod never enables Death Link. The recipe
   wrote `death_link`, so the owner's test (Nov 2026) sent no death. Fixed:
   `"death_link_key": "deathlink"`. Death Link in Cuphead only works inside levels.
+  The same test showed the owner never enabled Archipelago on a save slot (C+Z menu), so the
+  game ran unrandomized; the app now does that itself (`save_slot_json`).
 - Hitman (docs: "Deathlink is not supported") and Valheim (no option, nothing in the mod
   DLL): `death_link_key: null`, toggle greyed out.
 - TUNIC: no apworld option, but the mod has `DeathLinkEnabled` in Settings.json; the connect
