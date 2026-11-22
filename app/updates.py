@@ -62,7 +62,7 @@ def update(listing_fn=http_json, get_fn=_get) -> dict:
         except Exception:
             result["skipped"].append(name)  # broken, or uses something this app version doesn't know
             continue
-        (result["updated"] if target.exists() else result["new"]).append(r.get("name_ar") or r["name"])
+        (result["updated"] if target.exists() else result["new"]).append(r["name"])  # games keep their own name
         target.write_bytes(raw)
         index[name] = e.get("sha")
     for f in folder.glob("*.json"):
