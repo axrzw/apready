@@ -116,3 +116,9 @@ def test_updates_only_use_valid_recipes(tmp_path, monkeypatch):
     assert updates.update(lambda url: listing, get)["new"] == [] and calls == ["u/future.json", "u/evil.json"]
     updates.update(lambda url: [], get)  # removed upstream -> removed here
     assert "newgame" not in rec.load_all(extra=updates.remote_dir())
+
+
+def test_analyze_apworld_with_bom():
+    """RE4R's .py files start with a UTF-8 BOM; ast must still read them."""
+    data = _apworld({"g/archipelago.json": '{"game": "My Game"}', "g/Options.py": "﻿" + OPTIONS_PY})
+    assert nr.analyze_apworld(data)["death_link"]["key"] == "death_link"
