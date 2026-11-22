@@ -72,7 +72,7 @@
     <div id="games" class="grid"></div>
 
     <div id="gamePanel" class="panel hidden">
-      <h3 id="gTitle"></h3>
+      <h3 id="gTitle" dir="auto"></h3>
       <p id="gNotes" class="muted"></p>
 
       <div class="dl" id="dlBox">
@@ -161,7 +161,7 @@ async function refresh() {
   $("name").value = S.player_name || "";
   $("games").innerHTML = S.games.map(g => `
     <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">
-      <b>${g.name_ar}</b>
+      <b dir="ltr">${g.name}</b>
       <span class="tag ${g.installed?'':'no'}">${g.installed?'موجودة في ستيم':'مو مثبتة'}</span><br>
       ${g.verified?'':'<span class="tag no">وصفة تجريبية</span>'}
     </div>`).join("");
@@ -190,7 +190,7 @@ function pick(id) {
   const last = (S.last||{})[id] || {};
   const vals = Object.assign({}, ...cur.options.map(o => ({[o.key]: o.default})), last.options||{});
   $("gamePanel").classList.remove("hidden");
-  $("gTitle").textContent = cur.name_ar;
+  $("gTitle").textContent = cur.name;
   $("gNotes").textContent = cur.notes_ar || "";
   // games without Death Link keep the toggle on screen, greyed out and locked
   $("dlBox").classList.toggle("off", !cur.death_link);

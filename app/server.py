@@ -33,7 +33,7 @@ def parse_room(text: str) -> dict:
 def game_list():
     s = load_settings()
     out = []
-    for r in RECIPES.values():
+    for r in sorted(RECIPES.values(), key=lambda r: r["name"].lower()):  # A to Z by the game's own name
         out.append({
             "id": r["id"], "name": r["name"], "name_ar": r.get("name_ar", r["name"]),
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,

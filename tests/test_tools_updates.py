@@ -109,7 +109,7 @@ def test_updates_only_use_valid_recipes(tmp_path, monkeypatch):
         calls.append(url)
         return files[url.split("/")[-1]]
     res = updates.update(lambda url: listing, get)
-    assert res["new"] == ["جديدة"] and sorted(res["skipped"]) == ["evil.json", "future.json"]
+    assert res["new"] == ["New Game"] and sorted(res["skipped"]) == ["evil.json", "future.json"]
     shipped = rec.load_all(extra=updates.remote_dir())
     assert "newgame" in shipped and "future" not in shipped and "terraria" in shipped
     calls.clear()

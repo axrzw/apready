@@ -16,6 +16,5 @@
 3. ارفع الملف في الصفحة اللي تنفتح، واضغط Create New Room، وارسل العنوان للشباب.
 
 ## الألعاب
-تيراريا، إلدن رنق، سيكيرو، هيتمان، بورتال 2، كب هيد، وريزدنت إيفل: 2 و 3 و 4 ريميك و 4 القديمة و 7 و 8 (فيليج) و 9 (ريكوييم).
-وكمان: كود بلاك أوبس 3 زومبي، النباتات ضد الزومبي (Replanted)، بالاترو، بيك، باكشوت رولت، دونت ستارف توقذر، تونك، بروتاتو، ستاردو فالي، ريبو (R.E.P.O.)، ليثال كومباني، كونتنت وورنينق، كلت أوف ذا لامب، فالهايم، ماك.
+Balatro, Brotato, Buckshot Roulette, Call of Duty: Black Ops III - Zombies, Content Warning, Cult of the Lamb, Cuphead, Don't Starve Together, Elden Ring, HITMAN World of Assassination, Lethal Company, Muck, PEAK, Plants vs. Zombies: Replanted, Portal 2, R.E.P.O., Resident Evil 2 Remake, Resident Evil 3 Remake, Resident Evil 4 (2005), Resident Evil 4 Remake, Resident Evil 7 Biohazard, Resident Evil Requiem, Resident Evil Village, Sekiro: Shadows Die Twice, Stardew Valley, TUNIC, Terraria, Valheim.
 كلها **تجريبية** لين نجربها فعلياً. لإضافة ألعاب شوف `ADDING_GAMES.md`.
