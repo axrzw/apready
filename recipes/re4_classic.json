@@ -1,0 +1,45 @@
+{
+  "id": "re4_classic",
+  "name": "Resident Evil 4 (UHD 2014)",
+  "name_ar": "ريزدنت إيفل 4 القديمة",
+  "game": "Resident Evil 4 UHD",
+  "steam_appid": 254700,
+  "verified": false,
+  "notes_ar": "النسخة القديمة (Ultimate HD) على ستيم، مو الريميك. مبنية على re4_tweaks.",
+  "sources": [
+    "https://github.com/Pegzzzz/RE4-UHD-Archipelago"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "Pegzzzz/RE4-UHD-Archipelago",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "RE4 UHD apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Pegzzzz/RE4-UHD-Archipelago",
+      "asset": "*.zip",
+      "extract": true,
+      "to": "{game_dir}/Bin32",
+      "label": "RE4 UHD AP mod (dinput8)"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 254700
+    },
+    {
+      "type": "manual",
+      "id": "connect_re4_classic",
+      "every_time": true,
+      "text_ar": "شغّل الكلاينت من Archipelago Launcher، واكتب {address} والاسم {slot}، وبعدها ابدأ اللعبة."
+    }
+  ],
+  "options": []
+}

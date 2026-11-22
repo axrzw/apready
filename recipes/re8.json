@@ -1,0 +1,46 @@
+{
+  "id": "re8",
+  "name": "Resident Evil Village",
+  "name_ar": "ريزدنت إيفل 8 (فيليج)",
+  "game": "Resident Evil Village",
+  "steam_appid": 1196590,
+  "verified": false,
+  "notes_ar": "لسا ألفا. يجي مع لانشر خاص: يحفظ بيانات الاتصال داخل اللعبة فتتصل لحالها.",
+  "sources": [
+    "https://github.com/LiterallyMetaphorical/Archipelago-RE-Village"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "LiterallyMetaphorical/Archipelago-RE-Village",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "RE Village apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "LiterallyMetaphorical/Archipelago-RE-Village",
+      "asset": "*launcher*.zip",
+      "extract": true,
+      "to": "{tools}/launcher",
+      "label": "RE Village AP Launcher"
+    },
+    {
+      "type": "manual",
+      "id": "village_setup",
+      "text_ar": "افتح {tools}\\launcher وشغّل RE_Village_AP_Launcher.exe، وفي تبويب Setup اختر English واضغط Install / update (واللعبة مقفلة). سويتها؟"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "manual",
+      "id": "connect_re8",
+      "every_time": true,
+      "text_ar": "في لانشر RE Village، تبويب Play: اكتب {address} والاسم {slot}. بعدها شغّل اللعبة وتتصل لحالها."
+    }
+  ],
+  "options": []
+}

@@ -15,7 +15,7 @@ def all_recipes():
 
 
 def test_all_recipes_load(all_recipes):
-    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "cuphead"} <= set(all_recipes)
+    assert {"terraria", "elden_ring", "sekiro", "hitman", "re2", "re3", "re4r", "re4_classic", "re7", "re8", "cuphead", "portal2"} <= set(all_recipes)
 
 
 def test_common_advanced_options_added(all_recipes):

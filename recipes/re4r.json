@@ -1,0 +1,50 @@
+{
+  "id": "re4r",
+  "name": "Resident Evil 4 Remake",
+  "name_ar": "ريزدنت إيفل 4 ريميك",
+  "game": "Resident Evil 4 Remake",
+  "steam_appid": 2050650,
+  "verified": false,
+  "notes_ar": "ريميك 2023 على ستيم، ويدعم Separate Ways و Treasure Map لو عندك الـ DLC. يجي مع لانشر (Wizard) يجهز الباتش.",
+  "sources": [
+    "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "LiterallyMetaphorical/RE4R-AP-Wizard",
+      "asset": "*.apworld",
+      "to": "{custom_worlds}",
+      "label": "RE4R apworld"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "LiterallyMetaphorical/RE4R-AP-Wizard",
+      "asset": "*.zip",
+      "extract": true,
+      "to": "{tools}/wizard",
+      "label": "RE4R AP Wizard"
+    },
+    {
+      "type": "manual",
+      "id": "wizard_setup",
+      "text_ar": "افتح مجلد {tools}\\wizard وشغّل الـ Wizard، وسوّ التثبيت مرة وحدة (يركّب REFramework والمود). سويتها؟"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 2050650
+    },
+    {
+      "type": "manual",
+      "id": "connect_re4r",
+      "every_time": true,
+      "text_ar": "قبل تشغيل اللعبة جهّز الباتش من الـ Wizard بنفس السيد. بعدها داخل اللعبة اضغط Insert تطلع نافذة Archipelago، واكتب {address} والاسم {slot}."
+    }
+  ],
+  "options": []
+}

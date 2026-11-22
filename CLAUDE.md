@@ -43,11 +43,11 @@ launch[]         start the game / client
 Step types: `github_release` (repo, asset glob or "__source__", to, extract,
 strip_top_folder, tag), `workshop` (workshop_id), `manual` (id, text_ar, url,
 every_time), `copy`, `write_file`, `open_url`, `steam_launch`, `run`, `apworld_builtin`.
-Placeholders: `{game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
+Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
 {slot} {host} {port} {address} {password}`.
 
 ## Status: what to do first
-All 7 recipes are `"verified": false`. They were written from the setup guides in each
+All 12 recipes are `"verified": false`. They were written from the setup guides in each
 recipe's `sources` but have never been run on a real PC. In this order:
 1. On Windows run `python -m app` and test Terraria end to end, since it's official and simplest.
 2. For each recipe, open its sources and check: the repo names, the asset name globs
@@ -70,3 +70,8 @@ See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, 
 - Run: `python -m app`
 - Tests: `python -m pytest -q`
 - Build exe: `build.bat`, or push a tag `v*` and GitHub Actions builds `APReady.exe`.
+
+## Wanted next (owner asked)
+- More Resident Evil parts. FuzzyGamesOn/REF_Inspect also mentions RE9, so check whether an RE9 AP exists.
+  Also look for RE1/RE0 remasters.
+- Portal 1: no Archipelago support found yet (Nov 2026). Check again later.

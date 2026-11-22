@@ -72,7 +72,10 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
     session = session or {}
     host = session.get("host", "archipelago.gg")
     port = str(session.get("port", ""))
+    sr = steam.steam_root()
     return {
+        "steam": str(sr) if sr else "",
+        "sourcemods": str(sr / "steamapps" / "sourcemods") if sr else "",
         "game_dir": str(gd) if gd else "",
         "ap_dir": str(apd),
         "custom_worlds": str(apd / "custom_worlds"),
