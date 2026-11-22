@@ -482,6 +482,33 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         p.write_text(ini_set(old, s["section"], values, s.get("quote", False)), encoding="utf-8")
         task.say(f"✔ كتبت إعدادات {p.name}")
 
+    elif t == "save_slot_json":  # Cuphead: Archipelago lives inside one of the mod's own save slots
+        folder = Path(s["dir"])
+        rid = recipe["id"]
+        slots = settings.setdefault("save_slots", {})
+        new_game = settings.setdefault("new_game", {}).get(rid, False)
+        apfile = lambda n: folder / s["file"].replace("{n}", str(n))
+        gamefile = lambda n: folder / s["game_file"].replace("{n}", str(n))
+        enabled = lambda n: read_json(apfile(n), {}).get(s.get("enabled_key", "enabled")) is True
+        n = slots.get(rid)
+        if new_game or n is None or not enabled(n):
+            # never touch a slot that has been played: only one with no game save and Archipelago off
+            free = [i for i in range(s.get("slots", 3)) if not gamefile(i).exists() and not enabled(i)]
+            if not free:
+                raise RuntimeError("كل سيفات Archipelago في اللعبة مستخدمة. امسح واحد من داخل اللعبة وارجع اضغط العب.")
+            n = free[0]
+        data = read_json(apfile(n), {})
+        data = data if isinstance(data, dict) else {}
+        data.update(coerce_ints(dict(s["values"]), s.get("ints")))
+        data[s.get("enabled_key", "enabled")] = True
+        folder.mkdir(parents=True, exist_ok=True)
+        apfile(n).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        slots[rid] = n
+        settings["new_game"][rid] = False
+        save_settings(settings)
+        ctx["save_slot"] = str(n + 1)  # for the hint shown at launch
+        task.say(f"✔ جهزت السيف رقم {n + 1} لـ Archipelago")
+
     elif t == "json_list_add":  # e.g. tModLoader's Mods/enabled.json
         p = Path(s["path"])
         items = read_json(p, [])

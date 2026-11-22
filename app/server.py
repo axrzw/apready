@@ -97,6 +97,7 @@ class Handler(BaseHTTPRequestHandler):
                 s.setdefault("last", {})[r["id"]] = {"options": b.get("options", {}),
                                                      "death_link": bool(b.get("death_link", True)),
                                                      "extra": b.get("extra", "")}
+                s.setdefault("new_game", {})[r["id"]] = True  # a new YAML = a new multiworld: next Play takes a fresh save slot
                 save_settings(s)
                 out = data_dir() / "my_yaml" / f"{rec.safe_slot(s.get('player_name') or 'Player')}_{r['id']}.yaml"
                 out.parent.mkdir(parents=True, exist_ok=True)

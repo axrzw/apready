@@ -300,3 +300,32 @@ def test_cuphead_death_link_uses_its_own_key(all_recipes):
     """cuphead.apworld reads `deathlink`; `death_link` left Death Link off (owner's test)."""
     y = rec.build_yaml(all_recipes["cuphead"], "Mishal", {}, True)
     assert "  deathlink: true" in y and "death_link" not in y
+
+
+def test_cuphead_save_slot_enabled_without_touching_played_slots(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "save_settings", lambda s: None)
+    r = rec.load_all()["cuphead"]
+    step = dict(r["connect"][0], dir=str(tmp_path))
+    # slot 0 was played (game save exists); slot 1 already has an old Archipelago game
+    (tmp_path / "cuphead_player_data_v1_ap_slot_0.sav").write_text("{}")
+    (tmp_path / "cuphead_player_data_v1_ap_slot_1_apdata.sav").write_text('{"enabled": true, "seed": "old"}')
+    (tmp_path / "cuphead_player_data_v1_ap_slot_1.sav").write_text("{}")
+    s = _settings()
+    s["new_game"] = {"cuphead": True}
+    ctx = {"appdata": str(tmp_path), "host": "archipelago.gg", "port": "38281", "slot": "Mishal", "password": ""}
+    runner.run_step(step, dict(ctx), s, r, _T())
+    data = json.loads((tmp_path / "cuphead_player_data_v1_ap_slot_2_apdata.sav").read_text())
+    assert data == {"address": "archipelago.gg", "port": 38281, "player": "Mishal", "password": "", "enabled": True}
+    assert s["save_slots"]["cuphead"] == 2 and s["new_game"]["cuphead"] is False
+    assert json.loads((tmp_path / "cuphead_player_data_v1_ap_slot_1_apdata.sav").read_text())["seed"] == "old"
+    # same multiworld, room came back on another port: same slot, seed kept
+    (tmp_path / "cuphead_player_data_v1_ap_slot_2_apdata.sav").write_text(json.dumps(dict(data, seed="S1")))
+    c2 = dict(ctx, port="40000")
+    runner.run_step(step, c2, s, r, _T())
+    d2 = json.loads((tmp_path / "cuphead_player_data_v1_ap_slot_2_apdata.sav").read_text())
+    assert d2["port"] == 40000 and d2["seed"] == "S1" and c2["save_slot"] == "3"
+    # a new multiworld with no free slot left: clear error, nothing overwritten
+    (tmp_path / "cuphead_player_data_v1_ap_slot_2.sav").write_text("{}")
+    s["new_game"]["cuphead"] = True
+    with pytest.raises(RuntimeError):
+        runner.run_step(step, dict(ctx), s, r, _T())
