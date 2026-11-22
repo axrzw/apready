@@ -58,10 +58,50 @@
       "appid": 3527290
     }
   ],
-  "options": [],
+  "options": [
+    {
+      "key": "death_link_send_behavior",
+      "label_ar": "متى يرسل Death Link",
+      "deathlink": true,
+      "help_ar": "",
+      "default": "any_player_dies",
+      "choices": [
+        {
+          "value": "any_player_dies",
+          "label_ar": "لما يموت أي لاعب"
+        },
+        {
+          "value": "all_players_dead",
+          "label_ar": "لما يموتون كلهم"
+        }
+      ]
+    },
+    {
+      "key": "death_link_behavior",
+      "label_ar": "وش يصير لما يجيكم Death Link",
+      "deathlink": true,
+      "help_ar": "",
+      "default": "kill_random_player",
+      "choices": [
+        {
+          "value": "kill_random_player",
+          "label_ar": "يموت لاعب عشوائي"
+        },
+        {
+          "value": "reset_to_last_checkpoint",
+          "label_ar": "ترجعون لآخر نقطة"
+        }
+      ]
+    }
+  ],
   "guide_ar": [
     "اضغط «جهّز اللعبة» (يركّب BepInEx والمود).",
     "اضغط ▶ العب: البرنامج يكتب الاتصال في المود، والمود يتصل لحاله.",
     "اللعب الجماعي: بس سلوت صاحب اللوبي يتأثر، والباقين يدخلون عنده عادي."
+  ],
+  "checks_ar": "أحداث وإنجازات في التسلق: الشارات، فتح الشنط، أخذ الأغراض، الأقسام. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
+  "avoid_ar": [
+    "في اللعب الجماعي بس سلوت صاحب اللوبي يتأثر.",
+    "مودات تغيّر المناطق ممكن تخرب المنطق."
   ]
 }

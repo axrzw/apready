@@ -47,6 +47,10 @@ id, name, name_ar, game (exact Archipelago game name), steam_appid, verified, no
                  (the UI shows `name`: the game's own official name, owner's choice; name_ar is not shown)
 guide_ar[]       short numbered steps shown under the game ("📖 كيف أشغّلها"): what the player does
                  after pressing Play (in-game menus, Steam settings). Every recipe needs one (test).
+checks_ar        what counts as a check in this game and how it is sent ("🎯" section). Required (test).
+avoid_ar[]       warnings: what to avoid (switching saves, worlds, teleports...). Required (test).
+                 Death Link sub-settings are normal options with `"deathlink": true`: shown inside the
+                 Death Link box only while it is on (Cuphead deaths-before-sending, BO3/PEAK triggers...).
 death_link_key   (default "death_link"; null if the apworld has no Death Link option)
 death_link_in_mod  true when the apworld has no option but the mod has Death Link itself
                  (TUNIC, Buckshot Roulette): the toggle stays live, connect steps use

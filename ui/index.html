@@ -38,7 +38,10 @@
   .dl.off { opacity:.4; filter:grayscale(1); }
   .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
   .guide summary { cursor:pointer; font-weight:600; }
-  .guide ol { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
+  .guide ol, .guide ul { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
+  .guide p { margin:8px 0 0; line-height:1.8; }
+  .guide.warn { border-color:rgba(255,170,60,.35); }
+  .dlopts { border:1px solid rgba(230,70,70,.35); border-top:none; border-radius:0 0 10px 10px; padding:4px 14px; margin-top:-8px; }
   .dl.off .switch span { cursor:not-allowed; }
   .opt { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:10px; }
   .opt small { color:var(--dim); display:block; }
@@ -86,7 +89,16 @@
         <div><strong>☠ Death Link</strong><br><span class="muted">لو مت أنت، يموت الكل. ولو مات أحد، تموت معه.</span></div>
         <label class="switch"><input type="checkbox" id="deathlink" checked><span></span></label>
       </div>
+      <div id="dlOpts" class="dlopts"></div>
       <p id="noDl" class="muted hidden">⚠ هذي اللعبة ما تدعم Death Link</p>
+      <details id="checksBox" class="guide">
+        <summary>🎯 وش الـ checks وكيف ترسلها</summary>
+        <p id="checks"></p>
+      </details>
+      <details id="avoidBox" class="guide warn">
+        <summary>⚠ أشياء تجنبها</summary>
+        <ul id="avoid"></ul>
+      </details>
 
       <div id="basicOpts"></div>
 
@@ -207,12 +219,25 @@ function pick(id) {
   $("deathlink").disabled = !cur.death_link;
   $("noDl").classList.toggle("hidden", cur.death_link);
   $("deathlink").checked = cur.death_link ? (last.death_link !== undefined ? last.death_link : true) : false;
-  $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced).map(o=>optRow(o, vals[o.key])).join("");
-  $("advOpts").innerHTML = cur.options.filter(o=>o.advanced).map(o=>optRow(o, vals[o.key])).join("");
+  // Death Link settings (deaths before sending, what triggers it...) sit inside the Death Link box
+  $("dlOpts").innerHTML = cur.options.filter(o=>o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
+  $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
+  $("advOpts").innerHTML = cur.options.filter(o=>o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
+  showDlOpts();
+  $("checks").textContent = cur.checks_ar || "";
+  $("checksBox").classList.toggle("hidden", !cur.checks_ar);
+  $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => { const li = document.createElement("li"); li.textContent = t; return li; }));
+  $("avoidBox").classList.toggle("hidden", !(cur.avoid_ar || []).length);
   $("extra").value = last.extra || "";
   $("yamlOut").classList.add("hidden");
   refresh();
 }
+
+function showDlOpts() {
+  const on = cur && cur.death_link && $("deathlink").checked;
+  $("dlOpts").classList.toggle("hidden", !on || !$("dlOpts").children.length);
+}
+document.addEventListener("change", e => { if (e.target.id === "deathlink") showDlOpts(); });
 
 function collect() {
   const options = {};

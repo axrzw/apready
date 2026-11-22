@@ -29,9 +29,12 @@ def validate(r: dict, source: str = "") -> dict:
                 raise RecipeError(f"{source}: {phase}[{i}] unknown type '{t}'")
             if t in ("manual",) and "id" not in step:
                 raise RecipeError(f"{source}: {phase}[{i}] manual step needs an 'id'")
-    guide = r.get("guide_ar", [])
-    if not isinstance(guide, list) or not all(isinstance(x, str) for x in guide):
-        raise RecipeError(f"{source}: guide_ar must be a list of strings")
+    for k in ("guide_ar", "avoid_ar"):
+        v = r.get(k, [])
+        if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
+            raise RecipeError(f"{source}: {k} must be a list of strings")
+    if not isinstance(r.get("checks_ar", ""), str):
+        raise RecipeError(f"{source}: checks_ar must be a string")
     for opt in r.get("options", []):
         if "key" not in opt or "default" not in opt:
             raise RecipeError(f"{source}: option needs 'key' and 'default'")
