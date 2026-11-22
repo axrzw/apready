@@ -1,0 +1,351 @@
+"""Watch a room: a read-only Archipelago client that shows everything that happens.
+
+It logs in to the player's own slot as a "TextOnly" client (like Archipelago's Text Client),
+so it never plays, never sends checks and never sends a death. With the DeathLink tag it also
+*hears* deaths. Everything the server prints (items sent, hints, joins, goals, chat) and every
+death goes into a list the UI polls.
+
+The WebSocket client is written with the standard library only (no third-party packages),
+so the exe stays small. Archipelago rooms answer on wss:// first and ws:// as a fallback.
+"""
+import base64
+import json
+import os
+import re
+import socket
+import ssl
+import struct
+import threading
+import time
+import urllib.request
+import uuid
+
+AP_VERSION = {"major": 0, "minor": 6, "build": 0, "class": "Version"}
+FLAG_PROGRESSION, FLAG_USEFUL, FLAG_TRAP = 1, 2, 4
+
+
+# ---------- archipelago.gg room links ----------
+
+WEBHOST = "https://archipelago.gg"
+ROOM_LINK = re.compile(r"archipelago\.gg/room/([A-Za-z0-9_\-]+)")
+
+
+def _get_json(url: str):
+    req = urllib.request.Request(url, headers={"User-Agent": "APReady", "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=20) as r:
+        return json.loads(r.read().decode("utf-8"))
+
+
+def resolve_room_link(text: str, get_json=_get_json, wake=None):
+    """'https://archipelago.gg/room/<id>' -> {host, port, room, tracker}. Opening the room page wakes
+    a sleeping room (it gets a new port), so friends never have to look for the port."""
+    m = ROOM_LINK.search(text or "")
+    if not m:
+        return None
+    room = m.group(1)
+    (wake or (lambda u: urllib.request.urlopen(urllib.request.Request(u, headers={"User-Agent": "APReady"}), timeout=20).read()))(
+        f"{WEBHOST}/room/{room}")
+    status = {}
+    for _ in range(10):  # the room needs a moment to start after being woken
+        status = get_json(f"{WEBHOST}/api/room_status/{room}")
+        if status.get("last_port"):
+            break
+        time.sleep(1)
+    if not status.get("last_port"):
+        raise ConnectionError("الروم ما اشتغل. افتح رابطه في المتصفح وجرب مرة ثانية")
+    tracker = str(status.get("tracker", "")).rstrip("/").split("/")[-1]
+    return {"host": "archipelago.gg", "port": str(status["last_port"]), "room": room, "tracker": tracker}
+
+
+# ---------- a minimal WebSocket client (RFC 6455) ----------
+
+class WebSocket:
+    def __init__(self, host: str, port: int, secure: bool, timeout: float = 15):
+        raw = socket.create_connection((host, port), timeout=timeout)
+        if secure:
+            raw = ssl.create_default_context().wrap_socket(raw, server_hostname=host)
+        self.sock = raw
+        key = base64.b64encode(os.urandom(16)).decode()
+        req = (f"GET / HTTP/1.1\r\nHost: {host}:{port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n"
+               f"Sec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\nUser-Agent: APReady\r\n\r\n")
+        self.sock.sendall(req.encode())
+        head = b""
+        while b"\r\n\r\n" not in head:
+            chunk = self.sock.recv(4096)
+            if not chunk:
+                raise ConnectionError("closed during handshake")
+            head += chunk
+        status = head.split(b"\r\n", 1)[0]
+        if b" 101 " not in status + b" ":
+            raise ConnectionError(f"handshake refused: {status.decode(errors='replace')}")
+        self.buf = head.split(b"\r\n\r\n", 1)[1]
+        self.lock = threading.Lock()
+
+    def _read(self, n: int) -> bytes:
+        while len(self.buf) < n:
+            chunk = self.sock.recv(65536)
+            if not chunk:
+                raise ConnectionError("connection closed")
+            self.buf += chunk
+        out, self.buf = self.buf[:n], self.buf[n:]
+        return out
+
+    def _send_frame(self, opcode: int, payload: bytes):
+        head = bytes([0x80 | opcode])
+        n = len(payload)
+        if n < 126:
+            head += bytes([0x80 | n])
+        elif n < 65536:
+            head += bytes([0x80 | 126]) + struct.pack(">H", n)
+        else:
+            head += bytes([0x80 | 127]) + struct.pack(">Q", n)
+        mask = os.urandom(4)
+        masked = bytes(b ^ mask[i % 4] for i, b in enumerate(payload))
+        with self.lock:
+            self.sock.sendall(head + mask + masked)
+
+    def send_text(self, text: str):
+        self._send_frame(0x1, text.encode("utf-8"))
+
+    def recv_text(self) -> str:
+        """Next text message; answers pings, joins fragments, raises on close."""
+        parts, kind = [], None
+        while True:
+            b1, b2 = self._read(2)
+            fin, opcode = b1 & 0x80, b1 & 0x0F
+            n = b2 & 0x7F
+            if n == 126:
+                n = struct.unpack(">H", self._read(2))[0]
+            elif n == 127:
+                n = struct.unpack(">Q", self._read(8))[0]
+            mask = self._read(4) if b2 & 0x80 else None
+            data = self._read(n)
+            if mask:
+                data = bytes(b ^ mask[i % 4] for i, b in enumerate(data))
+            if opcode == 0x9:  # ping
+                self._send_frame(0xA, data)
+                continue
+            if opcode == 0xA:  # pong
+                continue
+            if opcode == 0x8:
+                raise ConnectionError("server closed the connection")
+            if opcode in (0x1, 0x2):
+                kind, parts = opcode, [data]
+            elif opcode == 0x0:
+                parts.append(data)
+            if fin and kind is not None:
+                return b"".join(parts).decode("utf-8", "replace")
+
+    def close(self):
+        try:
+            self._send_frame(0x8, b"")
+        except OSError:
+            pass
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+
+
+# ---------- the room feed ----------
+
+class RoomFeed:
+    """One watched room. Thread-safe; the UI reads snapshot(since)."""
+
+    def __init__(self, host: str, port: int, slot: str, password: str = "", connect=None, tracker: str = "",
+                 get_json=_get_json):
+        self.host, self.port, self.slot, self.password = host, int(port), slot, password or ""
+        self.tracker, self._get_json = tracker, get_json
+        self.progress = {}        # player name -> {"done", "total", "goal"}
+        self.my_checked = self.my_missing = None
+        self._connect = connect or self._open
+        self.events = []
+        self.seq = 0              # event number, keeps growing even when old events are dropped
+        self.deaths = {}          # player name -> deaths heard
+        self.status = "connecting"
+        self.error = ""
+        self.my_slot = None
+        self.players = {}         # slot number -> name
+        self.games = {}           # slot number -> game
+        self.items = {}           # game -> {id: name}
+        self.locations = {}       # game -> {id: name}
+        self.lock = threading.Lock()
+        self.stop_flag = threading.Event()
+        self.ws = None
+
+    # -- lifecycle --
+    def start(self):
+        threading.Thread(target=self._run, daemon=True).start()
+        if self.tracker:
+            threading.Thread(target=self._track, daemon=True).start()
+        return self
+
+    def _track(self):
+        """Everyone's progress from the archipelago.gg tracker (checks done / total, goal)."""
+        totals = {}
+        while not self.stop_flag.is_set():
+            try:
+                if not totals:
+                    st = self._get_json(f"{WEBHOST}/api/static_tracker/{self.tracker}")
+                    totals = {(t["team"], t["player"]): t["total_locations"] for t in st.get("player_locations_total", [])}
+                tr = self._get_json(f"{WEBHOST}/api/tracker/{self.tracker}")
+                names = {(a["team"], a["player"]): a.get("alias") for a in tr.get("aliases", [])}
+                goal = {(x["team"], x["player"]): x.get("status") == 30 for x in tr.get("player_status", [])}  # 30 = goal done
+                prog = {}
+                for c in tr.get("player_checks_done", []):
+                    k = (c["team"], c["player"])
+                    name = names.get(k) or self.players.get(c["player"]) or f"Player {c['player']}"
+                    prog[name] = {"done": len(c.get("locations", [])), "total": totals.get(k, 0), "goal": goal.get(k, False)}
+                with self.lock:
+                    self.progress = prog
+            except Exception:
+                pass  # tracker hiccup: keep the last numbers
+            if self.stop_flag.wait(30):
+                return
+
+    def stop(self):
+        self.stop_flag.set()
+        if self.ws:
+            self.ws.close()
+
+    def _open(self):
+        last = None
+        for secure in (True, False):
+            try:
+                return WebSocket(self.host, self.port, secure)
+            except (OSError, ConnectionError, ssl.SSLError) as e:
+                last = e
+        raise ConnectionError(str(last))
+
+    def _run(self):
+        delay = 2
+        while not self.stop_flag.is_set():
+            try:
+                self.status = "connecting"
+                self.ws = self._connect()
+                delay = 2
+                self._session()
+            except Exception as e:  # network drop, room asleep, refused login...
+                self.error = str(e)
+                if self.status == "refused":
+                    return
+                self.status = "reconnecting"
+            if self.stop_flag.wait(delay):
+                return
+            delay = min(delay * 2, 30)
+
+    # -- protocol --
+    def _send(self, *packets):
+        self.ws.send_text(json.dumps(list(packets)))
+
+    def _session(self):
+        while not self.stop_flag.is_set():
+            for p in json.loads(self.ws.recv_text()):
+                self._handle(p)
+
+    def _handle(self, p: dict):
+        cmd = p.get("cmd")
+        if cmd == "RoomInfo":
+            self._send({"cmd": "GetDataPackage", "games": p.get("games", [])})
+            self._send({"cmd": "Connect", "password": self.password, "game": "", "name": self.slot,
+                        "uuid": uuid.uuid4().hex, "version": AP_VERSION, "items_handling": 0,
+                        "tags": ["TextOnly", "DeathLink"], "slot_data": False})
+        elif cmd == "DataPackage":
+            for game, pkg in p.get("data", {}).get("games", {}).items():
+                self.items[game] = {v: k for k, v in pkg.get("item_name_to_id", {}).items()}
+                self.locations[game] = {v: k for k, v in pkg.get("location_name_to_id", {}).items()}
+        elif cmd == "Connected":
+            self.my_slot = p.get("slot")
+            self.my_checked = set(p.get("checked_locations", []))
+            self.my_missing = set(p.get("missing_locations", []))
+            for pl in p.get("players", []):
+                self.players[pl["slot"]] = pl.get("alias") or pl.get("name")
+            for s, info in p.get("slot_info", {}).items():
+                self.games[int(s)] = info.get("game", "")
+            self.status = "connected"
+            self.error = ""
+            self._add("system", "✔ متصل بالروم")
+        elif cmd == "ConnectionRefused":
+            self.status = "refused"
+            self.error = ", ".join(p.get("errors", [])) or "refused"
+            self._add("system", "✖ الروم رفض الاتصال: " + self.error)
+            raise ConnectionError(self.error)
+        elif cmd == "RoomUpdate" and self.my_checked is not None:
+            new = set(p.get("checked_locations", []))
+            self.my_checked |= new
+            self.my_missing -= new
+        elif cmd == "PrintJSON":
+            self._print(p)
+        elif cmd == "Bounced" and "DeathLink" in p.get("tags", []):
+            d = p.get("data", {})
+            who = d.get("source") or "؟"
+            with self.lock:
+                self.deaths[who] = self.deaths.get(who, 0) + 1
+            cause = d.get("cause") or ""
+            self._add("death", f"☠ {who}" + (f" · {cause}" if cause else ""), who=who)
+
+    # -- rendering --
+    def _name(self, slot) -> str:
+        try:
+            return self.players.get(int(slot), f"Player {slot}")
+        except (TypeError, ValueError):
+            return str(slot)
+
+    def _item_name(self, item_id, owner_slot) -> str:
+        game = self.games.get(int(owner_slot), "") if owner_slot is not None else ""
+        return self.items.get(game, {}).get(int(item_id), f"Item {item_id}")
+
+    def _location_name(self, loc_id, owner_slot) -> str:
+        game = self.games.get(int(owner_slot), "") if owner_slot is not None else ""
+        return self.locations.get(game, {}).get(int(loc_id), f"Location {loc_id}")
+
+    def _text(self, parts: list) -> str:
+        out = []
+        for part in parts:
+            t = part.get("type", "text")
+            v = part.get("text", "")
+            if t in ("player_id",):
+                out.append(self._name(v))
+            elif t == "item_id":
+                out.append(self._item_name(v, part.get("player")))
+            elif t == "location_id":
+                out.append(self._location_name(v, part.get("player")))
+            else:
+                out.append(str(v))
+        return "".join(out)
+
+    def _print(self, p: dict):
+        text = self._text(p.get("data", []))
+        kind = {"ItemSend": "item", "ItemCheat": "item", "Hint": "hint", "Join": "join", "Part": "join",
+                "Chat": "chat", "ServerChat": "chat", "Goal": "goal", "Release": "goal", "Collect": "goal",
+                "Countdown": "system", "Tutorial": "system", "CommandResult": "system"}.get(p.get("type"), "system")
+        extra = {}
+        if p.get("type") in ("ItemSend", "ItemCheat") and isinstance(p.get("item"), dict):
+            it = p["item"]
+            sender, receiver = it.get("player"), p.get("receiving")
+            extra = {"sender": self._name(sender), "receiver": self._name(receiver),
+                     "flags": it.get("flags", 0),
+                     "to_me": receiver == self.my_slot, "from_me": sender == self.my_slot}
+        self._add(kind, text, **extra)
+
+    def _add(self, kind: str, text: str, **extra):
+        with self.lock:
+            self.events.append({"i": self.seq, "t": time.strftime("%H:%M:%S"), "kind": kind, "text": text, **extra})
+            self.seq += 1
+            if len(self.events) > 5000:  # keep memory bounded in long sessions
+                drop = len(self.events) - 5000
+                self.events = self.events[drop:]
+
+    def snapshot(self, since: int = 0) -> dict:
+        with self.lock:
+            ev = [e for e in self.events if e["i"] >= since]
+            mine = None
+            if self.my_checked is not None:
+                total = len(self.my_checked) + len(self.my_missing)
+                mine = {"done": len(self.my_checked), "total": total}
+            progress = dict(self.progress)
+            if not progress and mine and self.my_slot is not None:  # not on archipelago.gg: at least my own
+                progress = {self._name(self.my_slot): dict(mine, goal=False)}
+            return {"status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
+                    "deaths": dict(sorted(self.deaths.items(), key=lambda kv: -kv[1])),
+                    "room": f"{self.host}:{self.port}", "slot": self.slot}

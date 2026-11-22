@@ -36,6 +36,13 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   recipe draft: reads the apworld with `ast` (never imports it) for game name, options, the
   Death Link key and whether `true` is a valid value, client components; classifies mod zips;
   Steam appid from store search; prints the TODO list a human must check.
+- `app/roomfeed.py`: the 📡 tab. A read-only Archipelago client (tags TextOnly + DeathLink, items
+  handling 0) on the player's own slot, with a stdlib WebSocket (wss, then ws). It never plays,
+  sends checks or sends deaths; it shows every PrintJSON (items sent/received, hints, goals) and
+  every DeathLink bounce, counts deaths per player, and shows progress: everyone's from the
+  archipelago.gg tracker API (static_tracker totals + tracker checks/status), else only your own
+  (Connected / RoomUpdate). Started by Play or by the tab. `parse_room` takes the archipelago.gg
+  room link: it opens the room page (wakes it) and reads the port from /api/room_status.
 - `app/host.py`: installs the apworld for every game in `%APPDATA%/APReady/players`, copies
   the YAMLs to `Archipelago/Players`, runs ArchipelagoGenerate, and opens
   archipelago.gg/uploads. Most of these games are unofficial, so the website can't
