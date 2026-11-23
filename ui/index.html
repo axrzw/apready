@@ -226,6 +226,11 @@ function tab(t) {
   if (t === "host") refresh();
 }
 
+// English words inside an Arabic sentence (button names, "Refresh Archipelago data", archipelago.gg:38281)
+// get reordered by the browser. Wrap every Latin run in Unicode isolates (LRI ... PDI) so it stays whole.
+const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9)]|[A-Za-z]/g;
+function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
+
 async function refresh() {
   S = await api("/api/state");
   const u = S.update || {};
@@ -243,18 +248,18 @@ async function refresh() {
 }
 
 function optRow(o, val) {
-  const label = `<div>${o.label_ar||o.key}<small>${o.help_ar||''}</small></div>`;
+  const label = `<div>${bidi(o.label_ar||o.key)}<small>${bidi(o.help_ar)}</small></div>`;
   let input;
   if (o.multi) {  // tick several (maps, levels, content, goals)
     const picked = new Set(Array.isArray(val) ? val : []);
     input = `<div class="multi">` + o.choices.map(c => {
-      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar||c.value) : c;
+      const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
       return `<label dir="auto"><input type="checkbox" data-multi="${o.key}" value="${v}" ${picked.has(v)?'checked':''}> ${l}</label>`; }).join("") + `</div>`;
     return `<div class="opt multi-opt">${label}${input}</div>`;
   }
   if (o.choices) {
     input = `<select data-key="${o.key}">` + o.choices.map(c => {
-      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar||c.value) : c;
+      const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
       return `<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`; }).join("") + `</select>`;
   } else if (typeof o.default === "boolean") {
     input = `<label class="switch"><input type="checkbox" data-key="${o.key}" ${val?'checked':''}><span></span></label>`;
@@ -270,10 +275,10 @@ function pick(id) {
   const vals = Object.assign({}, ...cur.options.map(o => ({[o.key]: o.default})), last.options||{});
   $("gamePanel").classList.remove("hidden");
   $("gTitle").textContent = cur.name;
-  $("gNotes").textContent = cur.notes_ar || "";
+  $("gNotes").textContent = bidi(cur.notes_ar);
   const steps = cur.guide_ar || [];
   $("guideBox").classList.toggle("hidden", !steps.length);
-  $("guide").replaceChildren(...steps.map(t => { const li = document.createElement("li"); li.textContent = t; return li; }));
+  $("guide").replaceChildren(...steps.map(t => { const li = document.createElement("li"); li.textContent = bidi(t); return li; }));
   // games without Death Link keep the toggle on screen, greyed out and locked
   $("dlBox").classList.toggle("off", !cur.death_link);
   $("deathlink").disabled = !cur.death_link;
@@ -284,10 +289,10 @@ function pick(id) {
   $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
   $("advOpts").innerHTML = cur.options.filter(o=>o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
   showDlOpts();
-  $("checks").textContent = cur.checks_ar || "";
-  $("checksCount").textContent = cur.checks_count_ar ? "🔢 كم check: " + cur.checks_count_ar : "";
+  $("checks").textContent = bidi(cur.checks_ar);
+  $("checksCount").textContent = cur.checks_count_ar ? "🔢 كم تشيك: " + bidi(cur.checks_count_ar) : "";
   $("checksBox").classList.toggle("hidden", !cur.checks_ar);
-  $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => { const li = document.createElement("li"); li.textContent = t; return li; }));
+  $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => { const li = document.createElement("li"); li.textContent = bidi(t); return li; }));
   $("avoidBox").classList.toggle("hidden", !(cur.avoid_ar || []).length);
   $("extra").value = last.extra || "";
   $("yamlOut").classList.add("hidden");
@@ -335,11 +340,11 @@ async function runTask(path, body, logEl) {
   try { j = await api(path, body); } catch(e) { el.innerHTML = `<span class="err">${e.message}</span>`; return; }
   const poll = async () => {
     const t = await api("/api/task/" + j.task);
-    el.textContent = t.log.join("\n");
-    if (t.error) el.innerHTML += `\n<span class="err">✖ ${t.error}</span>`;
+    el.textContent = t.log.map(bidi).join("\n");
+    if (t.error) el.innerHTML += `\n<span class="err">✖ ${bidi(t.error)}</span>`;
     if (t.needs_user) {
       $("need").classList.remove("hidden");
-      $("needText").textContent = t.needs_user.text;
+      $("needText").textContent = bidi(t.needs_user.text);
       $("need").dataset.step = t.needs_user.id; $("need").dataset.game = t.needs_user.game;
       const u = $("needUrl");
       if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => window.open(t.needs_user.url); } else u.classList.add("hidden");
