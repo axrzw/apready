@@ -18,7 +18,17 @@ def _show_error(text: str):
         print(text, file=sys.stderr)
 
 
+def _hide_console():
+    """A console build (for PCs that refuse the windowed one) hides its black window right away."""
+    if sys.platform == "win32" and getattr(sys, "frozen", False):
+        import ctypes
+        hwnd = ctypes.windll.kernel32.GetConsoleWindow()
+        if hwnd:
+            ctypes.windll.user32.ShowWindow(hwnd, 0)
+
+
 if __name__ == "__main__":
+    _hide_console()
     try:
         from app.server import main
         main()
