@@ -156,3 +156,14 @@ def test_unexpected_error_answers_instead_of_dropping(tmp_path, monkeypatch):
         code, body = e.code, json.loads(e.read())
     assert code == 500 and "no file manager" in body["error"]
     srv.shutdown()
+
+
+def test_state_and_ping_carry_the_version(tmp_path, monkeypatch):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    monkeypatch.setattr(server, "VERSION", "v9.9.9")
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    base = f"http://127.0.0.1:{srv.server_address[1]}"
+    assert json.loads(urllib.request.urlopen(base + "/api/state").read())["version"] == "v9.9.9"
+    assert json.loads(urllib.request.urlopen(base + "/api/ping").read())["version"] == "v9.9.9"
+    srv.shutdown()

@@ -38,6 +38,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   the new one shows a message box asking to close it. Shortcuts are made once per exe path
   (`shortcuts_for`), so a deleted shortcut stays deleted. Links from the page go through `/api/link` to the player's own browser
   (`/api/open` is the open-folder buttons).
+  Version: `app/_version.py` says "dev"; the build writes the release tag there (step "Write version"),
+  shown in the page's corner and in `/api/state` + `/api/ping`.
   The exe is built `--noconsole --icon app/icon.ico`; startup errors show a message box and
   `%APPDATA%/APReady/error.log`. Icon: `python -m tools.make_icon` (needs Pillow, dev only).
 - `app/recipes.py`: loads `recipes/*.json`, adds common advanced options, builds the YAML.

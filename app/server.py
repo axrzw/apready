@@ -9,6 +9,7 @@ import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from ._version import VERSION
 from . import host, install, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
@@ -83,12 +84,12 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, (base_dir() / "ui" / "index.html").read_bytes(), "text/html")
         if self.path == "/api/ping":  # the page says it is still open; also how a second copy finds this one
             window.ping()
-            return self.send(200, {"app": "MyReadyAP"})
+            return self.send(200, {"app": "MyReadyAP", "version": VERSION})
         if self.path == "/icon.png":
             return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":
             s = load_settings()
-            return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(),
+            return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(), "version": VERSION,
                                    "players": host.scan_players(RECIPES),
                                    "last": s.get("last", {}), "update": UPDATE})
         if self.path.startswith("/api/feed"):
