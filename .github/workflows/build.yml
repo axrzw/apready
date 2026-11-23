@@ -20,6 +20,15 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install pyinstaller pytest
       - run: python -m pytest -q
+      # the version shown in the corner of the app: the release tag, else dev-<commit>
+      - name: Write version
+        shell: python
+        env:
+          V: ${{ inputs.release_tag || (startsWith(github.ref, 'refs/tags/') && github.ref_name) || format('dev-{0}', github.sha) }}
+        run: |
+          import os
+          open("app/_version.py", "w").write(f"VERSION = {os.environ['V']!r}\n")
+          print("version:", os.environ["V"])
       - run: pyinstaller --onefile --noconsole --icon app/icon.ico --name MyReadyAP --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
       # same exe under the old name too, so the link friends already have keeps working
       - run: copy dist\MyReadyAP.exe dist\APReady.exe

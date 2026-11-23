@@ -72,12 +72,16 @@
   .need { background:#2b2410; border:1px solid var(--warn); border-radius:10px; padding:14px; margin-top:10px; }
   .hidden { display:none; }
   .muted { color:var(--dim); font-size:14px; }
+  #version { position:fixed; bottom:8px; left:10px; font-size:12px; color:var(--dim); opacity:.75;
+             background:var(--card); border:1px solid var(--line); border-radius:6px; padding:2px 7px; pointer-events:none; }
+  body { padding-bottom:36px; }  /* room for the version badge */
   table { width:100%; border-collapse:collapse; } td { padding:6px; border-bottom:1px solid var(--line); }
 </style>
 </head>
 <body>
 <header>
   <h1 dir="ltr">My Ready AP</h1>
+  <div id="version" dir="ltr" title="نسخة البرنامج"></div>
   <nav class="row">
     <button id="tab-play" class="on" onclick="tab('play')">ألعب</button>
     <button id="tab-host" onclick="tab('host')">أنا المستضيف</button>
@@ -237,6 +241,7 @@ setInterval(() => fetch("/api/ping").catch(() => {}), 5000);
 
 async function refresh() {
   S = await api("/api/state");
+  if (S.version) $("version").textContent = S.version.startsWith("dev") ? "dev" : S.version;
   const u = S.update || {};
   if ((u.new || []).length) { $("newGames").textContent = "✨ ألعاب جديدة وصلت: " + u.new.join("، "); $("newGames").classList.remove("hidden"); }
   $("name").value = S.player_name || "";
