@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>My Ready AP</title>
+<link rel="icon" href="/icon.png">
 <style>
   :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e8eaf0; --dim:#9aa3b2;
           --accent:#e5484d; --ok:#30a46c; --warn:#f5a524; }
@@ -231,6 +232,9 @@ function tab(t) {
 const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9]|[A-Za-z]/g;
 function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
 
+// tells the app the window is still open (it quits a while after the window is closed)
+setInterval(() => fetch("/api/ping").catch(() => {}), 5000);
+
 async function refresh() {
   S = await api("/api/state");
   const u = S.update || {};
@@ -347,7 +351,7 @@ async function runTask(path, body, logEl) {
       $("needText").textContent = bidi(t.needs_user.text);
       $("need").dataset.step = t.needs_user.id; $("need").dataset.game = t.needs_user.game;
       const u = $("needUrl");
-      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => window.open(t.needs_user.url); } else u.classList.add("hidden");
+      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => api("/api/open", {url: t.needs_user.url}); } else u.classList.add("hidden");
     }
     if (!t.done) setTimeout(poll, 700);
     else if (!t.error && !t.needs_user) el.textContent += "\n\n✅ تم";
