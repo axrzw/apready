@@ -131,7 +131,7 @@ def _feed(packets, **kw):
 def test_feed_reads_items_deaths_and_my_progress():
     f, ws = _feed(ROOM)
     connect = next(p for p in ws.sent if p["cmd"] == "Connect")
-    assert connect["tags"] == ["TextOnly", "DeathLink"] and connect["items_handling"] == 0 and connect["name"] == "Mishal"
+    assert connect["tags"] == ["TextOnly", "DeathLink", "MyReadyAP"] and connect["items_handling"] == 0 and connect["name"] == "Mishal"
     snap = f.snapshot()
     texts = [e["text"] for e in snap["events"]]
     assert "Fahad sent Button Activation to Mishal (The Item on the Desk)" in texts
@@ -174,3 +174,28 @@ def test_room_link_finds_the_port_and_wakes_the_room():
     assert woke == ["https://archipelago.gg/room/AbC-123"]
     assert parse_room("  https://archipelago.gg/room/AbC-123 ", resolve=lambda t: {"host": "h", "port": "1"}) == {"host": "h", "port": "1"}
     assert parse_room("archipelago.gg:38281") == {"host": "archipelago.gg", "port": "38281"}
+
+
+# ---------- death counter: shared real totals (free deaths included), kept per multiworld ----------
+
+def test_death_counter_merges_shared_totals_and_survives_restarts(tmp_path):
+    store = tmp_path / "deaths.json"
+    room = [[{"cmd": "RoomInfo", "games": ["Clique"], "seed_name": "SEED1"}]] + ROOM[1:3] + [
+        [{"cmd": "Bounced", "tags": ["DeathLink"], "data": {"source": "Fahad"}}],
+        [{"cmd": "Bounced", "tags": ["MyReadyAP"], "data": {"kind": "deaths", "source": "Fahad", "deaths": 5}}],
+        [{"cmd": "Bounced", "tags": ["MyReadyAP"], "data": {"kind": "deaths", "source": "Mishal", "deaths": 99}}],  # nobody speaks for me
+        [{"cmd": "Bounced", "tags": ["MyReadyAP"], "data": {"kind": "deaths", "source": "X", "deaths": "lots"}}],  # junk
+    ]
+    f, ws = _feed(room, store=store)
+    assert f.death_counts() == {"Fahad": 5}
+    f.status, f.ws = "connected", ws
+    f.record_my_death(); f.record_my_death()  # two free deaths the relay kept home
+    assert f.death_counts() == {"Fahad": 5, "Mishal": 2}
+    shared = [p for p in ws.sent if p.get("cmd") == "Bounce" and p["data"].get("kind") == "deaths"]
+    assert shared[-1]["data"] == {"kind": "deaths", "source": "Mishal", "deaths": 2} and shared[-1]["tags"] == ["MyReadyAP"]
+    assert any(p.get("cmd") == "Bounce" and p["data"].get("kind") == "deaths?" for p in ws.sent)  # asked the others
+    # the app restarts: same seed, the counts come back
+    f2, _ = _feed([[{"cmd": "RoomInfo", "games": [], "seed_name": "SEED1"}]], store=store)
+    assert f2.death_counts() == {"Fahad": 5, "Mishal": 2}
+    f3, _ = _feed([[{"cmd": "RoomInfo", "games": [], "seed_name": "OTHER"}]], store=store)
+    assert f3.death_counts() == {}  # a new multiworld starts at zero

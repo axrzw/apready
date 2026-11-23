@@ -19,6 +19,7 @@ import threading
 import time
 import urllib.request
 import uuid
+from pathlib import Path
 
 AP_VERSION = {"major": 0, "minor": 6, "build": 0, "class": "Version"}
 FLAG_PROGRESSION, FLAG_USEFUL, FLAG_TRAP = 1, 2, 4
@@ -27,6 +28,7 @@ FLAG_PROGRESSION, FLAG_USEFUL, FLAG_TRAP = 1, 2, 4
 # ---------- archipelago.gg room links ----------
 
 WEBHOST = "https://archipelago.gg"
+SHARE_TAG = "MyReadyAP"  # Bounce tag My Ready AP apps use to share real death counts (free deaths included)
 ROOM_LINK = re.compile(r"archipelago\.gg/room/([A-Za-z0-9_\-]+)")
 
 
@@ -153,7 +155,7 @@ class RoomFeed:
     """One watched room. Thread-safe; the UI reads snapshot(since)."""
 
     def __init__(self, host: str, port: int, slot: str, password: str = "", connect=None, tracker: str = "",
-                 get_json=_get_json):
+                 get_json=_get_json, store=None):
         self.host, self.port, self.slot, self.password = host, int(port), slot, password or ""
         self.tracker, self._get_json = tracker, get_json
         self.progress = {}        # player name -> {"done", "total", "goal"}
@@ -161,7 +163,10 @@ class RoomFeed:
         self._connect = connect or self._open
         self.events = []
         self.seq = 0              # event number, keeps growing even when old events are dropped
-        self.deaths = {}          # player name -> deaths heard
+        self.deaths = {}          # player name -> deaths heard (Death Link messages that reached the room)
+        self.real = {}            # player name -> real total shared by My Ready AP (free deaths included)
+        self.seed = None          # this multiworld (the counts are kept per seed, across restarts)
+        self.store = store        # JSON file for the counts, or None
         self.status = "connecting"
         self.error = ""
         self.my_slot = None
@@ -250,13 +255,81 @@ class RoomFeed:
             for p in json.loads(self.ws.recv_text()):
                 self._handle(p)
 
+    # -- death counter (kept per multiworld; shared between My Ready AP users) --
+    def _load_counts(self):
+        if not self.store or not self.seed:
+            return
+        try:
+            saved = json.loads(Path(self.store).read_text(encoding="utf-8")).get(self.seed, {})
+        except (OSError, ValueError, AttributeError):
+            return
+        with self.lock:
+            for field in ("deaths", "real"):
+                mine = getattr(self, field)
+                for k, v in (saved.get(field) or {}).items():
+                    if isinstance(k, str) and isinstance(v, int):
+                        mine[k] = max(mine.get(k, 0), v)
+
+    def _save_counts(self):
+        if not self.store or not self.seed:
+            return
+        try:
+            try:
+                data = json.loads(Path(self.store).read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                data = {}
+            with self.lock:
+                data[self.seed] = {"deaths": dict(self.deaths), "real": dict(self.real)}
+            for old in list(data)[:-20]:  # keep the last 20 multiworlds
+                data.pop(old)
+            Path(self.store).write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+        except OSError:
+            pass
+
+    def death_counts(self) -> dict:
+        with self.lock:
+            names = set(self.deaths) | set(self.real)
+            counts = {n: max(self.deaths.get(n, 0), self.real.get(n, 0)) for n in names}
+        return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
+
+    def record_my_death(self):
+        """The relay saw this player die (sent on or kept as a free death): count it and tell the others."""
+        with self.lock:
+            self.real[self.slot] = max(self.real.get(self.slot, 0), self.deaths.get(self.slot, 0)) + 1
+        self._save_counts()
+        self._share_mine()
+
+    def _share_mine(self):
+        n = self.real.get(self.slot)
+        if n is None or self.status != "connected" or not self.ws:
+            return
+        try:
+            self._send({"cmd": "Bounce", "tags": [SHARE_TAG], "data": {"kind": "deaths", "source": self.slot, "deaths": n}})
+        except Exception:
+            pass
+
+    def _shared(self, d: dict):
+        if d.get("kind") == "deaths?":
+            self._share_mine()
+            return
+        who, n = d.get("source"), d.get("deaths")
+        if d.get("kind") != "deaths" or not isinstance(who, str) or not 0 < len(who) <= 32 \
+                or not isinstance(n, int) or isinstance(n, bool) or not 0 <= n <= 100000 or who == self.slot:
+            return  # from another player's app: only well-formed numbers, and nobody speaks for me
+        with self.lock:
+            self.real[who] = max(self.real.get(who, 0), n)
+        self._save_counts()
+
     def _handle(self, p: dict):
         cmd = p.get("cmd")
         if cmd == "RoomInfo":
+            if p.get("seed_name") and p.get("seed_name") != self.seed:
+                self.seed = str(p["seed_name"])
+                self._load_counts()
             self._send({"cmd": "GetDataPackage", "games": p.get("games", [])})
             self._send({"cmd": "Connect", "password": self.password, "game": "", "name": self.slot,
                         "uuid": uuid.uuid4().hex, "version": AP_VERSION, "items_handling": 0,
-                        "tags": ["TextOnly", "DeathLink"], "slot_data": False})
+                        "tags": ["TextOnly", "DeathLink", SHARE_TAG], "slot_data": False})
         elif cmd == "DataPackage":
             for game, pkg in p.get("data", {}).get("games", {}).items():
                 self.items[game] = {v: k for k, v in pkg.get("item_name_to_id", {}).items()}
@@ -272,6 +345,8 @@ class RoomFeed:
             self.status = "connected"
             self.error = ""
             self._add("system", "✔ متصل بالروم")
+            self._share_mine()  # my real count, and ask the other apps for theirs
+            self._send({"cmd": "Bounce", "tags": [SHARE_TAG], "data": {"kind": "deaths?"}})
         elif cmd == "ConnectionRefused":
             self.status = "refused"
             self.error = ", ".join(p.get("errors", [])) or "refused"
@@ -288,8 +363,11 @@ class RoomFeed:
             who = d.get("source") or "؟"
             with self.lock:
                 self.deaths[who] = self.deaths.get(who, 0) + 1
+            self._save_counts()
             cause = d.get("cause") or ""
             self._add("death", f"☠ {who}" + (f" · {cause}" if cause else ""), who=who)
+        elif cmd == "Bounced" and SHARE_TAG in p.get("tags", []) and isinstance(p.get("data"), dict):
+            self._shared(p["data"])
 
     # -- rendering --
     def _name(self, slot) -> str:
@@ -344,6 +422,11 @@ class RoomFeed:
                 self.events = self.events[drop:]
 
     def snapshot(self, since: int = 0) -> dict:
+        snap = self._snapshot(since)
+        snap["deaths"] = self.death_counts()
+        return snap
+
+    def _snapshot(self, since: int = 0) -> dict:
         with self.lock:
             ev = [e for e in self.events if e["i"] >= since]
             mine = None
@@ -354,5 +437,5 @@ class RoomFeed:
             if not progress and mine and self.my_slot is not None:  # not on archipelago.gg: at least my own
                 progress = {self._name(self.my_slot): dict(mine, goal=False)}
             return {"status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
-                    "deaths": dict(sorted(self.deaths.items(), key=lambda kv: -kv[1])),
+                    "deaths": None,
                     "room": f"{self.host}:{self.port}", "slot": self.slot}

@@ -200,6 +200,7 @@
     }
   ],
   "death_link_key": "deathlink",
+  "free_deaths_native": true,
   "guide_ar": [
     "أول مرة: اضغط «جهّز اللعبة» (يركّب BepInEx والمود).",
     "عندك إضافة The Delicious Last Course؟ شغّل زرها في الخيارات، وتأكد إنها مثبتة في ستيم. ما عندك؟ خله مطفي.",

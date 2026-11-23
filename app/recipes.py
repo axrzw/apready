@@ -62,9 +62,25 @@ COMMON_OPTIONS = [
 ]
 
 
+# Free deaths for every game with Death Link: the app relays the game's connection and holds back
+# that many deaths before sending one (app/dlproxy.py). Never written to the YAML. Games whose mod
+# already has its own setting (Cuphead: deathlink_grace_count) set "free_deaths_native": true.
+FREE_DEATHS = {"key": "free_deaths", "app_only": True, "deathlink": True, "default": 0, "min": 0, "max": 25,
+               "label_ar": "موتات مجانية قبل ما ترسل",
+               "help_ar": "مثلاً 2: الموتة الأولى والثانية ما ترسل، والثالثة ترسل للشباب. 0 = كل موتة ترسل. "
+                          "شغّل اللعبة من ▶ العب"}
+
+
+def death_link_live(r: dict) -> bool:
+    return bool(r.get("death_link_key", "death_link")) or bool(r.get("death_link_in_mod"))
+
+
 def _prepare(r: dict) -> dict:
     keys = {o["key"] for o in r.get("options", [])}
-    r["options"] = r.get("options", []) + [dict(o) for o in COMMON_OPTIONS if o["key"] not in keys]
+    extra = []
+    if death_link_live(r) and not r.get("free_deaths_native") and "free_deaths" not in keys:
+        extra.append(dict(FREE_DEATHS))
+    r["options"] = r.get("options", []) + extra + [dict(o) for o in COMMON_OPTIONS if o["key"] not in keys]
     return r
 
 

@@ -347,7 +347,7 @@ def test_death_link_settings_only_where_the_game_has_death_link(all_recipes):
     for r in all_recipes.values():
         dl_opts = [o for o in r["options"] if o.get("deathlink")]
         if dl_opts:
-            assert r.get("death_link_key", "death_link"), r["id"]
+            assert rec.death_link_live(r), r["id"]
     y = rec.build_yaml(all_recipes["cuphead"], "M", {"deathlink_grace_count": 2}, True)
     assert "  deathlink_grace_count: 2" in y and "  deathlink: true" in y
 
@@ -452,3 +452,13 @@ def test_cuphead_dlc_goal_switches_the_dlc_on():
     assert "mode: beat_devil" in base and "use_dlc: false" in base and "deathlink: true" in base
     y = rec.build_yaml(r, "P", {"mode": "dlc_beat_saltbaker", "use_dlc": False}, False)
     assert "use_dlc: true" in y and "deathlink: false" in y
+
+
+def test_free_deaths_offered_for_every_death_link_game(all_recipes):
+    for rid, r in all_recipes.items():
+        has = any(o["key"] == "free_deaths" for o in r["options"])
+        expected = rec.death_link_live(r) and rid != "cuphead"  # Cuphead's mod has its own setting
+        assert has == expected, rid
+    tunic = all_recipes["tunic"]
+    assert "free_deaths" not in rec.build_yaml(tunic, "M", {"free_deaths": 3}, True)  # app-only, never in the YAML
+    assert not any(o["key"] == "free_deaths" for o in all_recipes["hitman"]["options"])
