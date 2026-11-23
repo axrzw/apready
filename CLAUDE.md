@@ -23,6 +23,14 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 ## How it works
 - `app/server.py`: stdlib HTTP server on 127.0.0.1. Opens the browser to `ui/index.html`.
   No third-party dependencies, so the PyInstaller exe stays small.
+- `app/window.py`: the app's own window: Edge (else Chrome/Brave) with `--app=` and its own profile in
+  `%APPDATA%/APReady/window`, so it looks like a program (icon, no address bar) and the app quits when
+  that window closes (process exit; else no `/api/ping` from the page for 150 s). One copy at a time
+  (`running.json` + `/api/ping`); a second double-click just opens another window. If no such browser
+  exists it opens a normal tab. First run of the exe makes Desktop + Start menu shortcuts once
+  (`shortcuts_made`). Links from the page go through `/api/open` to the player's own browser.
+  The exe is built `--noconsole --icon app/icon.ico`; startup errors show a message box and
+  `%APPDATA%/APReady/error.log`. Icon: `python -m tools.make_icon` (needs Pillow, dev only).
 - `app/recipes.py`: loads `recipes/*.json`, adds common advanced options, builds the YAML.
 - `app/runner.py`: runs recipe steps in a background thread. The UI polls `/api/task/<id>`.
   Each step must be safe to run again (idempotent).

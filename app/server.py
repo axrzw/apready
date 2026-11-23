@@ -10,7 +10,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import host, recipes as rec, roomfeed, runner, steam, updates
+from . import host, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -82,6 +82,11 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/", "/index.html"):
             return self.send(200, (base_dir() / "ui" / "index.html").read_bytes(), "text/html")
+        if self.path == "/api/ping":  # the page says it is still open; also how a second copy finds this one
+            window.ping()
+            return self.send(200, {"app": "MyReadyAP"})
+        if self.path == "/icon.png":
+            return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":
             s = load_settings()
             return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(),
@@ -104,6 +109,11 @@ class Handler(BaseHTTPRequestHandler):
         try:
             b = self.body()
             p = self.path
+            if p == "/api/open":  # links open in the player's own browser, not inside the app window
+                if not re.match(r"(https?|steam)://", b.get("url", "")):
+                    return self.send(400, {"error": "bad url"})
+                webbrowser.open(b["url"])
+                return self.send(200, {})
             if p == "/api/name":
                 s = load_settings()
                 s["player_name"] = rec.safe_slot(b["name"])
@@ -192,18 +202,39 @@ def update_recipes_in_background():
     threading.Thread(target=run, daemon=True).start()
 
 
+def _first_run_shortcuts():
+    s = load_settings()
+    if window.make_shortcuts(sys.executable, s):
+        s = load_settings()
+        s["shortcuts_made"] = True
+        save_settings(s)
+
+
 def main(open_browser=True, port=0):
+    """open_browser: run as the app (own window, one copy at a time, quits when the window closes)."""
+    if open_browser:
+        running = window.already_running()
+        if running:  # double-clicked again: show the window of the copy that is already running
+            window.open_window(running)
+            return
     reload_recipes()
     update_recipes_in_background()
     srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
-    print("APReady:", url)
+    print("My Ready AP:", url)
     if open_browser:
-        webbrowser.open(url)
+        window.mark_running(url)
+        if getattr(sys, "frozen", False):
+            threading.Thread(target=_first_run_shortcuts, daemon=True).start()
+        proc = window.open_window(url)
+        threading.Thread(target=window.wait_until_closed, args=(proc, srv.shutdown), daemon=True).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
         pass
+    finally:
+        if open_browser:
+            window.clear_running()
 
 
 if __name__ == "__main__":

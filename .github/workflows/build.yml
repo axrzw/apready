@@ -20,7 +20,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install pyinstaller pytest
       - run: python -m pytest -q
-      - run: pyinstaller --onefile --name MyReadyAP --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
+      - run: pyinstaller --onefile --noconsole --icon app/icon.ico --name MyReadyAP --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
       # same exe under the old name too, so the link friends already have keeps working
       - run: copy dist\MyReadyAP.exe dist\APReady.exe
         shell: cmd

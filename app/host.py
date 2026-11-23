@@ -54,7 +54,9 @@ def generate(task: Task, all_recipes: dict):
     out = apd / "output"
     before = set(out.glob("*.zip")) if out.exists() else set()
     task.say("… أولّد السيد")
-    proc = subprocess.run([str(exe)], cwd=str(apd), capture_output=True, text=True)
+    # output is shown in the app, so no console box; stdin closed so a "press enter" can't hang it
+    proc = subprocess.run([str(exe)], cwd=str(apd), capture_output=True, text=True, stdin=subprocess.DEVNULL,
+                          creationflags=0x08000000 if sys.platform == "win32" else 0)
     after = set(out.glob("*.zip")) if out.exists() else set()
     new = sorted(after - before, key=lambda p: p.stat().st_mtime)
     if proc.returncode != 0 or not new:
