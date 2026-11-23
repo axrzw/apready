@@ -131,9 +131,14 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
         "",
         f"{_yaml_value(game)}:",
     ]
-    values = {}
+    values, added = {}, {}
     for o in recipe.get("options", []):
         v = chosen.get(o["key"], o["default"])
+        if o.get("if_off") and not v:  # e.g. "I own this DLC" off -> exclude the DLC's locations
+            for k, x in o["if_off"].items():
+                added[k] = added.get(k, []) + x if isinstance(x, list) else x
+        if o.get("app_only"):  # a question for the player, not an apworld option
+            continue
         if o.get("as_toggles"):  # one tick list in the UI, one on/off option per choice in the apworld (BO3 maps)
             picked = set(v if isinstance(v, list) else [])
             for c in o["choices"]:
@@ -144,7 +149,15 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
     if dl_key:
         values[dl_key] = death_link
     values.update(recipe.get("fixed_options", {}))
-    values.update(parse_extra(extra_text))  # advanced overrides win
+    values.update(added)
+    extra = parse_extra(extra_text)
+    for k, x in added.items():  # a list typed in the advanced box adds to ours, never drops it
+        typed = extra.get(k)
+        if isinstance(x, list) and isinstance(typed, str) and typed.startswith("[") and typed.endswith("]"):
+            typed = [t.strip().strip("'\"") for t in typed[1:-1].split(",") if t.strip()]
+        if isinstance(x, list) and isinstance(typed, list):
+            extra[k] = list(dict.fromkeys(x + typed))
+    values.update(extra)  # advanced overrides win
     if dl_key:
         values[dl_key] = death_link  # Death Link toggle always wins
     for k, v in values.items():

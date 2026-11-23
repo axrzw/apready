@@ -387,3 +387,13 @@ def test_pick_release_tag_prefix(monkeypatch):
     assert runner.pick_release("o/r", tag_prefix="eldenring-ap")["tag_name"] == "eldenring-ap-0.1.4"
     assert runner.pick_release("o/r", prerelease=True, tag_prefix="eldenring-ap")["tag_name"] == "eldenring-ap-0.2.0"
     assert runner.pick_release("o/r")["tag_name"] == "ds3-1.0"
+
+
+def test_dlc_question_excludes_its_locations_and_is_not_written():
+    r = rec.load_all()["re4r"]
+    off = rec.build_yaml(r, "Leon", {}, True)
+    assert 'exclude_locations: ["T.DLC"]' in off and "has_treasure_map" not in off
+    on = rec.build_yaml(r, "Leon", {"has_treasure_map": True}, True)
+    assert "exclude_locations" not in on and "has_treasure_map" not in on
+    typed = rec.build_yaml(r, "Leon", {}, True, 'exclude_locations: ["Chapter 1 - X"]')
+    assert 'exclude_locations: ["T.DLC", "Chapter 1 - X"]' in typed
