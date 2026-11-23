@@ -228,7 +228,7 @@ function tab(t) {
 
 // English words inside an Arabic sentence (button names, "Refresh Archipelago data", archipelago.gg:38281)
 // get reordered by the browser. Wrap every Latin run in Unicode isolates (LRI ... PDI) so it stays whole.
-const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9)]|[A-Za-z]/g;
+const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9]|[A-Za-z]/g;
 function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
 
 async function refresh() {

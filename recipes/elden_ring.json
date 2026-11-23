@@ -49,16 +49,17 @@
   ],
   "guide_ar": [
     "اللعبة لازم تكون على إصدار 1.17.2 (آخر تحديث في ستيم).",
+    "عندك إضافة Shadow of the Erdtree أو Tarnished Edition؟ شغّل زرها في الخيارات. ما عندك؟ خله مطفي.",
     "اضغط «جهّز اللعبة»: ينزّل الراندومايزر (ما تحتاج Nexus ولا حساب).",
     "اضغط ▶ العب: ينفتح Elden Ring Archipelago Randomizer.",
     "فيه: Refresh Archipelago data > اكتب العنوان واسمك > Load، وبعدها Randomize for Archipelago.",
     "اضغط Launch Elden Ring (مو من ستيم). سوّ شخصية جديدة لكل روم."
   ],
   "checks_ar": "الأغراض في الخريطة، والبوسات، والمحلات، حسب الخيارات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك (الـ DLC يزيد كثير)، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك (Shadow of the Erdtree يزيد كثير، و Tarnished Edition يزيد 28)، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
   "avoid_ar": [
     "شغّلها من زر Launch Elden Ring في الراندومايزر بس. ستيم يشغّل اللعبة بدون Archipelago.",
-    "فعّل الـ DLC في الخيارات بس لو عندك Shadow of the Erdtree، وإلا ما تقدر تخلّص.",
+    "لا تشغّل زر إضافة (Shadow of the Erdtree أو Tarnished Edition) وأنت ما عندك: أغراضها ما تطلع لك وتعلقون.",
     "لو الروم انعاد من الصفر سوّ شخصية جديدة.",
     "لو طلع Failed to load save data، غالباً مضاد الفيروسات حذف er_archipelago.dll: اضغط «جهّز اللعبة» مرة ثانية.",
     "مودات تغيّر أماكن الأغراض ما تمشي معها."
@@ -117,8 +118,14 @@
     },
     {
       "key": "enable_dlc",
-      "label_ar": "عندي Shadow of the Erdtree",
-      "help_ar": "فعّله بس لو عندك الـ DLC",
+      "label_ar": "عندي إضافة Shadow of the Erdtree",
+      "help_ar": "شغّله بس لو عندك الإضافة",
+      "default": false
+    },
+    {
+      "key": "enable_tp_dlc",
+      "label_ar": "عندي إضافة Tarnished Edition (Tarnished Pack)",
+      "help_ar": "شغّله بس لو عندك الإضافة: تضيف 28 تشيك (أشكال الحصان والأسلحة الجديدة)",
       "default": false
     },
     {
@@ -143,13 +150,6 @@
           "label_ar": "عالم مفتوح"
         }
       ]
-    },
-    {
-      "key": "enable_tp_dlc",
-      "label_ar": "عندي Tarnished Pack",
-      "help_ar": "",
-      "default": false,
-      "advanced": true
     }
   ]
 }
