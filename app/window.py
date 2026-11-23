@@ -101,12 +101,11 @@ def clear_running():
         pass
 
 
-# ---------- shortcuts on the desktop and in the Start menu (once) ----------
+# ---------- shortcuts on the desktop and in the Start menu ----------
 
-def make_shortcuts(exe: str, settings: dict) -> bool:
-    """Create 'My Ready AP' shortcuts the first time the exe runs. Returns True if it did.
-    Never again after that, so a shortcut the user deleted stays deleted."""
-    if settings.get("shortcuts_made") or os.name != "nt" or not exe.lower().endswith(".exe"):
+def make_shortcuts(exe: str) -> bool:
+    """Create (or repoint) the 'My Ready AP' shortcuts on the Desktop and in the Start menu."""
+    if os.name != "nt" or not exe.lower().endswith(".exe"):
         return False
     ps = ("$s=New-Object -ComObject WScript.Shell;"
           "foreach($d in @([Environment]::GetFolderPath('Desktop'),[Environment]::GetFolderPath('Programs'))){"

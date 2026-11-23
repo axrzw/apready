@@ -27,8 +27,13 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   `%APPDATA%/APReady/window`, so it looks like a program (icon, no address bar) and the app quits when
   that window closes (process exit; else no `/api/ping` from the page for 150 s). One copy at a time
   (`running.json` + `/api/ping`); a second double-click just opens another window. If no such browser
-  exists it opens a normal tab. First run of the exe makes Desktop + Start menu shortcuts once
-  (`shortcuts_made`). Links from the page go through `/api/open` to the player's own browser.
+  exists it opens a normal tab.
+- `app/install.py`: a downloaded exe run from anywhere copies itself to
+  `%LOCALAPPDATA%/Programs/MyReadyAP/MyReadyAP.exe` (no admin), makes "My Ready AP" shortcuts on the
+  Desktop and in the Start menu pointing there, starts that copy (PYINSTALLER_RESET_ENVIRONMENT=1) and
+  exits. A newer download does the same and first asks a running copy to quit (`/api/quit`, which also
+  closes its window), so updating = download + run. Shortcuts are made once per exe path
+  (`shortcuts_for`), so a deleted shortcut stays deleted. Links from the page go through `/api/open` to the player's own browser.
   The exe is built `--noconsole --icon app/icon.ico`; startup errors show a message box and
   `%APPDATA%/APReady/error.log`. Icon: `python -m tools.make_icon` (needs Pillow, dev only).
 - `app/recipes.py`: loads `recipes/*.json`, adds common advanced options, builds the YAML.
