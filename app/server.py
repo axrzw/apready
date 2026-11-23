@@ -113,7 +113,7 @@ class Handler(BaseHTTPRequestHandler):
                 if SERVER["srv"]:
                     threading.Thread(target=SERVER["srv"].shutdown, daemon=True).start()
                 return self.send(200, {})
-            if p == "/api/open":  # links open in the player's own browser, not inside the app window
+            if p == "/api/link":  # links open in the player's own browser, not inside the app window
                 if not re.match(r"(https?|steam)://", b.get("url", "")):
                     return self.send(400, {"error": "bad url"})
                 webbrowser.open(b["url"])
@@ -138,7 +138,8 @@ class Handler(BaseHTTPRequestHandler):
                 out.write_text(text, encoding="utf-8")
                 return self.send(200, {"yaml": text, "file": str(out)})
             if p == "/api/setup":
-                t = runner.start(runner.run_phases, RECIPES[b["game"]], ["apworld", "install"])
+                r = RECIPES[b["game"]]
+                t = runner.start(runner.run_phases, r, ["apworld", "install"], None, _options(r, b))
                 return self.send(200, {"task": self._keep(t)})
             if p == "/api/play":
                 room = parse_room(b["room"])
@@ -146,7 +147,9 @@ class Handler(BaseHTTPRequestHandler):
                 session = {**room, "slot": rec.safe_slot(s.get("player_name") or "Player"),
                            "password": b.get("password", ""),
                            "death_link": s.get("last", {}).get(b["game"], {}).get("death_link", True)}
-                t = runner.start(runner.run_phases, RECIPES[b["game"]], ["apworld", "install", "connect", "launch"], session)
+                r = RECIPES[b["game"]]
+                t = runner.start(runner.run_phases, r, ["apworld", "install", "connect", "launch"], session,
+                                 _options(r, b, yaml_first=True))
                 watch_room(room, session["slot"], session["password"])  # the 📡 tab follows the same room
                 return self.send(200, {"task": self._keep(t)})
             if p == "/api/watch":
@@ -211,6 +214,15 @@ def update_recipes_in_background():
 
 
 SERVER = {"srv": None, "window": None}
+
+
+def _options(recipe: dict, body: dict, yaml_first: bool = False) -> dict:
+    """What the player picked. Play follows their last YAML (that is what the host generated with);
+    setup follows the page. Either falls back to the other, then to the defaults."""
+    last = load_settings().get("last", {}).get(recipe["id"], {}).get("options")
+    page = body.get("options")
+    chosen = (last if last is not None else page) if yaml_first else (page if page is not None else last)
+    return rec.effective_options(recipe, chosen or {})
 
 
 def main(open_browser=True, port=0):

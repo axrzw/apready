@@ -11,7 +11,7 @@ import webbrowser
 import zipfile
 from pathlib import Path
 
-from . import steam
+from . import recipes, steam
 from .paths import ap_dir, documents_dir, load_settings, save_settings, tools_dir
 
 GITHUB_API = "https://api.github.com/repos/{repo}/releases"
@@ -523,6 +523,13 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
             p.write_text(json.dumps(items + added, indent=2), encoding="utf-8")
         task.say(f"✔ فعّلت {', '.join(s['items'])}")
 
+    elif t == "json_list_remove":  # e.g. turn a mod off again in tModLoader's enabled.json
+        p = Path(s["path"])
+        items = read_json(p, [])
+        if isinstance(items, list) and any(x in items for x in s["items"]):
+            p.write_text(json.dumps([x for x in items if x not in s["items"]], indent=2), encoding="utf-8")
+        task.say(f"✔ {s.get('label', 'طفيت ' + ', '.join(s['items']))}")
+
     elif t == "open_url":
         webbrowser.open(s["url"])
         task.say(f"✔ فتحت {s['url']}")
@@ -552,7 +559,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         task.say(f"✔ شغّلت {exe.name}")
 
 
-def run_phases(task: Task, recipe: dict, phases: list, session: dict = None):
+def run_phases(task: Task, recipe: dict, phases: list, session: dict = None, options: dict = None):
+    """options: the player's choices (effective_options); steps with "when" run only if they match."""
     settings = load_settings()
     if recipe.get("steam_appid") and not steam.game_dir(recipe["steam_appid"]):
         webbrowser.open(f"steam://install/{recipe['steam_appid']}")
@@ -561,6 +569,8 @@ def run_phases(task: Task, recipe: dict, phases: list, session: dict = None):
     ctx = context(recipe, settings, session)
     for phase in phases:
         for step in recipe.get(phase, []):
+            if step.get("when") and not recipes.step_applies(step, options or {}):
+                continue
             run_step(step, ctx, settings, recipe, task)
     return "ok"
 

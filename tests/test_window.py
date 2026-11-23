@@ -77,7 +77,7 @@ def test_open_only_takes_web_and_steam_links(monkeypatch):
     base = f"http://127.0.0.1:{srv.server_address[1]}"
 
     def post(url):
-        req = urllib.request.Request(base + "/api/open", json.dumps({"url": url}).encode(), {"Content-Type": "application/json"})
+        req = urllib.request.Request(base + "/api/link", json.dumps({"url": url}).encode(), {"Content-Type": "application/json"})
         try:
             return urllib.request.urlopen(req).status
         except urllib.error.HTTPError as e:
@@ -85,4 +85,19 @@ def test_open_only_takes_web_and_steam_links(monkeypatch):
     assert post("https://archipelago.gg/uploads") == 200
     assert post("file:///C:/Windows/System32/calc.exe") == 400
     assert opened == ["https://archipelago.gg/uploads"]
+    srv.shutdown()
+
+
+def test_open_folder_button_still_works(tmp_path, monkeypatch):
+    """/api/open opens the players / my YAML folders (the link endpoint must not take its place)."""
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    opened = []
+    monkeypatch.setattr(server.subprocess, "Popen", lambda args, **kw: opened.append(args))
+    monkeypatch.setattr(server.sys, "platform", "linux")
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    req = urllib.request.Request(f"http://127.0.0.1:{srv.server_address[1]}/api/open", json.dumps({"what": "players"}).encode(),
+                                 {"Content-Type": "application/json"})
+    assert urllib.request.urlopen(req).status == 200
+    assert opened and opened[0][-1].endswith("players")
     srv.shutdown()

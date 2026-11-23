@@ -7,7 +7,8 @@ from .paths import base_dir
 
 STEP_TYPES = {
     "github_release", "workshop", "manual", "copy", "write_file",
-    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "ini_set", "thunderstore", "save_slot_json",
+    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "json_list_remove", "ini_set", "thunderstore",
+    "save_slot_json",
 }
 PHASES = ("apworld", "install", "connect", "launch")
 
@@ -29,6 +30,9 @@ def validate(r: dict, source: str = "") -> dict:
                 raise RecipeError(f"{source}: {phase}[{i}] unknown type '{t}'")
             if t in ("manual",) and "id" not in step:
                 raise RecipeError(f"{source}: {phase}[{i}] manual step needs an 'id'")
+            for k in (step.get("when") or {}):  # a step that only runs for some choices (Terraria + Calamity)
+                if k not in {o.get("key") for o in r.get("options", [])}:
+                    raise RecipeError(f"{source}: {phase}[{i}] 'when' names unknown option '{k}'")
     for k in ("guide_ar", "avoid_ar"):
         v = r.get(k, [])
         if not isinstance(v, list) or not all(isinstance(x, str) for x in v):
@@ -121,6 +125,21 @@ def parse_extra(text: str) -> dict:
     return out
 
 
+def effective_options(recipe: dict, chosen: dict) -> dict:
+    """The player's choices with defaults filled in, plus what a choice turns on by itself
+    (a choice with "sets": Terraria's Calamity goals switch Calamity on)."""
+    vals = {o["key"]: (chosen or {}).get(o["key"], o["default"]) for o in recipe.get("options", [])}
+    for o in recipe.get("options", []):
+        for c in o.get("choices", []):
+            if isinstance(c, dict) and c.get("sets") and vals.get(o["key"]) == c["value"]:
+                vals.update(c["sets"])
+    return vals
+
+
+def step_applies(step: dict, options: dict) -> bool:
+    return all(options.get(k) == v for k, v in (step.get("when") or {}).items())
+
+
 def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
                extra_text: str = "") -> str:
     game = recipe["game"]
@@ -132,8 +151,9 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
         f"{_yaml_value(game)}:",
     ]
     values, added = {}, {}
+    chosen = effective_options(recipe, chosen)
     for o in recipe.get("options", []):
-        v = chosen.get(o["key"], o["default"])
+        v = chosen[o["key"]]
         if o.get("if_off") and not v:  # e.g. "I own this DLC" off -> exclude the DLC's locations
             for k, x in o["if_off"].items():
                 added[k] = added.get(k, []) + x if isinstance(x, list) else x
