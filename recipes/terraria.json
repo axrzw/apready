@@ -5,12 +5,13 @@
   "game": "Terraria",
   "steam_appid": 1281930,
   "verified": false,
-  "notes_ar": "تشتغل عن طريق tModLoader (ببلاش في ستيم). البرنامج يفعّل المود ويكتب إعدادات الاتصال لحاله. اللعبة أصعب مع الراندومايزر، فاختاروا صعوبة أقل من العادة.",
+  "notes_ar": "تشتغل عن طريق tModLoader (ببلاش في ستيم). البرنامج يفعّل المود ويكتب إعدادات الاتصال لحاله. تقدر تلعبها مع مود Calamity، والبرنامج يركّبه لك. اللعبة أصعب مع الراندومايزر، فاختاروا صعوبة أقل من العادة.",
   "sources": [
     "https://archipelago.gg/tutorial/Terraria/setup/en",
     "https://steamcommunity.com/sharedfiles/filedetails/?id=2922217554",
     "https://github.com/Seldom-SE/archipelago_terraria_client",
-    "https://github.com/ArchipelagoMW/Archipelago/blob/main/worlds/terraria/Options.py"
+    "https://github.com/ArchipelagoMW/Archipelago/blob/main/worlds/terraria/Options.py",
+    "https://steamcommunity.com/sharedfiles/filedetails/?id=2824688072"
   ],
   "apworld": [
     {
@@ -32,6 +33,50 @@
       "items": [
         "SeldomArchipelago"
       ]
+    },
+    {
+      "type": "workshop",
+      "id": "workshop_calamity_music",
+      "workshop_id": "2824688266",
+      "when": {
+        "calamity": true
+      },
+      "label": "Calamity Mod Music",
+      "text_ar": "انفتحت صفحة Calamity Mod Music في الورشة (Calamity يحتاجه). اضغط Subscribe واستنى ستيم ينزله، وبعدها ارجع واضغط سويتها."
+    },
+    {
+      "type": "workshop",
+      "id": "workshop_calamity",
+      "workshop_id": "2824688072",
+      "when": {
+        "calamity": true
+      },
+      "label": "Calamity Mod",
+      "text_ar": "انفتحت صفحة Calamity Mod في الورشة. اضغط Subscribe واستنى ستيم ينزله، وبعدها ارجع واضغط سويتها."
+    },
+    {
+      "type": "json_list_add",
+      "label": "تفعيل Calamity",
+      "path": "{documents}/My Games/Terraria/tModLoader/Mods/enabled.json",
+      "items": [
+        "CalamityModMusic",
+        "CalamityMod"
+      ],
+      "when": {
+        "calamity": true
+      }
+    },
+    {
+      "type": "json_list_remove",
+      "label": "Calamity مطفي",
+      "path": "{documents}/My Games/Terraria/tModLoader/Mods/enabled.json",
+      "items": [
+        "CalamityMod",
+        "CalamityModMusic"
+      ],
+      "when": {
+        "calamity": false
+      }
     }
   ],
   "connect": [
@@ -61,7 +106,7 @@
     {
       "key": "goal",
       "label_ar": "الهدف",
-      "help_ar": "وش لازم تذبح عشان تخلص",
+      "help_ar": "وش لازم تذبح عشان تخلص. نهايات Calamity تشغّل زر Calamity لحالها",
       "default": "mechanical_bosses",
       "choices": [
         {
@@ -77,14 +122,84 @@
           "label_ar": "Golem"
         },
         {
+          "value": "empress_of_light",
+          "label_ar": "Empress of Light"
+        },
+        {
           "value": "lunatic_cultist",
           "label_ar": "Lunatic Cultist"
         },
         {
           "value": "moon_lord",
           "label_ar": "Moon Lord (طويلة)"
+        },
+        {
+          "value": "zenith",
+          "label_ar": "تسوي سيف Zenith"
+        },
+        {
+          "value": "calamitas_clone",
+          "label_ar": "Calamitas Clone (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "astrum_deus",
+          "label_ar": "Astrum Deus (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "providence_the_profaned_goddess",
+          "label_ar": "Providence (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "devourer_of_gods",
+          "label_ar": "The Devourer of Gods (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "yharon_dragon_of_rebirth",
+          "label_ar": "Yharon (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "calamity_final_bosses",
+          "label_ar": "البوسات الأخيرة (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "primordial_wyrm",
+          "label_ar": "Primordial Wyrm (Calamity)",
+          "sets": {
+            "calamity": true
+          }
+        },
+        {
+          "value": "boss_rush",
+          "label_ar": "Boss Rush (Calamity)",
+          "sets": {
+            "calamity": true
+          }
         }
       ]
+    },
+    {
+      "key": "calamity",
+      "label_ar": "ألعب مع مود Calamity",
+      "help_ar": "البرنامج يركّبه من الورشة، وبوساته وأحداثه تصير تشيكات. كلكم في نفس عالم تيراريا لازم نفس الاختيار",
+      "default": false
     },
     {
       "key": "early_achievements",
@@ -134,14 +249,17 @@
   ],
   "guide_ar": [
     "أول مرة: اضغط «جهّز اللعبة». تنفتح صفحة مود Archipelago في الورشة، اضغط Subscribe واستنى ستيم ينزله.",
-    "حط عنوان الروم واضغط ▶ العب. البرنامج يكتب اسمك والبورت في إعدادات المود ويشغّل tModLoader.",
+    "تبغى Calamity؟ شغّل زره قبل «جهّز اللعبة»، وتنفتح لك صفحتين في الورشة (Calamity و Calamity Mod Music): اضغط Subscribe في الثنتين.",
+    "حط عنوان الروم واضغط ▶ العب. البرنامج يكتب اسمك والبورت في إعدادات المود، ويشغّل Calamity أو يطفيه حسب ملفك، ويشغّل tModLoader.",
     "سوّ عالم جديد وادخله، والمود يتصل لحاله.",
     "الـ checks هي الإنجازات وقتل البوسات."
   ],
-  "checks_ar": "الإنجازات وقتل البوسات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
+  "checks_ar": "الإنجازات وقتل البوسات (ومع Calamity: بوساته وأحداثه بعد). ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "استخدم عالم جديد لكل multiworld.",
-    "لا تشغّل مودات تغيّر التقدم مع مود Archipelago.",
+    "لا تشغّل مودات تغيّر التقدم مع مود Archipelago. Calamity مدعوم، بس شغّله من الزر حق البرنامج.",
+    "Calamity لازم يكون نفس الشي في ملفك وفي اللعبة: لو غيّرت الزر بعد ما أرسلت ملفك للمستضيف، طلّع ملف جديد وأرسله.",
+    "Primordial Wyrm و Boss Rush تنفتح بدري، وتقدر توصل لها قبل أغراضك. لو اخترتها، لا تستعجل.",
     "الأغراض اللي توصلك تنعطى لكل اللاعبين في نفس عالم Terraria."
   ],
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."

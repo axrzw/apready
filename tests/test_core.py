@@ -1,6 +1,7 @@
 import json
 import threading
 import urllib.request
+from pathlib import Path
 from http.server import ThreadingHTTPServer
 
 import pytest
@@ -397,3 +398,49 @@ def test_dlc_question_excludes_its_locations_and_is_not_written():
     assert "exclude_locations" not in on and "has_treasure_map" not in on
     typed = rec.build_yaml(r, "Leon", {}, True, 'exclude_locations: ["Chapter 1 - X"]')
     assert 'exclude_locations: ["T.DLC", "Chapter 1 - X"]' in typed
+
+
+def test_calamity_goal_switches_calamity_on():
+    r = rec.load_all()["terraria"]
+    assert "calamity: false" in rec.build_yaml(r, "P", {}, True)
+    y = rec.build_yaml(r, "P", {"goal": "yharon_dragon_of_rebirth", "calamity": False}, True)
+    assert "goal: yharon_dragon_of_rebirth" in y and "calamity: true" in y
+    assert "calamity: true" in rec.build_yaml(r, "P", {"calamity": True}, True)
+
+
+def _steps_run(monkeypatch, recipe, options):
+    from app import runner
+    ran = []
+    monkeypatch.setattr(runner.steam, "game_dir", lambda appid: Path("/lib/steamapps/common/x"))
+    monkeypatch.setattr(runner, "ensure_archipelago", lambda task, s: None)
+    monkeypatch.setattr(runner, "run_step", lambda step, ctx, s, r, t: ran.append(step))
+    runner.run_phases(runner.Task(), recipe, ["install"], None, rec.effective_options(recipe, options))
+    return ran
+
+
+def test_calamity_mods_installed_only_when_on(monkeypatch, tmp_path):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    r = rec.load_all()["terraria"]
+    on = _steps_run(monkeypatch, r, {"calamity": True})
+    off = _steps_run(monkeypatch, r, {})
+    ids = lambda steps: [s.get("workshop_id") or s["type"] for s in steps]
+    assert ids(on) == ["2922217554", "json_list_add", "2824688266", "2824688072", "json_list_add"]
+    assert ids(off) == ["2922217554", "json_list_add", "json_list_remove"]
+
+
+def test_json_list_remove_turns_mods_off(tmp_path):
+    from app import runner
+    f = tmp_path / "enabled.json"
+    f.write_text('["SeldomArchipelago", "CalamityMod", "CalamityModMusic", "BossChecklist"]')
+    step = {"type": "json_list_remove", "path": str(f), "items": ["CalamityMod", "CalamityModMusic"]}
+    runner.run_step(step, {}, {"installed": {}, "done_steps": {}}, {"id": "terraria"}, runner.Task())
+    assert json.loads(f.read_text()) == ["SeldomArchipelago", "BossChecklist"]
+    runner.run_step(step, {}, {"installed": {}, "done_steps": {}}, {"id": "terraria"}, runner.Task())  # again: no change
+    assert json.loads(f.read_text()) == ["SeldomArchipelago", "BossChecklist"]
+
+
+def test_when_must_name_a_real_option():
+    bad = {"id": "x", "name": "X", "game": "X", "steam_appid": 1, "options": [],
+           "install": [{"type": "open_url", "url": "https://a", "when": {"nope": True}}]}
+    with pytest.raises(rec.RecipeError):
+        rec.validate(bad)

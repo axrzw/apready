@@ -33,7 +33,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   Desktop and in the Start menu pointing there, starts that copy (PYINSTALLER_RESET_ENVIRONMENT=1) and
   exits. A newer download does the same and first asks a running copy to quit (`/api/quit`, which also
   closes its window), so updating = download + run. Shortcuts are made once per exe path
-  (`shortcuts_for`), so a deleted shortcut stays deleted. Links from the page go through `/api/open` to the player's own browser.
+  (`shortcuts_for`), so a deleted shortcut stays deleted. Links from the page go through `/api/link` to the player's own browser
+  (`/api/open` is the open-folder buttons).
   The exe is built `--noconsole --icon app/icon.ico`; startup errors show a message box and
   `%APPDATA%/APReady/error.log`. Icon: `python -m tools.make_icon` (needs Pillow, dev only).
 - `app/recipes.py`: loads `recipes/*.json`, adds common advanced options, builds the YAML.
@@ -79,6 +80,8 @@ options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
                  app_only: a question for the player, never written to the YAML; if_off {key: value}:
                  written when that option is off (lists add up, also with the advanced box). RE4R: "I own
                  Treasure Map: Expansion" off -> exclude_locations ["T.DLC"] (its 36 checks get filler).
+                 A choice can carry `sets` {key: value}: picking it switches that option too (in the page
+                 and in `effective_options`; Terraria's Calamity goals set calamity: true).
 fixed_options{}  always written
 apworld[]        steps the HOST needs (apworld install)
 install[]        one-time steps on the player's PC
@@ -96,10 +99,13 @@ open_folder = folder to show instead of printing its path), `copy`, `write_file`
 Archipelago per save slot; a new YAML marks a new game, so Play enables a slot that has no game
 save and is not enabled yet, and later Plays only update address/port of that slot; never
 touches a played slot; sets {save_slot} for the launch hint), `thunderstore` (packages: ["Namespace-Name"]; installs them and every dependency
-from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `ini_set` (path, section, values, quote: true for
+from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `json_list_remove` (path, items), `ini_set` (path, section, values, quote: true for
 MelonPreferences TOML, false for BepInEx .cfg), `open_url`, `steam_launch`, `run` (exe may be a glob,
 optional_args only added when the value isn't empty), `apworld_builtin`.
 Any step can have `skip_if_exists` (path/glob): if it exists the step is skipped (one-time installers).
+Any step can have `when` {option: value}: it runs only if the player's choice matches (Terraria installs
+and enables Calamity only with calamity on; `json_list_remove` turns it off otherwise). Setup uses the
+choices on the page; Play uses the last YAML (what the host generated with).
 `write_file` with `merge` merges nested JSON objects too.
 Asset globs must match exactly one file of the release (a test rejects bare `*.zip`).
 Clients inside an apworld (Archipelago Launcher components) are opened with
@@ -150,6 +156,10 @@ Notes kept from the review:
 - RE4R: the Wizard wants Separate Ways and Treasure Map: Expansion. Separate Ways stays required
   (other players' items use its model). Treasure Map only adds 36 treasure checks (location group
   "T.DLC" in the apworld); without it the app excludes them and the player presses "Patch Anyway".
+- Terraria + Calamity: the core apworld has `calamity` and Calamity goals (Rules.dsv flags them); the
+  Seldom client supports CalamityMod (weakReferences). Workshop 2824688072 (CalamityMod) needs
+  2824688266 (CalamityModMusic). Stardew's `mods` (SVE and ~25 more) is not added yet: those mods are
+  on Nexus, so they'd need a manual download step.
 - Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 

@@ -264,7 +264,8 @@ function optRow(o, val) {
   if (o.choices) {
     input = `<select data-key="${o.key}">` + o.choices.map(c => {
       const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
-      return `<option value="${v}" ${String(v)===String(val)?'selected':''}>${l}</option>`; }).join("") + `</select>`;
+      const sets = typeof c === "object" && c.sets ? ` data-sets='${JSON.stringify(c.sets)}'` : "";
+      return `<option value="${v}"${sets} ${String(v)===String(val)?'selected':''}>${l}</option>`; }).join("") + `</select>`;
   } else if (typeof o.default === "boolean") {
     input = `<label class="switch"><input type="checkbox" data-key="${o.key}" ${val?'checked':''}><span></span></label>`;
   } else {
@@ -307,7 +308,15 @@ function showDlOpts() {
   const on = cur && cur.death_link && $("deathlink").checked;
   $("dlOpts").classList.toggle("hidden", !on || !$("dlOpts").children.length);
 }
-document.addEventListener("change", e => { if (e.target.id === "deathlink") showDlOpts(); });
+document.addEventListener("change", e => {
+  if (e.target.id === "deathlink") showDlOpts();
+  // a choice that needs another option (a Calamity goal) switches it on, so what you see is what you get
+  const o = e.target.tagName === "SELECT" && e.target.selectedOptions[0];
+  if (o && o.dataset.sets) for (const [k, v] of Object.entries(JSON.parse(o.dataset.sets))) {
+    const el = document.querySelector(`#gamePanel [data-key="${k}"]`);
+    if (el && el.type === "checkbox") el.checked = !!v; else if (el) el.value = v;
+  }
+});
 
 function collect() {
   const options = {};
@@ -351,7 +360,7 @@ async function runTask(path, body, logEl) {
       $("needText").textContent = bidi(t.needs_user.text);
       $("need").dataset.step = t.needs_user.id; $("need").dataset.game = t.needs_user.game;
       const u = $("needUrl");
-      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => api("/api/open", {url: t.needs_user.url}); } else u.classList.add("hidden");
+      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => api("/api/link", {url: t.needs_user.url}); } else u.classList.add("hidden");
     }
     if (!t.done) setTimeout(poll, 700);
     else if (!t.error && !t.needs_user) el.textContent += "\n\n✅ تم";
@@ -364,12 +373,12 @@ async function needDone() {
   runTask(lastTask.path, lastTask.body, lastTask.logEl);
 }
 
-function setup() { if (cur) runTask("/api/setup", {game: cur.id}, "log"); }
+function setup() { if (cur) runTask("/api/setup", {game: cur.id, options: collect().options}, "log"); }
 async function play() {
   if (!$("name").value) return alert("اكتب اسمك أول");
   if (!$("room").value) return alert("الصق عنوان الروم اللي أرسله المستضيف");
   await saveName();
-  runTask("/api/play", {game: cur.id, room: $("room").value, password: $("pass").value}, "log");
+  runTask("/api/play", {game: cur.id, room: $("room").value, password: $("pass").value, options: collect().options}, "log");
 }
 function generate() { runTask("/api/host/generate", {}, "hlog"); }
 function openFolder(what) { api("/api/open", {what}); }
