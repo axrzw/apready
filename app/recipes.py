@@ -30,6 +30,8 @@ def validate(r: dict, source: str = "") -> dict:
                 raise RecipeError(f"{source}: {phase}[{i}] unknown type '{t}'")
             if t in ("manual",) and "id" not in step:
                 raise RecipeError(f"{source}: {phase}[{i}] manual step needs an 'id'")
+            if step.get("when") and phase == "apworld":  # the host installs apworlds without anyone's choices
+                raise RecipeError(f"{source}: {phase}[{i}] 'when' can't be used in the apworld phase")
             for k in (step.get("when") or {}):  # a step that only runs for some choices (Terraria + Calamity)
                 if k not in {o.get("key") for o in r.get("options", [])}:
                     raise RecipeError(f"{source}: {phase}[{i}] 'when' names unknown option '{k}'")

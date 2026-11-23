@@ -381,7 +381,7 @@ async function play() {
   runTask("/api/play", {game: cur.id, room: $("room").value, password: $("pass").value, options: collect().options}, "log");
 }
 function generate() { runTask("/api/host/generate", {}, "hlog"); }
-function openFolder(what) { api("/api/open", {what}); }
+function openFolder(what) { api("/api/open", {what}).catch(e => alert(e.message)); }
 
 // ---------- 📡 room watcher ----------
 let FEEDEV = [], FEEDNEXT = 0, FILTER = "all";

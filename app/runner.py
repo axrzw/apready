@@ -567,9 +567,11 @@ def run_phases(task: Task, recipe: dict, phases: list, session: dict = None, opt
         raise RuntimeError(f"ما لقيت {recipe['name']} في ستيم. ثبّتها من ستيم أول (لو بالفاميلي: من مكتبة العائلة)")
     ensure_archipelago(task, settings)
     ctx = context(recipe, settings, session)
+    if options is None:
+        options = recipes.effective_options(recipe, {})
     for phase in phases:
         for step in recipe.get(phase, []):
-            if step.get("when") and not recipes.step_applies(step, options or {}):
+            if step.get("when") and not recipes.step_applies(step, options):
                 continue
             run_step(step, ctx, settings, recipe, task)
     return "ok"

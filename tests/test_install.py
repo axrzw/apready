@@ -8,7 +8,7 @@ def _setup(tmp_path, monkeypatch):
     made, started = [], []
     monkeypatch.setattr(window, "make_shortcuts", lambda exe: made.append(exe) or True)
     monkeypatch.setattr(install.subprocess, "Popen", lambda args, **kw: started.append((args, kw)))
-    monkeypatch.setattr(install, "_quit_running_copy", lambda: None)
+    monkeypatch.setattr(install, "quit_running_copy", lambda: None)
     dl = tmp_path / "Downloads" / "MyReadyAP.exe"
     dl.parent.mkdir()
     dl.write_bytes(b"MZ new")
@@ -22,7 +22,7 @@ def test_downloaded_copy_installs_and_makes_shortcuts(tmp_path, monkeypatch):
     assert target.read_bytes() == b"MZ new"
     assert made == [str(target)]
     args, kw = started[0]
-    assert args == [str(target)] and kw["env"]["PYINSTALLER_RESET_ENVIRONMENT"] == "1"
+    assert args == [str(target)] and kw["env"]["PYINSTALLER_RESET_ENVIRONMENT"] == "1" and kw["env"]["MRAP_JUST_INSTALLED"] == "1"
     # the installed copy runs normally and doesn't redo anything
     assert install.relocate(str(target)) is False
     assert install.ensure_shortcuts(str(target)) is False and made == [str(target)]
@@ -45,3 +45,15 @@ def test_cannot_install_runs_in_place(tmp_path, monkeypatch):
     monkeypatch.setattr(install.shutil, "copyfile", no_copy)
     assert install.relocate(str(dl)) is False and not started
     assert install.ensure_shortcuts(str(dl)) is True and made == [str(dl)]  # still gets a shortcut
+
+
+def test_same_version_from_downloads_just_opens_the_installed_one(tmp_path, monkeypatch):
+    dl, made, started = _setup(tmp_path, monkeypatch)
+    quits = []
+    monkeypatch.setattr(install, "quit_running_copy", lambda: quits.append(1))
+    target = install.install_target()
+    target.parent.mkdir(parents=True)
+    target.write_bytes(b"MZ new")  # already installed, same file
+    assert install.relocate(str(dl)) is True
+    assert quits == []  # the open copy (maybe in the middle of a download) is left alone
+    assert started and "MRAP_JUST_INSTALLED" not in started[0][1]["env"]
