@@ -25,14 +25,17 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   No third-party dependencies, so the PyInstaller exe stays small.
 - `app/window.py`: the app's own window: Edge (else Chrome/Brave) with `--app=` and its own profile in
   `%APPDATA%/APReady/window`, so it looks like a program (icon, no address bar) and the app quits when
-  that window closes (process exit; else no `/api/ping` from the page for 150 s). One copy at a time
+  that window closes (process exit; or no `/api/ping` from the page for 150 s without the window process,
+  10 min while it still runs; a clock jump = PC woke from sleep, not silence). One copy at a time
   (`running.json` + `/api/ping`); a second double-click just opens another window. If no such browser
   exists it opens a normal tab.
 - `app/install.py`: a downloaded exe run from anywhere copies itself to
   `%LOCALAPPDATA%/Programs/MyReadyAP/MyReadyAP.exe` (no admin), makes "My Ready AP" shortcuts on the
   Desktop and in the Start menu pointing there, starts that copy (PYINSTALLER_RESET_ENVIRONMENT=1) and
   exits. A newer download does the same and first asks a running copy to quit (`/api/quit`, which also
-  closes its window), so updating = download + run. Shortcuts are made once per exe path
+  closes its window), so updating = download + run. The same file run again from Downloads just opens the
+  installed copy (sha256 compare) and closes nothing. A copy older than v0.5.1 can't be asked to quit, so
+  the new one shows a message box asking to close it. Shortcuts are made once per exe path
   (`shortcuts_for`), so a deleted shortcut stays deleted. Links from the page go through `/api/link` to the player's own browser
   (`/api/open` is the open-folder buttons).
   The exe is built `--noconsole --icon app/icon.ico`; startup errors show a message box and

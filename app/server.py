@@ -8,7 +8,6 @@ import threading
 import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 
 from . import host, install, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
@@ -187,6 +186,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send(404, {"error": "not found"})
         except (ValueError, KeyError, rec.RecipeError) as e:
             self.send(400, {"error": str(e)})
+        except Exception as e:  # anything else: a clear message in the page, never a dropped request
+            self.send(500, {"error": f"صار خطأ: {e}"})
 
     def _keep(self, t):
         tid = uuid.uuid4().hex[:8]
@@ -232,6 +233,12 @@ def main(open_browser=True, port=0):
         return  # this was the downloaded copy: the installed one (with desktop shortcut) is starting
     if open_browser:
         running = window.already_running()
+        if running and os.environ.pop("MRAP_JUST_INSTALLED", None):
+            install.quit_running_copy()  # a new version was just installed: the old one makes way
+            running = window.already_running()
+            if running:  # too old to be asked (before v0.5.1)
+                window.message("نسخة قديمة من البرنامج مفتوحة.\nسكّر نافذتها، وبعدها افتح My Ready AP من سطح المكتب.")
+                return
         if running:  # double-clicked again: show the window of the copy that is already running
             window.open_window(running)
             return

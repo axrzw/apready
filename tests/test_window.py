@@ -27,32 +27,44 @@ def test_app_mode_args_use_own_profile(tmp_path, monkeypatch):
 
 
 class FakeProc:
-    def __init__(self, wait_fn):
-        self.wait = wait_fn
+    """A window process that ends at a given time on the fake clock."""
+    def __init__(self, clock, ends_at):
+        self.clock, self.ends_at = clock, ends_at
+
+    def poll(self):
+        return 0 if self.clock[0] >= self.ends_at else None
+
+
+def _fake_clock(monkeypatch):
+    clock = [1000.0]
+    monkeypatch.setattr(window.time, "time", lambda: clock[0])
+    monkeypatch.setattr(window.time, "sleep", lambda n: clock.__setitem__(0, clock[0] + n))
+    window._last_ping[0] = 0.0
+    return clock
 
 
 def test_quits_when_the_window_closes(monkeypatch):
-    clock = [1000.0]
-    monkeypatch.setattr(window.time, "time", lambda: clock[0])
+    clock = _fake_clock(monkeypatch)
     stopped = []
-
-    def used_then_closed():
-        clock[0] += 3600
-    window.wait_until_closed(FakeProc(used_then_closed), lambda: stopped.append(1))
-    assert stopped == [1]
+    window.wait_until_closed(FakeProc(clock, 1000 + 3600), lambda: stopped.append(clock[0]))
+    assert stopped and stopped[0] - 1000 < 3600 + 10
 
 
 def test_handed_off_window_falls_back_to_pings(monkeypatch):
-    clock = [1000.0]
-    monkeypatch.setattr(window.time, "time", lambda: clock[0])
+    clock = _fake_clock(monkeypatch)
     window.ping()  # the page was open
-
-    def sleep(n):
-        clock[0] += n
-    monkeypatch.setattr(window.time, "sleep", sleep)
     stopped = []
-    window.wait_until_closed(FakeProc(lambda: None), lambda: stopped.append(clock[0]))
+    window.wait_until_closed(FakeProc(clock, 1000), lambda: stopped.append(clock[0]))
     assert stopped and stopped[0] - 1000 > window.HEARTBEAT_TIMEOUT
+
+
+def test_browser_left_running_in_background_still_quits(monkeypatch):
+    """Window closed but the browser process stays alive: the missing pings end it."""
+    clock = _fake_clock(monkeypatch)
+    window.ping()
+    stopped = []
+    window.wait_until_closed(FakeProc(clock, float("inf")), lambda: stopped.append(clock[0]))
+    assert stopped and window.WINDOW_OPEN_TIMEOUT < stopped[0] - 1000 < window.WINDOW_OPEN_TIMEOUT + 10
 
 
 def test_second_copy_finds_the_first(tmp_path, monkeypatch):
@@ -100,4 +112,47 @@ def test_open_folder_button_still_works(tmp_path, monkeypatch):
                                  {"Content-Type": "application/json"})
     assert urllib.request.urlopen(req).status == 200
     assert opened and opened[0][-1].endswith("players")
+    srv.shutdown()
+
+
+def test_waking_from_sleep_does_not_quit(monkeypatch):
+    """The PC slept for an hour with the window open: no quitting before the page can ping again."""
+    clock = _fake_clock(monkeypatch)
+    window.ping()
+    stopped, slept = [], [False]
+
+    def sleep(n):
+        if not slept[0] and clock[0] > 1100:
+            slept[0] = True
+            clock[0] += 3600  # one long sleep
+            return
+        clock[0] += n
+        if slept[0] and clock[0] > 1000 + 3600 + 200 and stopped == []:
+            window.ping()  # the page pings again after waking
+            raise SystemExit
+    monkeypatch.setattr(window.time, "sleep", sleep)
+    try:
+        window.wait_until_closed(FakeProc(clock, float("inf")), lambda: stopped.append(clock[0]))
+    except SystemExit:
+        pass
+    assert stopped == []
+
+
+def test_unexpected_error_answers_instead_of_dropping(tmp_path, monkeypatch):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+
+    def boom(*a, **k):
+        raise FileNotFoundError("no file manager")
+    monkeypatch.setattr(server.subprocess, "Popen", boom)
+    monkeypatch.setattr(server.sys, "platform", "linux")
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    req = urllib.request.Request(f"http://127.0.0.1:{srv.server_address[1]}/api/open", json.dumps({"what": "players"}).encode(),
+                                 {"Content-Type": "application/json"})
+    try:
+        urllib.request.urlopen(req)
+        code, body = 200, {}
+    except urllib.error.HTTPError as e:
+        code, body = e.code, json.loads(e.read())
+    assert code == 500 and "no file manager" in body["error"]
     srv.shutdown()

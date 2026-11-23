@@ -17,6 +17,7 @@ from .paths import data_dir
 
 NO_WINDOW = 0x08000000  # CREATE_NO_WINDOW: no black console box for helper commands
 HEARTBEAT_TIMEOUT = 150  # the page pings every 5 s; browsers can slow a minimized page to once a minute
+WINDOW_OPEN_TIMEOUT = 600  # while our window's process is still running, be much more patient
 
 _last_ping = [0.0]
 
@@ -54,22 +55,30 @@ def open_window(url: str):
     return None
 
 
-def wait_until_closed(proc, stop):
-    """Block until the user is done, then call stop(). With our own window: when its process ends.
-    Otherwise (a normal browser tab): when the page stops pinging for a while."""
-    started = time.time()
-    if proc is not None:
-        proc.wait()
-        if time.time() - started > 10:  # a real window that was used and closed
-            return stop()
-        # it ended at once: it handed the page to a window of ours that was already open; use pings
+def wait_until_closed(proc, stop, poll=5):
+    """Block until the user is done, then call stop().
+    Our own window: when its process ends. Also, in case the browser keeps running in the background
+    after the window is closed (or it handed the page to another window), when the page stops pinging:
+    150 s without our window, 10 min while its process is still there. A jump in the clock (the PC
+    slept) gives the page time to ping again instead of counting as silence."""
+    started = last_loop = time.time()
+    window_alive = proc is not None
     while True:
-        time.sleep(5)
+        now = time.time()
+        if now - last_loop > poll * 6:  # woke up from sleep
+            _last_ping[0] = max(_last_ping[0], now) if _last_ping[0] else 0.0
+        last_loop = now
+        if window_alive and proc.poll() is not None:
+            if now - started > 10:  # a real window that was used and then closed
+                return stop()
+            window_alive = False  # ended at once: handed to a window of ours that was already open
         seen = _last_ping[0]
-        if seen and time.time() - seen > HEARTBEAT_TIMEOUT:
+        timeout = WINDOW_OPEN_TIMEOUT if window_alive else HEARTBEAT_TIMEOUT
+        if seen and now - seen > timeout:
             return stop()
-        if not seen and time.time() - started > 600:  # the page never came up
+        if not seen and now - started > 600:  # the page never came up
             return stop()
+        time.sleep(poll)
 
 
 # ---------- one copy at a time ----------
@@ -118,3 +127,10 @@ def make_shortcuts(exe: str) -> bool:
     except Exception:
         return False
     return True
+
+
+def message(text: str):
+    """A plain Windows message box (the exe has no console)."""
+    if os.name == "nt":
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, text, "My Ready AP", 0x40)

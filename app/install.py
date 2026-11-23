@@ -5,7 +5,7 @@ itself to %LOCALAPPDATA%/Programs/MyReadyAP (no admin needed), makes "My Ready A
 Desktop and in the Start menu that point there, and reopens from there. A newer exe run the same way
 replaces the installed one (a running copy is asked to quit first), so updating is: download, run.
 """
-import json
+import hashlib
 import os
 import shutil
 import subprocess
@@ -29,6 +29,16 @@ def _same(a, b) -> bool:
     return os.path.normcase(os.path.abspath(str(a))) == os.path.normcase(os.path.abspath(str(b)))
 
 
+def _same_file(a, b) -> bool:
+    try:
+        pa, pb = Path(a), Path(b)
+        if not pb.exists() or pa.stat().st_size != pb.stat().st_size:
+            return False
+        return hashlib.sha256(pa.read_bytes()).digest() == hashlib.sha256(pb.read_bytes()).digest()
+    except OSError:
+        return False
+
+
 def ensure_shortcuts(exe: str) -> bool:
     """Shortcuts for this exe path, once per path: a shortcut the user deleted stays deleted,
     but moving the app (or installing it) points them at the new place."""
@@ -43,7 +53,7 @@ def ensure_shortcuts(exe: str) -> bool:
     return True
 
 
-def _quit_running_copy():
+def quit_running_copy():
     url = window.already_running()
     if not url:
         return
@@ -66,7 +76,14 @@ def relocate(exe: str = None) -> bool:
     target = install_target()
     if _same(exe, target):
         return False
-    _quit_running_copy()
+    env = {k: v for k, v in os.environ.items() if not k.startswith("_PYI") and k != "_MEIPASS2"}
+    env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"  # the new copy unpacks itself, not using this one's temp files
+    if _same_file(exe, target):  # same version opened from Downloads again: just open the installed one
+        ensure_shortcuts(str(target))
+        subprocess.Popen([str(target)], cwd=str(target.parent), env=env, close_fds=True,
+                         creationflags=DETACHED if os.name == "nt" else 0)
+        return True
+    quit_running_copy()
     try:
         target.parent.mkdir(parents=True, exist_ok=True)
         for attempt in range(5):
@@ -83,9 +100,7 @@ def relocate(exe: str = None) -> bool:
     s.pop("shortcuts_for", None)  # an install always (re)makes the shortcuts
     save_settings(s)
     ensure_shortcuts(str(target))
-    # a fresh environment, so the new copy unpacks itself instead of using this one's temp files
-    env = {k: v for k, v in os.environ.items() if not k.startswith("_PYI") and k != "_MEIPASS2"}
-    env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
+    env["MRAP_JUST_INSTALLED"] = "1"  # the new copy must not just show an older copy's window
     subprocess.Popen([str(target)], cwd=str(target.parent), env=env, close_fds=True,
                      creationflags=DETACHED if os.name == "nt" else 0)
     return True

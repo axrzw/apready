@@ -3,7 +3,6 @@ import shutil
 import subprocess
 import sys
 import webbrowser
-from pathlib import Path
 
 from . import recipes as rec
 from .paths import ap_dir, load_settings, players_dir
