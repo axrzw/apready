@@ -16,6 +16,7 @@ from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 TASKS = {}
 RECIPES = {}
 UPDATE = {}  # result of the last recipe update, shown once in the UI
+RECIPES_REV = {"n": 0}  # goes up when the recipes change, so the open page can redraw
 FEED = {"feed": None}  # the room being watched (one at a time)
 
 
@@ -84,14 +85,15 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, (base_dir() / "ui" / "index.html").read_bytes(), "text/html")
         if self.path == "/api/ping":  # the page says it is still open; also how a second copy finds this one
             window.ping()
-            return self.send(200, {"app": "MyReadyAP", "version": VERSION})
+            return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"]})
         if self.path == "/icon.png":
             return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":
             s = load_settings()
             return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(), "version": VERSION,
                                    "players": host.scan_players(RECIPES),
-                                   "last": s.get("last", {}), "update": UPDATE})
+                                   "last": s.get("last", {}), "update": UPDATE,
+                                   "recipes_rev": RECIPES_REV["n"]})
         if self.path.startswith("/api/feed"):
             since = int((re.search(r"since=(\d+)", self.path) or [0, 0])[1])
             f = FEED["feed"]
@@ -198,8 +200,11 @@ class Handler(BaseHTTPRequestHandler):
 
 def reload_recipes():
     fresh = rec.load_all(extra=updates.remote_dir())
+    changed = fresh != RECIPES
     RECIPES.clear()
     RECIPES.update(fresh)
+    if changed:
+        RECIPES_REV["n"] += 1
 
 
 def update_recipes_in_background():
@@ -210,8 +215,16 @@ def update_recipes_in_background():
         except Exception:
             return
         if res["new"] or res["updated"]:
+            before = {k: json.dumps(v, sort_keys=True) for k, v in RECIPES.items()}
             reload_recipes()
-            UPDATE.update(res)
+            # tell the player only what really changed for them (a first sync re-downloads every game
+            # that already came with the app: those are not new)
+            UPDATE.update({
+                "new": [r["name"] for k, r in RECIPES.items() if k not in before],
+                "updated": [r["name"] for k, r in RECIPES.items()
+                            if k in before and before[k] != json.dumps(r, sort_keys=True)],
+                "skipped": res.get("skipped", []),
+            })
     threading.Thread(target=run, daemon=True).start()
 
 

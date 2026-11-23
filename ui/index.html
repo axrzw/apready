@@ -237,13 +237,28 @@ const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9]|[A-Za-z]/g;
 function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
 
 // tells the app the window is still open (it quits a while after the window is closed)
-setInterval(() => fetch("/api/ping").catch(() => {}), 5000);
+// It also says when new recipes arrived (the update runs in the background right after the app opens):
+// then the game list and the open game are drawn again, so the new options show without reopening.
+let recipesRev = null;
+async function ping() {
+  try {
+    const j = await (await fetch("/api/ping")).json();
+    if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur) pick(cur.id); }
+    recipesRev = j.recipes;
+  } catch (e) {}
+}
+setInterval(ping, 5000);
+setTimeout(ping, 1500);
 
 async function refresh() {
   S = await api("/api/state");
   if (S.version) $("version").textContent = S.version.startsWith("dev") ? "dev" : S.version;
   const u = S.update || {};
-  if ((u.new || []).length) { $("newGames").textContent = "✨ ألعاب جديدة وصلت: " + u.new.join("، "); $("newGames").classList.remove("hidden"); }
+  if (S.recipes_rev !== undefined && recipesRev === null) recipesRev = S.recipes_rev;
+  const notes = [];
+  if ((u.new || []).length) notes.push("✨ ألعاب جديدة وصلت: " + u.new.join("، "));
+  if ((u.updated || []).length) notes.push("🔄 تحدّثت: " + u.updated.join("، "));
+  if (notes.length) { $("newGames").textContent = bidi(notes.join("  ·  ")); $("newGames").classList.remove("hidden"); }
   $("name").value = S.player_name || "";
   $("games").innerHTML = S.games.map(g => `
     <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">

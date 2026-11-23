@@ -50,7 +50,10 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 - `app/updates.py`: at start, syncs `recipes/*.json` from the project repo into
   `%APPDATA%/APReady/recipes_remote` (GitHub contents API + sha index). Each file is validated;
   one the app can't read (bad id, unknown step type) is skipped and the shipped one kept.
-  Offline = nothing changes. The UI shows the names of new games once.
+  Offline = nothing changes. The sync runs after the window opens, so the server bumps `RECIPES_REV` when
+  the recipes really changed; `/api/ping` carries it and the page redraws the list and the open game by
+  itself (before v0.6.3 the new options only showed after reopening). The notice lists only games that
+  are really new or changed compared with what was loaded (a first sync re-downloads all of them).
 - `tools/new_recipe.py` (dev tool, not in the exe): `--sheet "Game"` or `--repo o/r` writes a
   recipe draft: reads the apworld with `ast` (never imports it) for game name, options, the
   Death Link key and whether `true` is a valid value, client components; classifies mod zips;
