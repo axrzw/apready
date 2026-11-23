@@ -5,7 +5,7 @@
   "game": "Resident Evil 4 Remake",
   "steam_appid": 2050650,
   "verified": false,
-  "notes_ar": "ريميك 2023 على ستيم، ويحتاج Separate Ways و Treasure Map. يجي مع Wizard يركّب REFramework والمود، ويجهز باتش لكل سيد.",
+  "notes_ar": "ريميك 2023 على ستيم، ويحتاج إضافة Separate Ways (حقت آيدا). إضافة Treasure Map: Expansion مو لازمة: لو ما عندك، البرنامج يخلي تشيكاتها الـ 36 بدون أغراض مهمة. يجي مع Wizard يركّب REFramework والمود، ويجهز باتش لكل سيد.",
   "sources": [
     "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard",
     "https://github.com/LiterallyMetaphorical/RE4R-AP-Wizard/releases"
@@ -87,18 +87,32 @@
           "label_ar": "Mercenaries"
         }
       ]
+    },
+    {
+      "key": "has_treasure_map",
+      "app_only": true,
+      "default": false,
+      "label_ar": "عندي إضافة Treasure Map: Expansion",
+      "help_ar": "لو ما عندك خلّه مطفي: الـ 36 تشيك اللي تجي منها يصير فيها أغراض عادية بس، وما أحد يعلق",
+      "if_off": {
+        "exclude_locations": [
+          "T.DLC"
+        ]
+      }
     }
   ],
   "guide_ar": [
-    "تحتاج Separate Ways و Treasure Map: Expansion.",
+    "تحتاج إضافة Separate Ways (حقت آيدا). إضافة Treasure Map: Expansion مو لازمة، بس قل في الخيارات إذا عندك.",
     "أول مرة: اضغط «جهّز اللعبة»، وينفتح لك الـ Wizard. سوّ فيه التثبيت (واللعبة مقفلة).",
     "كل لعبة جديدة: اضغط ▶ العب، وفي الـ Wizard جهّز الباتش لهذا السيد وشغّل اللعبة منه.",
+    "لو ما عندك Treasure Map وطلع لك تنبيه Treasure Map Expansion Not Detected، اضغط Patch Anyway. البرنامج مجهز سيدك لهذا.",
     "داخل اللعبة اضغط Insert تطلع نافذة Archipelago."
   ],
   "checks_ar": "الأغراض في الخريطة، وشراء التاجر، والكنوز، وحسب خياراتك أشياء ثانية. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "ممكن يجيك غرض مهم بدري، بس استخدامه بدري ممكن يعلّقك. لو مو متأكد امش على ترتيب القصة.",
-    "جهّز الباتش من الـ Wizard لكل سيد جديد."
+    "جهّز الباتش من الـ Wizard لكل سيد جديد.",
+    "لا تشغّل خيار «عندي Treasure Map» وأنت ما عندك الإضافة: ممكن يجي غرض مهم في كنز ما يطلع لك، وتعلقون كلكم."
   ],
   "checks_count_ar": "456 check في قصة Leon (455 على Hardcore و Professional)."
 }

@@ -63,6 +63,9 @@ death_link_in_mod  true when the apworld has no option but the mod has Death Lin
                  (TUNIC, Buckshot Roulette): the toggle stays live, connect steps use
                  {death_link} / {death_link_ar}. null key without this = toggle greyed out.
 options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
+                 app_only: a question for the player, never written to the YAML; if_off {key: value}:
+                 written when that option is off (lists add up, also with the advanced box). RE4R: "I own
+                 Treasure Map: Expansion" off -> exclude_locations ["T.DLC"] (its 36 checks get filler).
 fixed_options{}  always written
 apworld[]        steps the HOST needs (apworld install)
 install[]        one-time steps on the player's PC
@@ -129,6 +132,9 @@ Notes kept from the review:
   (the Nexus 10334 mod by 4laric is a different implementation and its GitHub repo is private).
   `death_link_amnesty` and `boss_scaling_percent` exist but are marked "unsupported, till after first
   release" in options.py (v0.1.4), so the recipe leaves them out. Per-seed steps happen in its own app.
+- RE4R: the Wizard wants Separate Ways and Treasure Map: Expansion. Separate Ways stays required
+  (other players' items use its model). Treasure Map only adds 36 treasure checks (location group
+  "T.DLC" in the apworld); without it the app excludes them and the player presses "Patch Anyway".
 - Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 
