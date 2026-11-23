@@ -10,7 +10,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import host, recipes as rec, roomfeed, runner, steam, updates, window
+from . import host, install, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -109,6 +109,10 @@ class Handler(BaseHTTPRequestHandler):
         try:
             b = self.body()
             p = self.path
+            if p == "/api/quit":  # a newer exe is installing itself over this one
+                if SERVER["srv"]:
+                    threading.Thread(target=SERVER["srv"].shutdown, daemon=True).start()
+                return self.send(200, {})
             if p == "/api/open":  # links open in the player's own browser, not inside the app window
                 if not re.match(r"(https?|steam)://", b.get("url", "")):
                     return self.send(400, {"error": "bad url"})
@@ -165,6 +169,10 @@ class Handler(BaseHTTPRequestHandler):
             if p == "/api/host/generate":
                 t = runner.start(host.generate, RECIPES)
                 return self.send(200, {"task": self._keep(t)})
+            if p == "/api/quit":  # a newer exe is installing itself over this one
+                if SERVER["srv"]:
+                    threading.Thread(target=SERVER["srv"].shutdown, daemon=True).start()
+                return self.send(200, {})
             if p == "/api/open":
                 folder = {"players": players_dir(), "mine": data_dir() / "my_yaml"}[b["what"]]
                 folder.mkdir(parents=True, exist_ok=True)
@@ -202,16 +210,14 @@ def update_recipes_in_background():
     threading.Thread(target=run, daemon=True).start()
 
 
-def _first_run_shortcuts():
-    s = load_settings()
-    if window.make_shortcuts(sys.executable, s):
-        s = load_settings()
-        s["shortcuts_made"] = True
-        save_settings(s)
+SERVER = {"srv": None, "window": None}
 
 
 def main(open_browser=True, port=0):
     """open_browser: run as the app (own window, one copy at a time, quits when the window closes)."""
+    frozen = getattr(sys, "frozen", False) and sys.platform == "win32"
+    if open_browser and frozen and install.relocate():
+        return  # this was the downloaded copy: the installed one (with desktop shortcut) is starting
     if open_browser:
         running = window.already_running()
         if running:  # double-clicked again: show the window of the copy that is already running
@@ -219,14 +225,14 @@ def main(open_browser=True, port=0):
             return
     reload_recipes()
     update_recipes_in_background()
-    srv = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    srv = SERVER["srv"] = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
     print("My Ready AP:", url)
     if open_browser:
         window.mark_running(url)
-        if getattr(sys, "frozen", False):
-            threading.Thread(target=_first_run_shortcuts, daemon=True).start()
-        proc = window.open_window(url)
+        if frozen:  # e.g. installing failed and it runs from Downloads: still give a shortcut
+            threading.Thread(target=install.ensure_shortcuts, args=(sys.executable,), daemon=True).start()
+        proc = SERVER["window"] = window.open_window(url)
         threading.Thread(target=window.wait_until_closed, args=(proc, srv.shutdown), daemon=True).start()
     try:
         srv.serve_forever()
@@ -235,6 +241,9 @@ def main(open_browser=True, port=0):
     finally:
         if open_browser:
             window.clear_running()
+            w = SERVER.get("window")
+            if w is not None and w.poll() is None:  # told to quit (a newer exe is installing): close our window too
+                w.terminate()
 
 
 if __name__ == "__main__":
