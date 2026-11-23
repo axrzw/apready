@@ -5,12 +5,13 @@ import re
 import subprocess
 import sys
 import threading
+import time
 import uuid
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ._version import VERSION
-from . import host, install, recipes as rec, roomfeed, runner, steam, updates, window
+from . import dlproxy, host, install, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -42,7 +43,8 @@ def watch_room(room: dict, slot: str, password: str = ""):
         return old
     if old:
         old.stop()
-    FEED["feed"] = roomfeed.RoomFeed(room["host"], room["port"], slot, password, tracker=room.get("tracker", "")).start()
+    FEED["feed"] = roomfeed.RoomFeed(room["host"], room["port"], slot, password, tracker=room.get("tracker", ""),
+                                     store=data_dir() / "deaths.json").start()
     return FEED["feed"]
 
 
@@ -85,7 +87,10 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, (base_dir() / "ui" / "index.html").read_bytes(), "text/html")
         if self.path == "/api/ping":  # the page says it is still open; also how a second copy finds this one
             window.ping()
-            return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"]})
+            f, relay = FEED["feed"], dlproxy.ACTIVE["proxy"]
+            return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"],
+                                   "deaths": f.death_counts() if f else {}, "me": f.slot if f else "",
+                                   "free": {"left": relay.free_left(), "of": relay.free} if relay else None})
         if self.path == "/icon.png":
             return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":
@@ -150,9 +155,15 @@ class Handler(BaseHTTPRequestHandler):
                            "password": b.get("password", ""),
                            "death_link": s.get("last", {}).get(b["game"], {}).get("death_link", True)}
                 r = RECIPES[b["game"]]
+                watch_room(room, session["slot"], session["password"])  # the 📡 tab follows the same room
+                free = _free_deaths(r, b, session["death_link"])
+                if free:  # the game talks to our relay, which holds back the free deaths (app/dlproxy.py)
+                    relay = dlproxy.start(room["host"], room["port"], free, on_death=_my_death)
+                    session = {**session, "host": "127.0.0.1", "port": str(relay.local_port)}
+                else:
+                    dlproxy.stop()
                 t = runner.start(runner.run_phases, r, ["apworld", "install", "connect", "launch"], session,
                                  _options(r, b, yaml_first=True))
-                watch_room(room, session["slot"], session["password"])  # the 📡 tab follows the same room
                 return self.send(200, {"task": self._keep(t)})
             if p == "/api/watch":
                 s = load_settings()
@@ -231,6 +242,25 @@ def update_recipes_in_background():
 SERVER = {"srv": None, "window": None}
 
 
+def _free_deaths(recipe: dict, body: dict, death_link: bool) -> int:
+    """Free deaths for this Play: only with Death Link on, in a game the relay handles. It is the app's
+    own setting (not in the YAML), so the page's current value counts, else the last one used."""
+    if not death_link or not rec.death_link_live(recipe) or recipe.get("free_deaths_native"):
+        return 0
+    page = (body.get("options") or {}).get("free_deaths")
+    last = load_settings().get("last", {}).get(recipe["id"], {}).get("options", {}).get("free_deaths", 0)
+    try:
+        return max(0, min(25, int(page if page is not None else last)))
+    except (TypeError, ValueError):
+        return 0
+
+
+def _my_death(total: int, sent: bool):
+    f = FEED["feed"]
+    if f:
+        f.record_my_death()
+
+
 def _options(recipe: dict, body: dict, yaml_first: bool = False) -> dict:
     """What the player picked. Play follows their last YAML (that is what the host generated with);
     setup follows the page. Either falls back to the other, then to the defaults."""
@@ -266,7 +296,11 @@ def main(open_browser=True, port=0):
         if frozen:  # e.g. installing failed and it runs from Downloads: still give a shortcut
             threading.Thread(target=install.ensure_shortcuts, args=(sys.executable,), daemon=True).start()
         proc = SERVER["window"] = window.open_window(url)
-        threading.Thread(target=window.wait_until_closed, args=(proc, srv.shutdown), daemon=True).start()
+        def quit_when_free():
+            while dlproxy.busy():  # a game still plays through the relay: closing the window must not cut it off
+                time.sleep(10)
+            srv.shutdown()
+        threading.Thread(target=window.wait_until_closed, args=(proc, quit_when_free), daemon=True).start()
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

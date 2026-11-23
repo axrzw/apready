@@ -56,6 +56,10 @@
   .bar { height:8px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
   .bar i { display:block; height:100%; background:var(--accent); }
   .death-chip { display:inline-block; margin:3px; padding:3px 10px; border-radius:12px; background:rgba(255,80,80,.12); color:#ff9a9a; }
+  #deathBar { padding:8px 24px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
+  #deathBar.hidden { display:none; }
+  #deathBar .death-chip.me { outline:1px solid #ff9a9a; }
+  #deathBar .free { color:var(--ok); margin-inline-start:8px; font-size:14px; }
   .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
   .guide summary { cursor:pointer; font-weight:600; }
   .guide ol, .guide ul { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
@@ -88,6 +92,8 @@
     <button id="tab-watch" onclick="tab('watch')">📡 الروم</button>
   </nav>
 </header>
+<!-- death counter for everyone in the room, on every tab (free deaths included when they use My Ready AP) -->
+<div id="deathBar" class="hidden"></div>
 <main>
   <!-- PLAYER -->
   <section id="play">
@@ -240,9 +246,26 @@ function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m +
 // It also says when new recipes arrived (the update runs in the background right after the app opens):
 // then the game list and the open game are drawn again, so the new options show without reopening.
 let recipesRev = null;
+function drawDeathBar(j) {
+  const bar = $("deathBar"), d = j.deaths || {}, names = Object.keys(d);
+  bar.classList.toggle("hidden", !names.length && !j.free);
+  bar.replaceChildren();
+  if (names.length) {
+    const t = document.createElement("span"); t.className = "muted"; t.textContent = "☠ عداد الموتات:"; bar.append(t);
+    for (const n of names) {
+      const c = document.createElement("span"); c.className = "death-chip" + (n === j.me ? " me" : "");
+      c.dir = "ltr"; c.textContent = `${n} ${d[n]}`; bar.append(c);
+    }
+  }
+  if (j.free) {
+    const f = document.createElement("span"); f.className = "free";
+    f.textContent = `🛟 باقي لك ${j.free.left} من ${j.free.of} موتات مجانية`; bar.append(f);
+  }
+}
 async function ping() {
   try {
     const j = await (await fetch("/api/ping")).json();
+    drawDeathBar(j);
     if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur) pick(cur.id); }
     recipesRev = j.recipes;
   } catch (e) {}

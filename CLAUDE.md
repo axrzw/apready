@@ -65,6 +65,18 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   archipelago.gg tracker API (static_tracker totals + tracker checks/status), else only your own
   (Connected / RoomUpdate). Started by Play or by the tab. `parse_room` takes the archipelago.gg
   room link: it opens the room page (wakes it) and reads the port from /api/room_status.
+- `app/dlproxy.py`: free deaths for every Death Link game. Each recipe with live Death Link gets the app-only
+  option `free_deaths` (0-25, inside the Death Link box; not for Cuphead, whose mod has
+  `deathlink_grace_count`: `"free_deaths_native": true`). With it above 0 and Death Link on, Play starts a
+  local WebSocket relay (127.0.0.1:47281, else a free port) and gives the game that address instead of the
+  room's ({host}/{port}/{address}). It passes everything through byte for byte except the game's own
+  DeathLink Bounces: with N free deaths only every (N+1)th is sent. Deaths sent to the player are never
+  touched. 0 = no relay, the game connects straight to the room. TLS attempts are closed so clients fall
+  back to ws. The app stays alive after the window closes while a game is connected through the relay.
+- Death counter: the bar under the tabs (from `/api/ping`) shows everyone's deaths: Death Link messages
+  heard in the room, and real totals My Ready AP apps share with a Bounce tagged `MyReadyAP`
+  ({"kind": "deaths", "source", "deaths"}; "deaths?" asks the others). Shown = max of both per player;
+  a remote app can't set my own number. Kept per seed in `%APPDATA%/APReady/deaths.json` (last 20).
 - `app/host.py`: installs the apworld for every game in `%APPDATA%/APReady/players`, copies
   the YAMLs to `Archipelago/Players`, runs ArchipelagoGenerate, and opens
   archipelago.gg/uploads. Most of these games are unofficial, so the website can't
