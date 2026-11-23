@@ -132,6 +132,8 @@ Notes kept from the review:
   (the Nexus 10334 mod by 4laric is a different implementation and its GitHub repo is private).
   `death_link_amnesty` and `boss_scaling_percent` exist but are marked "unsupported, till after first
   release" in options.py (v0.1.4), so the recipe leaves them out. Per-seed steps happen in its own app.
+  Add-ons are plain basic switches «عندي إضافة ...», off by default (owner's choice): enable_dlc
+  (Shadow of the Erdtree) and enable_tp_dlc (Tarnished Edition / Tarnished Pack, 28 locations).
 - RE4R: the Wizard wants Separate Ways and Treasure Map: Expansion. Separate Ways stays required
   (other players' items use its model). Treasure Map only adds 36 treasure checks (location group
   "T.DLC" in the apworld); without it the app excludes them and the player presses "Patch Anyway".
