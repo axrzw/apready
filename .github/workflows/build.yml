@@ -30,6 +30,15 @@ jobs:
           open("app/_version.py", "w").write(f"VERSION = {os.environ['V']!r}\n")
           print("version:", os.environ["V"])
       - run: pyinstaller --onefile --noconsole --icon app/icon.ico --name MyReadyAP --add-data "recipes;recipes" --add-data "ui;ui" run_app.py
+      # Does Microsoft Defender flag the exe? (friends see "Windows cannot access the file" when it does)
+      - name: Scan with Microsoft Defender
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $mp = Join-Path $env:ProgramFiles "Windows Defender\MpCmdRun.exe"
+          & $mp -SignatureUpdate | Out-Host
+          & $mp -Scan -ScanType 3 -File "$PWD\dist\MyReadyAP.exe" -DisableRemediation | Out-Host
+          Write-Host "defender exit code: $LASTEXITCODE (0 = clean, 2 = threat found)"
       # same exe under the old name too, so the link friends already have keeps working
       - run: copy dist\MyReadyAP.exe dist\APReady.exe
         shell: cmd
