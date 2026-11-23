@@ -5,7 +5,7 @@
   "game": "Cuphead",
   "steam_appid": 268910,
   "verified": false,
-  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5. البرنامج يفعّل Archipelago على سيف فاضي خاص بالمود (سيفاتك العادية ما تنلمس). Death Link يشتغل داخل المراحل بس، مو على الخريطة.",
+  "notes_ar": "المود لسا ألفا، توقعوا مشاكل. يحتاج BepInEx 5. البرنامج يفعّل Archipelago على سيف فاضي خاص بالمود (سيفاتك العادية ما تنلمس). Death Link يشتغل داخل المراحل بس، مو على الخريطة. تقدر تلعب الإضافة The Delicious Last Course لو عندك.",
   "sources": [
     "https://github.com/JKLeckr/CupheadArchipelagoMod",
     "https://github.com/JKLeckr/CupheadArchipelagoMod/blob/main/INSTALLING.md",
@@ -73,6 +73,106 @@
   ],
   "options": [
     {
+      "key": "mode",
+      "label_ar": "متى تخلص",
+      "help_ar": "نهايات الإضافة تشغّل زر الإضافة لحالها",
+      "default": "beat_devil",
+      "choices": [
+        {
+          "value": "beat_devil",
+          "label_ar": "تذبح الشيطان (The Devil)"
+        },
+        {
+          "value": "collect_contracts",
+          "label_ar": "تجمع العقود"
+        },
+        {
+          "value": "buy_out_shop",
+          "label_ar": "تشتري كل شي من المحل"
+        },
+        {
+          "value": "dlc_beat_saltbaker",
+          "label_ar": "تذبح Chef Saltbaker (الإضافة)",
+          "sets": {
+            "use_dlc": true
+          }
+        },
+        {
+          "value": "dlc_beat_both",
+          "label_ar": "تذبح الشيطان و Chef Saltbaker (الإضافة)",
+          "sets": {
+            "use_dlc": true
+          }
+        },
+        {
+          "value": "dlc_collect_ingredients",
+          "label_ar": "تجمع المكونات (الإضافة)",
+          "sets": {
+            "use_dlc": true
+          }
+        },
+        {
+          "value": "dlc_collect_both",
+          "label_ar": "تجمع العقود والمكونات (الإضافة)",
+          "sets": {
+            "use_dlc": true
+          }
+        }
+      ]
+    },
+    {
+      "key": "use_dlc",
+      "label_ar": "عندي إضافة The Delicious Last Course",
+      "help_ar": "شغّله بس لو عندك الإضافة",
+      "default": false
+    },
+    {
+      "key": "dlc_chalice",
+      "label_ar": "Ms. Chalice (الإضافة)",
+      "help_ar": "كيف تحصل على الكعكة اللي تخليك تلعب Ms. Chalice",
+      "advanced": true,
+      "default": "randomized",
+      "choices": [
+        {
+          "value": "randomized",
+          "label_ar": "غرض مخلوط مع الأغراض"
+        },
+        {
+          "value": "vanilla",
+          "label_ar": "زي اللعبة: أول ما تبدأ الإضافة"
+        },
+        {
+          "value": "start",
+          "label_ar": "معك من البداية"
+        },
+        {
+          "value": "disabled",
+          "label_ar": "بدون Ms. Chalice"
+        }
+      ]
+    },
+    {
+      "key": "dlc_kingsleap",
+      "label_ar": "The King's Leap (الإضافة)",
+      "help_ar": "مراحل الشطرنج",
+      "advanced": true,
+      "default": "exclude_gauntlet",
+      "choices": [
+        {
+          "value": "exclude_gauntlet",
+          "label_ar": "بدون The Gauntlet"
+        },
+        {
+          "value": "include_all",
+          "label_ar": "كلها"
+        },
+        {
+          "value": "exclude",
+          "label_ar": "بدونها"
+        }
+      ]
+    },
+    {
       "key": "deathlink_grace_count",
       "label_ar": "موتات مجانية قبل ما ترسل",
       "deathlink": true,
@@ -102,6 +202,7 @@
   "death_link_key": "deathlink",
   "guide_ar": [
     "أول مرة: اضغط «جهّز اللعبة» (يركّب BepInEx والمود).",
+    "عندك إضافة The Delicious Last Course؟ شغّل زرها في الخيارات، وتأكد إنها مثبتة في ستيم. ما عندك؟ خله مطفي.",
     "بعد ما تطلّع ملفك والمستضيف يولّد، اضغط ▶ العب: البرنامج يفعّل Archipelago على سيف فاضي خاص بالمود، ويقولك رقمه.",
     "في شاشة السيفات اختر هذا السيف (عليه AP) وابدأ.",
     "Death Link يشتغل داخل المراحل بس، مو على الخريطة.",
@@ -110,6 +211,7 @@
   "checks_ar": "إكمال المراحل والبوسات، والعملات، والمحل، حسب الخيارات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "العب على السيف اللي يقولك عليه البرنامج بس (عليه AP).",
+    "لا تشغّل زر الإضافة وأنت ما عندك The Delicious Last Course: أغراضها ما تطلع لك وتعلقون.",
     "Death Link يشتغل داخل المراحل بس.",
     "المود لسا ألفا، سيّف كثير."
   ],

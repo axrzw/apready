@@ -165,6 +165,9 @@ Notes kept from the review:
   Seldom client supports CalamityMod (weakReferences). Workshop 2824688072 (CalamityMod) needs
   2824688266 (CalamityModMusic). Stardew's `mods` (SVE and ~25 more) is not added yet: those mods are
   on Nexus, so they'd need a manual download step.
+- Cuphead DLC: `use_dlc` (switch «عندي إضافة The Delicious Last Course», off by default) and `mode` (goal;
+  the dlc_* goals `sets` use_dlc, else the apworld picks a random base mode). Advanced: `dlc_chalice`,
+  `dlc_kingsleap`. Field names = option names (the apworld's own test enforces it).
 - Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 

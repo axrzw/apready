@@ -444,3 +444,11 @@ def test_when_must_name_a_real_option():
            "install": [{"type": "open_url", "url": "https://a", "when": {"nope": True}}]}
     with pytest.raises(rec.RecipeError):
         rec.validate(bad)
+
+
+def test_cuphead_dlc_goal_switches_the_dlc_on():
+    r = rec.load_all()["cuphead"]
+    base = rec.build_yaml(r, "P", {}, True)
+    assert "mode: beat_devil" in base and "use_dlc: false" in base and "deathlink: true" in base
+    y = rec.build_yaml(r, "P", {"mode": "dlc_beat_saltbaker", "use_dlc": False}, False)
+    assert "use_dlc: true" in y and "deathlink: false" in y
