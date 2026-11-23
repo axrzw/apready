@@ -122,3 +122,29 @@ def test_analyze_apworld_with_bom():
     """RE4R's .py files start with a UTF-8 BOM; ast must still read them."""
     data = _apworld({"g/archipelago.json": '{"game": "My Game"}', "g/Options.py": "﻿" + OPTIONS_PY})
     assert nr.analyze_apworld(data)["death_link"]["key"] == "death_link"
+
+
+def test_background_update_reports_only_real_changes(tmp_path, monkeypatch):
+    """A first sync downloads every game; only a changed or added one is announced, and the page's
+    recipes revision goes up so it redraws by itself."""
+    import json as _json
+    from app import server, recipes as rec
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    server.reload_recipes()
+    shipped = rec.base_dir() / "recipes"
+    rev0 = server.RECIPES_REV["n"]
+
+    def fake_update():
+        d = server.updates.remote_dir()
+        for f in shipped.glob("*.json"):  # every shipped game comes back unchanged...
+            (d / f.name).write_bytes(f.read_bytes())
+        cup = _json.loads((shipped / "cuphead.json").read_text(encoding="utf-8"))
+        cup["notes_ar"] += " (جديد)"  # ...except one
+        (d / "cuphead.json").write_text(_json.dumps(cup, ensure_ascii=False), encoding="utf-8")
+        return {"new": ["x"] * 28, "updated": [], "skipped": []}
+    monkeypatch.setattr(server.updates, "update", fake_update)
+    monkeypatch.setattr(server.threading, "Thread", lambda target, daemon: type("T", (), {"start": lambda self: target()})())
+    server.UPDATE.clear()
+    server.update_recipes_in_background()
+    assert server.UPDATE["new"] == [] and server.UPDATE["updated"] == ["Cuphead"]
+    assert server.RECIPES_REV["n"] == rev0 + 1
