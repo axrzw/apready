@@ -1,0 +1,21 @@
+name: release-info
+# Lists the latest releases (tag + asset names) of mod/apworld repos, for writing and checking recipes.
+# The repos are in .github/release-repos.txt (one owner/repo per line); a push that changes it runs this.
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/release-repos.txt", ".github/workflows/release-info.yml"]
+jobs:
+  info:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          grep -v '^\s*#' .github/release-repos.txt | while read -r r; do
+            [ -z "$r" ] && continue
+            echo "=== $r"
+            gh api "repos/$r/releases?per_page=4" --jq '.[] | "\(.tag_name)\t\(if .prerelease then "pre" else "" end)\t\(.published_at[:10])\t\([.assets[].name] | join(" | "))"' || echo "  (no access)"
+          done
