@@ -103,5 +103,6 @@ def open_map(task, recipe: dict, options: dict, host: str, port, slot: str, pass
     exe = ensure_poptracker(task)
     ensure_pack(recipe, task)
     subprocess.Popen(command(exe, recipe, options, host, port, slot, password), cwd=str(exe.parent))
-    task.say(f"✔ فتحت خريطة {recipe['name']} ومتصلة بالروم. تتحدّث لحالها كل ما سويت تشيك.")
+    task.say(f"✔ فتحت خريطة {recipe['name']}. تتصل بالروم لحالها وتتحدّث كل ما سويت تشيك.")
+    task.say(f"👉 لو ما اتصلت خلال دقيقة: في PopTracker اضغط AP فوق يسار، واكتب {host}:{port} والاسم {slot}.")
     return "ok"
