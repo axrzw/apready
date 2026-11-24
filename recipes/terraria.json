@@ -11,7 +11,8 @@
     "https://steamcommunity.com/sharedfiles/filedetails/?id=2922217554",
     "https://github.com/Seldom-SE/archipelago_terraria_client",
     "https://github.com/ArchipelagoMW/Archipelago/blob/main/worlds/terraria/Options.py",
-    "https://steamcommunity.com/sharedfiles/filedetails/?id=2824688072"
+    "https://steamcommunity.com/sharedfiles/filedetails/?id=2824688072",
+    "https://github.com/SerpentAI/TerrariaAPTracker"
   ],
   "apworld": [
     {
@@ -262,5 +263,10 @@
     "Primordial Wyrm و Boss Rush تنفتح بدري، وتقدر توصل لها قبل أغراضك. لو اخترتها، لا تستعجل.",
     "الأغراض اللي توصلك تنعطى لكل اللاعبين في نفس عالم Terraria."
   ],
-  "checks_count_ar": "يعتمد على النهاية. بالإعدادات الافتراضية: بدون Calamity من 63 (البوسات الميكانيكية) لين 100 (Zenith)، و Moon Lord 97. مع Calamity من 76 لين 135 (Boss Rush)، و Yharon 131. الإنجازات الطويلة وإنجازات الصيد تزيد عليها. الرقم بالضبط يطلع في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "يعتمد على النهاية. بالإعدادات الافتراضية: بدون Calamity من 63 (البوسات الميكانيكية) لين 100 (Zenith)، و Moon Lord 97. مع Calamity من 76 لين 135 (Boss Rush)، و Yharon 131. الإنجازات الطويلة وإنجازات الصيد تزيد عليها. الرقم بالضبط يطلع في تبويب 📡 الروم بعد التوليد.",
+  "map_tracker": {
+    "uid": "ap_terraria",
+    "variant": "map",
+    "download": "https://github.com/SerpentAI/TerrariaAPTracker/archive/refs/tags/0.1.5.zip"
+  }
 }

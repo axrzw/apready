@@ -10,7 +10,8 @@
   "sources": [
     "https://github.com/BurndiL/BalatroAP",
     "https://github.com/Steamodded/smods/wiki",
-    "https://github.com/ethangreen-dev/lovely-injector/releases"
+    "https://github.com/ethangreen-dev/lovely-injector/releases",
+    "https://github.com/graygooglitch/balatroap_poptracker"
   ],
   "apworld": [
     {
@@ -136,5 +137,10 @@
     "العب من بروفايل Archipelago بس.",
     "انسخ سيفاتك احتياط قبل أول مرة (ما المفروض تتأثر، بس احتياط)."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "map_tracker": {
+    "uid": "balatroap",
+    "variant": "standard",
+    "download": "https://github.com/graygooglitch/balatroap_poptracker/archive/refs/tags/v1.2.0.0.zip"
+  }
 }

@@ -179,6 +179,10 @@ class RoomFeed:
         self.store = store        # JSON file for the counts, or None
         self.my_death_heard_at = 0.0  # last Death Link from my own slot that reached the room
         self._announced = False
+        self.team = 0
+        self.hint_cost = 0          # % of my locations a hint costs (RoomInfo)
+        self.hint_points = None     # my points (Connected / RoomUpdate)
+        self.hints = []             # raw hint dicts from the room's data storage (_read_hints_<team>_<slot>)
         self.status = "connecting"
         self.error = ""
         self.my_slot = None
@@ -353,6 +357,8 @@ class RoomFeed:
     def _handle(self, p: dict):
         cmd = p.get("cmd")
         if cmd == "RoomInfo":
+            if isinstance(p.get("hint_cost"), int):
+                self.hint_cost = p["hint_cost"]
             if p.get("seed_name") and p.get("seed_name") != self.seed:
                 self.seed = str(p["seed_name"])
                 self._load_counts()
@@ -366,6 +372,9 @@ class RoomFeed:
                 self.locations[game] = {v: k for k, v in pkg.get("location_name_to_id", {}).items()}
         elif cmd == "Connected":
             self.my_slot = p.get("slot")
+            self.team = p.get("team", 0)
+            if isinstance(p.get("hint_points"), int):
+                self.hint_points = p["hint_points"]
             self.my_checked = set(p.get("checked_locations", []))
             self.my_missing = set(p.get("missing_locations", []))
             for pl in p.get("players", []):
@@ -377,6 +386,8 @@ class RoomFeed:
             if not self._announced:  # once; a quiet reconnect is not news
                 self._announced = True
                 self._add("system", "✔ متصل بالروم")
+            # every hint about my items or my world, kept up to date by the room (data storage)
+            self._send({"cmd": "Get", "keys": [self._hint_key()]}, {"cmd": "SetNotify", "keys": [self._hint_key()]})
             self._share_mine()  # my real count, and ask the other apps for theirs
             self._send({"cmd": "Bounce", "tags": [SHARE_TAG], "data": {"kind": "deaths?"}})
         elif cmd == "ConnectionRefused":
@@ -384,6 +395,16 @@ class RoomFeed:
             self.error = ", ".join(p.get("errors", [])) or "refused"
             self._add("system", "✖ الروم رفض الاتصال: " + self.error)
             raise ConnectionError(self.error)
+        elif cmd == "Retrieved" and isinstance(p.get("keys"), dict) and self._hint_key() in p["keys"]:
+            self._set_hints(p["keys"][self._hint_key()])
+        elif cmd == "SetReply" and p.get("key") == self._hint_key():
+            self._set_hints(p.get("value"))
+        elif cmd == "RoomUpdate" and isinstance(p.get("hint_points"), int):
+            self.hint_points = p["hint_points"]
+            if self.my_checked is not None:
+                new = set(p.get("checked_locations", []))
+                self.my_checked |= new
+                self.my_missing -= new
         elif cmd == "RoomUpdate" and self.my_checked is not None:
             new = set(p.get("checked_locations", []))
             self.my_checked |= new
@@ -464,7 +485,60 @@ class RoomFeed:
     def snapshot(self, since: int = 0) -> dict:
         snap = self._snapshot(since)
         snap["deaths"] = self.death_counts()
+        snap["hints"] = self.hint_view()
+        snap["trackers"] = self.trackers()
+        snap["game"] = self.my_game()
         return snap
+
+    # -- hints --
+    def _hint_key(self) -> str:
+        return f"_read_hints_{self.team}_{self.my_slot}"
+
+    def _set_hints(self, value):
+        if isinstance(value, list):
+            with self.lock:
+                self.hints = [h for h in value if isinstance(h, dict)]
+
+    def hint_view(self) -> dict:
+        """Hints in plain words: where my items are, and what in my world belongs to the others."""
+        def item_name(h):
+            g = self.games.get(h.get("receiving_player"), "")
+            return self.items.get(g, {}).get(h.get("item"), f"Item {h.get('item')}")
+
+        def loc_name(h):
+            g = self.games.get(h.get("finding_player"), "")
+            return self.locations.get(g, {}).get(h.get("location"), f"Location {h.get('location')}")
+        with self.lock:
+            hints = list(self.hints)
+        mine, theirs = [], []
+        for h in hints:
+            row = {"item": item_name(h), "location": loc_name(h), "found": bool(h.get("found")),
+                   "finder": self._name(h.get("finding_player")), "receiver": self._name(h.get("receiving_player")),
+                   "entrance": h.get("entrance") or "", "important": bool((h.get("item_flags") or 0) & 1)}
+            if h.get("receiving_player") == self.my_slot:
+                mine.append(row)
+            if h.get("finding_player") == self.my_slot and h.get("receiving_player") != self.my_slot:
+                theirs.append(row)
+        order = lambda r: (r["found"], not r["important"], r["item"])
+        total = (len(self.my_checked) + len(self.my_missing)) if self.my_checked is not None else 0
+        cost = max(1, int(self.hint_cost * 0.01 * total)) if self.hint_cost and total else None
+        return {"mine": sorted(mine, key=order), "theirs": sorted(theirs, key=order),
+                "points": self.hint_points, "cost": cost}
+
+    def trackers(self) -> dict:
+        """archipelago.gg's own tracker pages for this room: mine and everyone's."""
+        if not self.tracker or self.my_slot is None:
+            return {}
+        return {"mine": f"{WEBHOST}/tracker/{self.tracker}/{self.team}/{self.my_slot}",
+                "all": f"{WEBHOST}/tracker/{self.tracker}"}
+
+    def my_game(self) -> str:
+        return self.games.get(self.my_slot, "")
+
+    def hint_items(self) -> list:
+        """Names of my game's items, for the hint box's suggestions."""
+        g = self.games.get(self.my_slot, "")
+        return sorted(self.items.get(g, {}).values())
 
     def _snapshot(self, since: int = 0) -> dict:
         with self.lock:

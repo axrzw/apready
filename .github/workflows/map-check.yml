@@ -1,0 +1,52 @@
+name: map-check
+# The map tracker path on Windows: PopTracker + a map pack, started with the exact arguments the app uses
+# (app/maptracker.py), must log in to the room by itself.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["app/maptracker.py", ".github/workflows/map-check.yml"]
+jobs:
+  map:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: PopTracker opens the pack and connects to the room
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $room = Start-Process python -ArgumentList "-m","tools.relay_check_room","0" -RedirectStandardOutput room.log -RedirectStandardError room.err -PassThru -NoNewWindow
+          $port = $null
+          for ($i = 0; $i -lt 50 -and -not $port; $i++) { Start-Sleep -Milliseconds 200; if (Test-Path room.log) { $m = Select-String -Path room.log -Pattern "^RELAY (\d+)"; if ($m) { $port = [int]$m.Matches[0].Groups[1].Value } } }
+          if (-not $port) { Get-Content room.err; throw "room did not start" }
+          Invoke-WebRequest "https://github.com/black-sliver/PopTracker/releases/download/v0.36.0/poptracker_0-36-0_win64.zip" -OutFile pt.zip
+          Expand-Archive pt.zip -DestinationPath tools
+          New-Item -ItemType File tools/poptracker/portable.txt | Out-Null
+          New-Item -ItemType Directory -Force tools/poptracker/packs | Out-Null
+          Invoke-WebRequest "https://github.com/SapphireSapphic/TunicTracker/releases/download/2.3.0/TunicTracker.zip" -OutFile tools/poptracker/packs/tunic_sapphiresapphic.zip
+          New-Item -ItemType Directory -Force tools/poptracker/portable-config/PopTracker | Out-Null
+          '{"check_for_updates": false, "add_emo_packs": false, "log": true}' | Out-File -Encoding ascii tools/poptracker/portable-config/PopTracker/PopTracker.json
+          & tools/poptracker/poptracker.exe --list-installed --no-console 2>&1 | Out-Host
+          $pt = Start-Process tools/poptracker/poptracker.exe -WorkingDirectory tools/poptracker -ArgumentList "--load-pack","tunic_sapphiresapphic","--pack-variant","standard","--ap-host","127.0.0.1:$port","--ap-slot","Mishal" -RedirectStandardOutput pt.out -RedirectStandardError pt.err -PassThru
+          $ok = $false
+          for ($i = 0; $i -lt 60 -and -not $ok; $i++) { Start-Sleep -Seconds 1; if (Select-String -Path room.log -Pattern '"cmd": "Connect"' -Quiet) { $ok = $true } }
+          Get-Content room.log
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+          [System.Drawing.Graphics]::FromImage($bmp).CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+          $bmp.Save("$PWD\screen.png"); Write-Host "screen $($b.Width)x$($b.Height)"
+          Write-Host "PopTracker exited: $($pt.HasExited) code: $(if ($pt.HasExited) { $pt.ExitCode })"
+          Write-Host "--- stdout"; Get-Content pt.out -ErrorAction SilentlyContinue | Select-Object -Last 60
+          Write-Host "--- stderr"; Get-Content pt.err -ErrorAction SilentlyContinue | Select-Object -Last 30
+          Write-Host "--- files"; Get-ChildItem -Recurse tools/poptracker -Include *.txt,*.json,*.log | ForEach-Object { Write-Host $_.FullName; Get-Content $_ -ErrorAction SilentlyContinue | Select-Object -Last 40 }
+          Stop-Process -Id $pt.Id -Force -ErrorAction SilentlyContinue
+          Stop-Process -Id $room.Id -Force
+          New-Item -ItemType Directory -Force diag | Out-Null; Copy-Item screen.png diag/ -ErrorAction SilentlyContinue
+          if (-not $ok) { throw "PopTracker did not connect to the room" }
+          if (-not (Select-String -Path room.log -Pattern '"name": "Mishal"' -Quiet)) { throw "connected with the wrong slot" }
+          Write-Host "OK: PopTracker opened the pack and logged in as Mishal"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: map-check-screen, path: diag/screen.png }

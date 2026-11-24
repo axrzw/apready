@@ -10,7 +10,8 @@
     "https://fuzzygameson.github.io/RE2R_AP_SetupGuide",
     "https://github.com/FuzzyGamesOn/RE2R_AP_World/releases",
     "https://github.com/FuzzyGamesOn/RE2R_AP_Client",
-    "https://github.com/praydog/REFramework/releases"
+    "https://github.com/praydog/REFramework/releases",
+    "https://github.com/TheRealSolidusSnake/RE2R-Poptracker-Pack"
   ],
   "apworld": [
     {
@@ -183,5 +184,10 @@
     "سيّف كثير، خصوصاً بعد البوسات.",
     "لو رجعت لسيف قديم ونقصت أغراضك: في نافذة Archipelago Game Mod اضغط Receive Items Again."
   ],
-  "checks_count_ar": "يختلف حسب الشخصية والسيناريو (A / B)، ويزيد كثير مع Killsanity."
+  "checks_count_ar": "يختلف حسب الشخصية والسيناريو (A / B)، ويزيد كثير مع Killsanity.",
+  "map_tracker": {
+    "uid": "resident evil 2 remake_ap",
+    "variant": "Map Tracker",
+    "download": "https://github.com/TheRealSolidusSnake/RE2R-Poptracker-Pack/archive/refs/tags/0.0.1.zip"
+  }
 }

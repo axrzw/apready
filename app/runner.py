@@ -358,6 +358,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
     t = step["type"]
     s = fill(step, ctx)
     key = f"{recipe['id']}:{step.get('id') or step.get('repo') or t}"
+    if t == "github_file":
+        key += f":{step.get('path')}"
     if t == "github_release":  # one repo can feed several steps (apworld + mod)
         key += f":{step.get('asset')}:{step.get('pick') or step.get('to')}"
 
@@ -522,6 +524,24 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
             p.parent.mkdir(parents=True, exist_ok=True)
             p.write_text(json.dumps(items + added, indent=2), encoding="utf-8")
         task.say(f"✔ فعّلت {', '.join(s['items'])}")
+
+    elif t == "github_file":  # a file the mod's author ships inside the repo itself (A Short Hike's modding tools)
+        branch = s.get("branch", "main")
+        url = f"https://raw.githubusercontent.com/{s['repo']}/{branch}/{s['path']}"
+        check = Path(s["check"]) if s.get("check") else None
+        if settings["installed"].get(key) == url and (check is None or check.exists()):
+            task.say(f"✔ {s.get('label', s['path'])}")
+            return
+        dest = tools_dir() / "_downloads" / (s["repo"].replace("/", "_") + "_" + Path(s["path"]).name)
+        download(url, dest, task)
+        if s.get("extract"):
+            extract_zip(dest, Path(s["to"]), strip=s.get("strip_top_folder", False))
+        else:
+            Path(s["to"]).mkdir(parents=True, exist_ok=True)
+            shutil.copy2(dest, Path(s["to"]) / dest.name)
+        settings["installed"][key] = url
+        save_settings(settings)
+        task.say(f"✔ {s.get('label', s['path'])}")
 
     elif t == "json_list_remove":  # e.g. turn a mod off again in tModLoader's enabled.json
         p = Path(s["path"])

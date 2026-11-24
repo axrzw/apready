@@ -1,0 +1,184 @@
+{
+  "id": "muse_dash",
+  "name": "Muse Dash",
+  "name_ar": "ميوز داش",
+  "game": "Muse Dash",
+  "steam_appid": 774171,
+  "verified": false,
+  "notes_ar": "لعبة إيقاع، كل أغنية دقيقتين. الأغاني تجيك كأغراض، وتجمع أوراق نوتة عشان تفتح أغنية الهدف. مدعومة رسمياً في Archipelago. البرنامج يركّب MelonLoader والمود.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Muse%20Dash/setup/en",
+    "https://github.com/DeamonHunter/ArchipelagoMuseDash",
+    "https://github.com/LavaGang/MelonLoader/releases/tag/v0.7.0"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "LavaGang/MelonLoader",
+      "tag": "v0.7.0",
+      "asset": "MelonLoader.x64.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/version.dll",
+      "label": "MelonLoader 0.7.0"
+    },
+    {
+      "type": "github_release",
+      "repo": "DeamonHunter/ArchipelagoMuseDash",
+      "asset": "ArchipelagoMuseDash.zip",
+      "extract": true,
+      "to": "{game_dir}/Mods",
+      "check": "{game_dir}/Mods/ArchipelagoMuseDash.dll",
+      "label": "Muse Dash Archipelago mod"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "path": "{game_dir}/UserData/ArchSaves/LastLogin.txt",
+      "content": "{address}\n{slot}\n",
+      "label": "بيانات الاتصال"
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 774171
+    },
+    {
+      "type": "manual",
+      "id": "connect_md",
+      "every_time": true,
+      "text_ar": "أول تشغيل: MelonLoader يجهز نفسه دقيقة، استنى. بعد شاشة البداية اضغط الزر اللي تحت يمين: العنوان والاسم معبّاة، اكتب الباسورد لو فيه واضغط Login."
+    }
+  ],
+  "options": [
+    {
+      "key": "additional_song_count",
+      "label_ar": "كم أغنية",
+      "help_ar": "أكثر = أطول",
+      "default": 40,
+      "min": 15,
+      "max": 800
+    },
+    {
+      "key": "song_difficulty_mode",
+      "label_ar": "صعوبة الأغاني",
+      "help_ar": "",
+      "default": "Any",
+      "choices": [
+        {
+          "value": "Any",
+          "label_ar": "أي صعوبة"
+        },
+        {
+          "value": "Easy",
+          "label_ar": "سهلة"
+        },
+        {
+          "value": "Medium",
+          "label_ar": "متوسطة"
+        },
+        {
+          "value": "Hard",
+          "label_ar": "صعبة"
+        },
+        {
+          "value": "Expert",
+          "label_ar": "خبير"
+        },
+        {
+          "value": "Master",
+          "label_ar": "ماستر"
+        }
+      ]
+    },
+    {
+      "key": "grade_needed",
+      "label_ar": "أقل تقييم عشان تاخذ التشيك",
+      "help_ar": "",
+      "default": "Any",
+      "choices": [
+        {
+          "value": "Any",
+          "label_ar": "أي تقييم"
+        },
+        {
+          "value": "C",
+          "label_ar": "C"
+        },
+        {
+          "value": "B",
+          "label_ar": "B"
+        },
+        {
+          "value": "A",
+          "label_ar": "A"
+        },
+        {
+          "value": "PinkS",
+          "label_ar": "S وردي"
+        },
+        {
+          "value": "SilverS",
+          "label_ar": "S فضي"
+        }
+      ]
+    },
+    {
+      "key": "dlc_packs",
+      "label_ar": "إضافات عندك",
+      "help_ar": "علّم بس لو عندك الإضافة",
+      "multi": true,
+      "default": [],
+      "choices": [
+        {
+          "value": "Muse Plus",
+          "label_ar": "Muse Plus"
+        }
+      ]
+    },
+    {
+      "key": "starting_song_count",
+      "label_ar": "كم أغنية تبدأ فيها",
+      "help_ar": "",
+      "default": 5,
+      "min": 3,
+      "max": 10,
+      "advanced": true
+    },
+    {
+      "key": "music_sheet_win_count_percentage",
+      "label_ar": "كم ٪ من أوراق النوتة تحتاج",
+      "help_ar": "",
+      "default": 80,
+      "min": 50,
+      "max": 100,
+      "advanced": true
+    },
+    {
+      "key": "streamer_mode_enabled",
+      "label_ar": "وضع الستريم (أغاني آمنة للبث)",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "أول مرة: اضغط «جهّز اللعبة». البرنامج يركّب MelonLoader والمود.",
+    "اضغط ▶ العب. أول تشغيل يتأخر دقيقة، عادي.",
+    "بعد شاشة البداية اضغط الزر اللي تحت يمين واضغط Login (البيانات معبّاة).",
+    "العب الأغاني اللي عندك. كل أغنية تخلصها ترسل تشيكات."
+  ],
+  "checks_ar": "كل أغنية تخلصها بالتقييم المطلوب ترسل تشيكين. أغانيك الجديدة وأوراق النوتة تجيك من الشباب.",
+  "checks_count_ar": "تقريباً ضعف عدد الأغاني (40 أغنية = تقريباً 80 تشيك)، ويطلع بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تحدّث MelonLoader بنفسك: المود مجرّب على 0.7.0.",
+    "لو مضاد الفيروسات حذف ملفات MelonLoader، اضغط «جهّز اللعبة» مرة ثانية."
+  ]
+}

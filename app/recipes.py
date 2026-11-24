@@ -7,7 +7,7 @@ from .paths import base_dir
 
 STEP_TYPES = {
     "github_release", "workshop", "manual", "copy", "write_file",
-    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "json_list_remove", "ini_set", "thunderstore",
+    "steam_launch", "run", "open_url", "apworld_builtin", "json_list_add", "json_list_remove", "ini_set", "thunderstore", "github_file",
     "save_slot_json",
 }
 PHASES = ("apworld", "install", "connect", "launch")
@@ -30,11 +30,20 @@ def validate(r: dict, source: str = "") -> dict:
                 raise RecipeError(f"{source}: {phase}[{i}] unknown type '{t}'")
             if t in ("manual",) and "id" not in step:
                 raise RecipeError(f"{source}: {phase}[{i}] manual step needs an 'id'")
+            if t == "github_file" and not (re.fullmatch(r"[\w.-]+/[\w.-]+", str(step.get("repo", "")))
+                                          and re.fullmatch(r"[\w./ -]+", str(step.get("path", ""))) and ".." not in step["path"]):
+                raise RecipeError(f"{source}: {phase}[{i}] github_file needs repo 'owner/name' and a plain path")
             if step.get("when") and phase == "apworld":  # the host installs apworlds without anyone's choices
                 raise RecipeError(f"{source}: {phase}[{i}] 'when' can't be used in the apworld phase")
             for k in (step.get("when") or {}):  # a step that only runs for some choices (Terraria + Calamity)
                 if k not in {o.get("key") for o in r.get("options", [])}:
                     raise RecipeError(f"{source}: {phase}[{i}] 'when' names unknown option '{k}'")
+    mt = r.get("map_tracker")
+    if mt is not None:  # PopTracker map pack (app/maptracker.py): only the pack's own GitHub releases/tags
+        if not isinstance(mt, dict) or not isinstance(mt.get("uid"), str) or not mt["uid"] or not re.fullmatch(
+                r"https://github\.com/[\w.-]+/[\w.-]+/(releases/download/\S+|archive/refs/tags/[^\s/]+)\.zip",
+                str(mt.get("download", ""))):
+            raise RecipeError(f"{source}: map_tracker needs a uid and a github.com release or tag zip")
     for k in ("guide_ar", "avoid_ar"):
         v = r.get(k, [])
         if not isinstance(v, list) or not all(isinstance(x, str) for x in v):

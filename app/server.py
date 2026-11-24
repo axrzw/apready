@@ -11,7 +11,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ._version import VERSION
-from . import dlproxy, host, install, recipes as rec, roomfeed, runner, steam, updates, window
+from . import dlproxy, host, install, maptracker, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -57,7 +57,7 @@ def game_list():
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
             "verified": r.get("verified", False), "notes_ar": r.get("notes_ar", ""),
             "guide_ar": r.get("guide_ar", []), "checks_ar": r.get("checks_ar", ""), "checks_count_ar": r.get("checks_count_ar", ""), "avoid_ar": r.get("avoid_ar", []),
-            "options": r.get("options", []),
+            "options": r.get("options", []), "game": r.get("game", ""), "has_map": bool(r.get("map_tracker")),
             # the toggle is live when the apworld has the option or the mod itself has Death Link
             "death_link": bool(r.get("death_link_key", "death_link")) or bool(r.get("death_link_in_mod")),
             "ready": all(s["done_steps"].get(f"{r['id']}:{st['id']}") for st in r.get("install", [])
@@ -103,6 +103,9 @@ class Handler(BaseHTTPRequestHandler):
             since = int((re.search(r"since=(\d+)", self.path) or [0, 0])[1])
             f = FEED["feed"]
             return self.send(200, f.snapshot(since) if f else {"status": "off", "events": [], "progress": {}, "deaths": {}})
+        if self.path == "/api/hint_items":  # my game's item names, for the hint box's suggestions
+            f = FEED["feed"]
+            return self.send(200, {"items": f.hint_items() if f else []})
         if self.path.startswith("/api/task/"):
             t = TASKS.get(self.path.rsplit("/", 1)[1])
             return self.send(200 if t else 404, t.to_json() if t else {"error": "no task"})
@@ -169,6 +172,25 @@ class Handler(BaseHTTPRequestHandler):
                 s = load_settings()
                 f = watch_room(parse_room(b["room"]), rec.safe_slot(s.get("player_name") or "Player"), b.get("password", ""))
                 return self.send(200, {"ok": True, "room": f"{f.host}:{f.port}"})
+            if p == "/api/map":  # PopTracker with this game's map pack, connected to the room I'm watching
+                f = FEED["feed"]
+                if not f or f.status != "connected":
+                    return self.send(400, {"error": "تابع الروم أول (اضغط العب أو تابع الروم)"})
+                r = next((x for x in RECIPES.values() if x.get("game") == f.my_game()), None)
+                if not r or not r.get("map_tracker"):
+                    return self.send(400, {"error": "لعبتك ما لها خريطة تراكر للحين"})
+                t = runner.start(maptracker.open_map, r, _options(r, {}, yaml_first=True),
+                                 f.host, f.port, f.slot, f.password)
+                return self.send(200, {"task": self._keep(t)})
+            if p == "/api/hint":  # ask the room where one of my items is (costs hint points)
+                item = " ".join(str(b.get("item", "")).split())[:100]
+                if not item:
+                    return self.send(400, {"error": "اكتب اسم الغرض"})
+                f = FEED["feed"]
+                if not f:
+                    return self.send(400, {"error": "تابع الروم أول"})
+                f.say("!hint " + item)
+                return self.send(200, {"ok": True})
             if p == "/api/watch/release":  # the UI asks twice before calling this
                 if not FEED["feed"]:
                     raise ValueError("تابع الروم أول (اضغط العب أو تابع الروم)")

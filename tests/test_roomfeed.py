@@ -231,3 +231,27 @@ def test_server_chatter_stays_out_of_the_log():
     # a reconnect doesn't add another "connected" line
     f._handle(ROOM[2][0])
     assert [e["text"] for e in f.snapshot()["events"]].count("✔ متصل بالروم") == 1
+
+
+def test_hints_from_the_rooms_data_storage():
+    """The room keeps every hint in _read_hints_<team>_<slot>; the feed reads and follows it."""
+    hints = [
+        {"receiving_player": 1, "finding_player": 2, "item": 69696968, "location": 69696969, "found": False, "item_flags": 1, "entrance": ""},
+        {"receiving_player": 2, "finding_player": 1, "item": 69696969, "location": 69696968, "found": True, "item_flags": 0, "entrance": ""},
+    ]
+    room = [[{"cmd": "RoomInfo", "games": ["Clique"], "hint_cost": 50}]] + ROOM[1:2] + [
+        [dict(ROOM[2][0], hint_points=3)],
+        [{"cmd": "Retrieved", "keys": {"_read_hints_0_1": hints[:1]}}],
+        [{"cmd": "SetReply", "key": "_read_hints_0_1", "value": hints}],
+        [{"cmd": "RoomUpdate", "hint_points": 4, "checked_locations": [69696968]}],
+    ]
+    f, ws = _feed(room)
+    asked = [p for p in ws.sent if p["cmd"] in ("Get", "SetNotify")]
+    assert [p["keys"] for p in asked] == [["_read_hints_0_1"], ["_read_hints_0_1"]]
+    h = f.snapshot()["hints"]
+    assert h["mine"] == [{"item": "Button Activation", "location": "The Big Red Button", "found": False, "finder": "Fahad",
+                          "receiver": "Mishal", "entrance": "", "important": True}]
+    assert h["theirs"][0]["item"] == "Feeling of Satisfaction" and h["theirs"][0]["receiver"] == "Fahad" and h["theirs"][0]["found"]
+    assert h["points"] == 4 and h["cost"] == 1   # 50% of my 2 locations
+    assert f.hint_items() == ["Button Activation", "Feeling of Satisfaction"]
+    assert f.my_checked == {69696968}             # a RoomUpdate with points still updates checks
