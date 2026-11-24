@@ -457,7 +457,7 @@ def test_cuphead_dlc_goal_switches_the_dlc_on():
 def test_free_deaths_offered_for_every_death_link_game(all_recipes):
     for rid, r in all_recipes.items():
         has = any(o["key"] == "free_deaths" for o in r["options"])
-        expected = rec.death_link_live(r) and rid != "cuphead"  # Cuphead's mod has its own setting
+        expected = rec.death_link_live(r) and not r.get("free_deaths_native")  # Cuphead, Celeste...: their own setting
         assert has == expected, rid
     tunic = all_recipes["tunic"]
     assert "free_deaths" not in rec.build_yaml(tunic, "M", {"free_deaths": 3}, True)  # app-only, never in the YAML

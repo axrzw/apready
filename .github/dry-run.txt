@@ -1,0 +1,16 @@
+# recipe ids for the dry-run workflow (empty = every recipe)
+doom_1993
+doom_ii
+heretic
+subnautica
+the_witness
+hollow_knight
+a_hat_in_time
+dark_souls_3
+inscryption
+celeste
+noita
+blasphemous
+timespinner
+bomb_rush_cyberfunk
+minecraft

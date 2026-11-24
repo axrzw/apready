@@ -1,0 +1,191 @@
+{
+  "id": "a_hat_in_time",
+  "name": "A Hat in Time",
+  "name_ar": "إيه هات إن تايم",
+  "game": "A Hat in Time",
+  "steam_appid": 253230,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. تحتاج نسخة tcplink من ستيم (Betas) ومود الورشة، واللعبة تتصل عن طريق A Hat in Time Client.",
+  "sources": [
+    "https://archipelago.gg/tutorial/A%20Hat%20in%20Time/setup/en",
+    "https://steamcommunity.com/sharedfiles/filedetails/?id=3026842601",
+    "https://github.com/Mysteryem/ahit-poptracker"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "manual",
+      "id": "ahit_beta",
+      "text_ar": "خذ نسخة احتياط من سيفاتك أول (HatinTimeGame/SaveData). بعدها في ستيم: كلك يمين على A Hat in Time > Properties > Betas، واختر tcplink، واستنى التحميل.",
+      "open_folder": "{game_dir}/HatinTimeGame/SaveData"
+    },
+    {
+      "type": "workshop",
+      "id": "ahit_mod",
+      "workshop_id": "3026842601",
+      "label": "مود Archipelago (الورشة)"
+    },
+    {
+      "type": "manual",
+      "id": "ahit_console",
+      "text_ar": "شغّل اللعبة مرة من ستيم، وفي Game Settings فعّل Enable Developer Console، وسكّرها."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "A Hat in Time Client",
+      "args": [
+        "A Hat in Time Client",
+        "--",
+        "--connect",
+        "{address}",
+        "--name",
+        "{slot}"
+      ],
+      "optional_args": {
+        "--password": "{password}"
+      }
+    },
+    {
+      "type": "steam_launch",
+      "appid": 253230
+    },
+    {
+      "type": "manual",
+      "id": "connect_ahit",
+      "every_time": true,
+      "text_ar": "A Hat in Time Client يتصل بالروم لحاله. في اللعبة سوّ سيف جديد: تتصل بالكلاينت أول ما يبدأ. خل الكلاينت مفتوح."
+    }
+  ],
+  "options": [
+    {
+      "key": "EndGoal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "finale",
+      "choices": [
+        {
+          "value": "finale",
+          "label_ar": "تذبح Mustache Girl في Time's End"
+        },
+        {
+          "value": "rush_hour",
+          "label_ar": "Rush Hour (إضافة Nyakuza Metro)",
+          "sets": {
+            "EnableDLC2": true
+          }
+        },
+        {
+          "value": "seal_the_deal",
+          "label_ar": "Seal the Deal (Death Wish)",
+          "sets": {
+            "EnableDLC1": true,
+            "EnableDeathWish": true
+          }
+        }
+      ]
+    },
+    {
+      "key": "EnableDLC1",
+      "label_ar": "عندي إضافة Seal the Deal (The Arctic Cruise)",
+      "help_ar": "شغّله بس لو عندك الإضافة",
+      "default": false
+    },
+    {
+      "key": "EnableDLC2",
+      "label_ar": "عندي إضافة Nyakuza Metro",
+      "help_ar": "شغّله بس لو عندك الإضافة",
+      "default": false
+    },
+    {
+      "key": "EnableDeathWish",
+      "label_ar": "عقود Death Wish (إضافة Seal the Deal)",
+      "help_ar": "تحديات صعبة إضافية، تحتاج الإضافة",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "ActRandomizer",
+      "label_ar": "خلط المراحل (Acts)",
+      "help_ar": "",
+      "default": "light",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "false",
+          "label_ar": "بدون"
+        },
+        {
+          "value": "light",
+          "label_ar": "خفيف"
+        },
+        {
+          "value": "insanity",
+          "label_ar": "كله"
+        }
+      ]
+    },
+    {
+      "key": "LogicDifficulty",
+      "label_ar": "صعوبة المنطق",
+      "help_ar": "",
+      "default": "normal",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "normal",
+          "label_ar": "عادي"
+        },
+        {
+          "value": "moderate",
+          "label_ar": "متوسط"
+        },
+        {
+          "value": "hard",
+          "label_ar": "صعب"
+        },
+        {
+          "value": "expert",
+          "label_ar": "خبير"
+        }
+      ]
+    },
+    {
+      "key": "death_link_amnesty",
+      "label_ar": "موتات مجانية قبل ما ترسل",
+      "help_ar": "مثلاً 2: الموتة الأولى والثانية ما ترسل، والثالثة ترسل للشباب. 0 = كل موتة ترسل",
+      "default": 0,
+      "min": 0,
+      "max": 20,
+      "deathlink": true
+    }
+  ],
+  "free_deaths_native": true,
+  "guide_ar": [
+    "أول مرة: اضغط «جهّز اللعبة» وسوّ اللي يقولك (نسخة tcplink من Betas، والاشتراك في مود الورشة، وتفعيل الكونسول).",
+    "عندك إضافات؟ شغّل زرها في الخيارات. ما عندك؟ خله مطفي.",
+    "اضغط ▶ العب: ينفتح A Hat in Time Client متصل بالروم، وتنفتح اللعبة.",
+    "سوّ سيف جديد: اللعبة تتصل بالكلاينت لحالها.",
+    "للهنت: افتح الكونسول (~ أو TAB) واكتب ap_say !hint اسم الغرض."
+  ],
+  "checks_ar": "الـ Time Pieces، وصناديق وأغراض المراحل، وصفحات الكتب في Time Rifts، والعقود، وأماكن ثانية حسب الخيارات. ينرسل لحاله.",
+  "checks_count_ar": "يعتمد على الخيارات والإضافات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "خذ نسخة احتياط من سيفاتك قبل ما تغيّر لـ tcplink.",
+    "خل A Hat in Time Client مفتوح وأنت تلعب.",
+    "لا تشغّل زر إضافة وأنت ما عندك."
+  ],
+  "map_tracker": {
+    "uid": "ahit-mysteryem",
+    "variant": "standard",
+    "download": "https://github.com/Mysteryem/ahit-poptracker/archive/refs/tags/v1.8.0.zip"
+  },
+  "death_link_key": "death_link"
+}

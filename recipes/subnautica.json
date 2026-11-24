@@ -1,0 +1,133 @@
+{
+  "id": "subnautica",
+  "name": "Subnautica",
+  "name_ar": "سبنوتيكا",
+  "game": "Subnautica",
+  "steam_appid": 264710,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب المود (فيه BepInEx) ويكتب بيانات الاتصال، وتلقاها معبّاة في القائمة.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Subnautica/setup/en",
+    "https://github.com/Berserker66/ArchipelagoSubnauticaModSrc"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Berserker66/ArchipelagoSubnauticaModSrc",
+      "asset": "Archipelago_*.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/BepInEx/plugins/Archipelago/Archipelago.dll",
+      "label": "مود Archipelago"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "path": "{game_dir}/SNAppData/SavedGames/archipelago_last_connection.json",
+      "content": {
+        "host_name": "{address}",
+        "slot_name": "{slot}",
+        "password": "{password}"
+      },
+      "label": "بيانات الاتصال"
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 264710
+    },
+    {
+      "type": "manual",
+      "id": "connect_subnautica",
+      "every_time": true,
+      "text_ar": "في القائمة الرئيسية فوق يسار: البيانات معبّاة ({address} و {slot}). اضغط Connect وبعدها ابدأ لعبة جديدة."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "launch",
+      "choices": [
+        {
+          "value": "launch",
+          "label_ar": "تطلع من الكوكب بالصاروخ (النهاية)"
+        },
+        {
+          "value": "free",
+          "label_ar": "تطفي الحجر الصحي"
+        },
+        {
+          "value": "infected",
+          "label_ar": "توصل لأعلى عدوى"
+        },
+        {
+          "value": "drive",
+          "label_ar": "تصلّح محرك Aurora"
+        }
+      ]
+    },
+    {
+      "key": "swim_rule",
+      "label_ar": "قد إيش تسبح بعمق",
+      "help_ar": "يحدد الأعماق اللي ممكن يطلب منك توصلها",
+      "default": "easy",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "easy",
+          "label_ar": "سهل"
+        },
+        {
+          "value": "normal",
+          "label_ar": "عادي"
+        },
+        {
+          "value": "hard",
+          "label_ar": "صعب"
+        },
+        {
+          "value": "items_easy",
+          "label_ar": "سهل + أغراض السباحة"
+        },
+        {
+          "value": "items_normal",
+          "label_ar": "عادي + أغراض السباحة"
+        },
+        {
+          "value": "items_hard",
+          "label_ar": "صعب + أغراض السباحة"
+        }
+      ]
+    },
+    {
+      "key": "free_samples",
+      "label_ar": "تجيك نسخة مع كل مخطط",
+      "help_ar": "لما يوصلك مخطط (blueprint) يجيك الغرض نفسه بعد",
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: ينزّل المود ويحطه في مجلد اللعبة.",
+    "اضغط ▶ العب: يكتب بيانات الروم ويشغّل اللعبة من ستيم.",
+    "في القائمة الرئيسية فوق يسار تلقى خانات Archipelago معبّاة: اضغط Connect.",
+    "ابدأ لعبة جديدة (New Game). بعدين لما تكمل، حمّل نفس السيف وهو يتصل لحاله.",
+    "الأوامر: Shift+Enter يفتح الكونسول، و say !hint اسم الغرض للهنت."
+  ],
+  "checks_ar": "قطع المخططات (fragments) اللي تمسحها، والصناديق في حطام السفن، وبيانات PDA، وأماكن ثانية. ينرسل لحاله لما تمسحها أو تفتحها.",
+  "checks_count_ar": "حوالي 230 تشيك، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تلعب سيف عادي (مو Archipelago) والمود مركّب: يخرب بيانات المسح فيه.",
+    "لو رجعت للقائمة الرئيسية، سكّر اللعبة وافتحها قبل ما تحمّل سيف ثاني."
+  ],
+  "death_link_key": "death_link"
+}

@@ -1,0 +1,165 @@
+{
+  "id": "noita",
+  "name": "Noita",
+  "name_ar": "نويتا",
+  "game": "Noita",
+  "steam_appid": 881100,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يحط المود في مجلد mods. تفعّله مرة من داخل اللعبة، وتكتب بيانات الروم في إعدادات المود.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Noita/setup/en",
+    "https://github.com/DaftBrit/NoitaArchipelago",
+    "https://github.com/ScipioWright/Noita-poptracker"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "DaftBrit/NoitaArchipelago",
+      "asset": "archipelago.zip",
+      "extract": true,
+      "to": "{game_dir}/mods/archipelago",
+      "check": "{game_dir}/mods/archipelago/mod.xml",
+      "label": "مود Archipelago"
+    },
+    {
+      "type": "manual",
+      "id": "noita_enable",
+      "text_ar": "شغّل Noita مرة من ستيم: من Mods غيّر Unsafe mods إلى Allowed، وفعّل Archipelago ([x])، وسكّر اللعبة."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 881100
+    },
+    {
+      "type": "manual",
+      "id": "connect_noita",
+      "every_time": true,
+      "text_ar": "أول مرة أو روم جديد: Options > Mod Settings > Archipelago: اكتب Server = {host} و Port = {port} و Slot = {slot} (والباسورد لو فيه). بعدها ابدأ New Game، ويطلع شعار Archipelago تحت يمين."
+    }
+  ],
+  "options": [
+    {
+      "key": "victory_condition",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "greed_ending",
+      "choices": [
+        {
+          "value": "greed_ending",
+          "label_ar": "تذبح الزعم الأخير (Greed)"
+        },
+        {
+          "value": "pure_ending",
+          "label_ar": "Pure: مع 11 Orb"
+        },
+        {
+          "value": "peaceful_ending",
+          "label_ar": "Peaceful: مع 33 Orb"
+        }
+      ]
+    },
+    {
+      "key": "path_option",
+      "label_ar": "وين تكون التشيكات",
+      "help_ar": "",
+      "default": "side_path",
+      "choices": [
+        {
+          "value": "main_path",
+          "label_ar": "الطريق الرئيسي بس"
+        },
+        {
+          "value": "side_path",
+          "label_ar": "الرئيسي والجانبي"
+        },
+        {
+          "value": "main_world",
+          "label_ar": "العالم كله"
+        }
+      ]
+    },
+    {
+      "key": "bad_effects",
+      "label_ar": "فخاخ",
+      "help_ar": "أغراض سيئة تجيك من الشباب",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "orbs_as_checks",
+      "label_ar": "الـ Orbs تشيكات",
+      "help_ar": "",
+      "default": "no_orbs",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "no_orbs",
+          "label_ar": "لا"
+        },
+        {
+          "value": "main_path",
+          "label_ar": "الطريق الرئيسي"
+        },
+        {
+          "value": "side_path",
+          "label_ar": "الرئيسي والجانبي"
+        },
+        {
+          "value": "main_world",
+          "label_ar": "العالم كله"
+        }
+      ]
+    },
+    {
+      "key": "bosses_as_checks",
+      "label_ar": "الزعماء تشيكات",
+      "help_ar": "",
+      "default": "no_bosses",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "no_bosses",
+          "label_ar": "لا"
+        },
+        {
+          "value": "main_path",
+          "label_ar": "الطريق الرئيسي"
+        },
+        {
+          "value": "side_path",
+          "label_ar": "الرئيسي والجانبي"
+        },
+        {
+          "value": "all_bosses",
+          "label_ar": "كلهم"
+        }
+      ]
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: يحط المود في mods. بعدها شغّل اللعبة مرة: Mods > Unsafe mods = Allowed، وفعّل Archipelago.",
+    "اضغط ▶ العب.",
+    "Options > Mod Settings > Archipelago: اكتب السيرفر والبورت واسمك (يطلعون لك تحت).",
+    "ابدأ New Game: لازم تشوف شعار Archipelago تحت يمين عليه صح."
+  ],
+  "checks_ar": "صناديق مخفية وأغراض على قواعد في كل منطقة، وأغراض Archipelago في المحلات (Holy Mountain)، والـ Orbs والزعماء لو شغلتها. ينرسل لحاله.",
+  "checks_count_ar": "يعتمد على الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "اسمك في الروم بحروف إنجليزية وأرقام (اللعبة ما تكتب عربي).",
+    "التشيكات ما تضيع لو متّ: الدورة الجاية تكمل."
+  ],
+  "map_tracker": {
+    "uid": "noita_scipiowright",
+    "variant": "standard",
+    "download": "https://github.com/ScipioWright/Noita-poptracker/releases/download/2.1.0/Noita-poptracker.zip"
+  },
+  "death_link_key": "death_link"
+}

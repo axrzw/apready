@@ -1,0 +1,114 @@
+{
+  "id": "dark_souls_3",
+  "name": "DARK SOULS III",
+  "name_ar": "دارك سولز 3",
+  "game": "Dark Souls III",
+  "steam_appid": 374320,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. فيها راندومايزر يجهّز السيد مرة لكل روم، وبعدها اللعبة تشتغل بالمود (ModEngine). العب أوفلاين.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Dark%20Souls%20III/setup/en",
+    "https://github.com/nex3/Dark-Souls-III-Archipelago-client",
+    "https://github.com/TVV1GK/DS3_AP_Maptracker"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "nex3/Dark-Souls-III-Archipelago-client",
+      "asset": "DS3.Archipelago.*.zip",
+      "extract": true,
+      "to": "{tools}",
+      "check": "{tools}/launchmod_darksouls3.bat",
+      "label": "Dark Souls III Archipelago",
+      "strip_top_folder": true,
+      "tag_prefix": "v3.0."
+    }
+  ],
+  "connect": [
+    {
+      "type": "manual",
+      "id": "connect_ds3",
+      "every_time": true,
+      "text_ar": "تنفتح نافذة DS3Randomizer. أول مرة في الروم: اكتب {address} والاسم {slot} (والباسورد لو فيه) واضغط Load واستنى دقيقة أو دقيقتين لين يخلص، وبعدها سكّرها. نفس الروم وسويتها قبل؟ سكّرها على طول."
+    },
+    {
+      "type": "run",
+      "exe": "{tools}/randomizer/DS3Randomizer.exe",
+      "label": "DS3Randomizer",
+      "wait": true
+    }
+  ],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{tools}/launchmod_darksouls3.bat",
+      "label": "Dark Souls III (Archipelago)"
+    },
+    {
+      "type": "manual",
+      "id": "play_ds3",
+      "every_time": true,
+      "text_ar": "اللعبة تنفتح مع نافذة أوامر سوداء (خلها مفتوحة). سوّ شخصية جديدة، وتطلع لك Archipelago connected أول ما تتحكم بالشخصية."
+    }
+  ],
+  "options": [
+    {
+      "key": "enable_dlc",
+      "label_ar": "عندي الإضافتين (Ashes of Ariandel و The Ringed City)",
+      "help_ar": "شغّله بس لو عندك الإضافتين",
+      "default": false
+    },
+    {
+      "key": "randomize_enemies",
+      "label_ar": "خلط الأعداء والزعماء",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "auto_equip",
+      "label_ar": "يلبس الأغراض اللي توصلك لحاله",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "no_weapon_requirements",
+      "label_ar": "بدون شروط الأسلحة",
+      "help_ar": "تقدر تستخدم أي سلاح بدون ما تحتاج القوة المطلوبة",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "enable_ngp",
+      "label_ar": "تشيكات NG+",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "اللعبة لازم تكون على آخر تحديث (1.15.2) في ستيم، وستيم أونلاين.",
+    "داخل اللعبة: خلّ اللعبة أوفلاين من إعداداتها عشان ما تنحظر.",
+    "اضغط «جهّز اللعبة»: ينزّل الراندومايزر والمود.",
+    "اضغط ▶ العب: تنفتح DS3Randomizer. أول مرة في الروم اكتب العنوان واسمك واضغط Load واستنى، وبعدها سكّرها.",
+    "بعدها اللعبة تنفتح بالمود لحالها. سوّ شخصية جديدة لكل روم."
+  ],
+  "checks_ar": "كل غرض على الأرض، والصناديق، والزعماء، والتجار، وأغراض الشخصيات. ينرسل لحاله لما تلقطه.",
+  "checks_count_ar": "أكثر من 1000 مكان، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تلعب أونلاين بالمود: ممكن تنحظر. خل اللعبة أوفلاين.",
+    "لا تشغّلها من ستيم مباشرة: شغّلها من ▶ العب عشان يشتغل المود.",
+    "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة، احذفه."
+  ],
+  "map_tracker": {
+    "uid": "ds3_tvv1gk_2-0",
+    "variant": "var_0_standard",
+    "download": "https://github.com/TVV1GK/DS3_AP_Maptracker/releases/download/v2.0.1/ds3_tvv1gk.zip"
+  },
+  "death_link_key": "death_link"
+}

@@ -1,0 +1,126 @@
+{
+  "id": "bomb_rush_cyberfunk",
+  "name": "Bomb Rush Cyberfunk",
+  "name_ar": "بومب رش سايبرفنك",
+  "game": "Bomb Rush Cyberfunk",
+  "steam_appid": 1353230,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب المود ومتطلباته (BepInEx و ModLocalizer) من Thunderstore.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Bomb%20Rush%20Cyberfunk/setup/en",
+    "https://thunderstore.io/c/bomb-rush-cyberfunk/p/TRPG/BRC_Archipelago/",
+    "https://github.com/TRPG0/BRC-Archipelago"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "TRPG-BRC_Archipelago"
+      ],
+      "label": "مود Archipelago (Thunderstore)"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1353230
+    },
+    {
+      "type": "manual",
+      "id": "connect_brc",
+      "every_time": true,
+      "text_ar": "اضغط زر Archipelago جنب سيف فاضي: اكتب العنوان والبورت ({address}) والاسم {slot} (والباسورد لو فيه) واضغط علامة الصح."
+    }
+  ],
+  "options": [
+    {
+      "key": "starting_movestyle",
+      "label_ar": "تبدأ بـ",
+      "help_ar": "",
+      "default": "bmx",
+      "choices": [
+        {
+          "value": "skateboard",
+          "label_ar": "سكيت بورد"
+        },
+        {
+          "value": "inline_skates",
+          "label_ar": "سكيتس"
+        },
+        {
+          "value": "bmx",
+          "label_ar": "دراجة BMX"
+        }
+      ]
+    },
+    {
+      "key": "skip_intro",
+      "label_ar": "تخطي البداية (هروب مركز الشرطة)",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "logic",
+      "label_ar": "المنطق",
+      "help_ar": "",
+      "default": "glitchless",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "glitchless",
+          "label_ar": "بدون قلتشات"
+        },
+        {
+          "value": "glitched",
+          "label_ar": "مع قلتشات"
+        }
+      ]
+    },
+    {
+      "key": "score_difficulty",
+      "label_ar": "صعوبة تحديات النقاط",
+      "help_ar": "",
+      "default": "normal",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "normal",
+          "label_ar": "عادية"
+        },
+        {
+          "value": "medium",
+          "label_ar": "متوسطة"
+        },
+        {
+          "value": "hard",
+          "label_ar": "صعبة"
+        },
+        {
+          "value": "very_hard",
+          "label_ar": "صعبة جداً"
+        },
+        {
+          "value": "extreme",
+          "label_ar": "خرافية"
+        }
+      ]
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: ينزّل المود ومتطلباته من Thunderstore.",
+    "اضغط ▶ العب.",
+    "اضغط زر Archipelago جنب سيف فاضي واكتب بيانات الروم."
+  ],
+  "checks_ar": "أماكن الجرافيتي، والأغراض والـ REP المخفية، والكاميرا مع Polo، وتحديات النقاط. ينرسل لحاله.",
+  "checks_count_ar": "أكثر من 250 تشيك، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "استخدم سيف فاضي لكل روم."
+  ],
+  "death_link_key": "death_link"
+}

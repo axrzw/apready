@@ -1,0 +1,254 @@
+{
+  "id": "blasphemous",
+  "name": "Blasphemous",
+  "name_ar": "بلاسفيمس",
+  "game": "Blasphemous",
+  "steam_appid": 774361,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب أدوات المودات ومود Multiworld ومتطلباته (نفس اللي يسويه Mod Installer حقهم).",
+  "sources": [
+    "https://archipelago.gg/tutorial/Blasphemous/setup/en",
+    "https://github.com/BrandenEK/Blasphemous.Randomizer.Multiworld",
+    "https://github.com/BrandenEK/Blasphemous.Modding.Installer"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_file",
+      "repo": "BrandenEK/Blasphemous.ModdingTools",
+      "path": "win64.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/winhttp.dll",
+      "label": "أدوات المودات"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.ModdingAPI",
+      "asset": "ModdingAPI.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/ModdingAPI.dll",
+      "label": "Modding API"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Framework.UI",
+      "asset": "UIFramework.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/UIFramework.dll",
+      "label": "UI Framework"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Framework.Menus",
+      "asset": "MenuFramework.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/MenuFramework.dll",
+      "label": "Menu Framework"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Framework.Credits",
+      "asset": "CreditsFramework.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/CreditsFramework.dll",
+      "label": "Credits Framework"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Framework.Levels",
+      "asset": "LevelFramework.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/LevelFramework.dll",
+      "label": "Level Framework"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.CheatConsole",
+      "asset": "CheatConsole.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/CheatConsole.dll",
+      "label": "Cheat Console"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Randomizer",
+      "asset": "BlasphemousRandomizer.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/BlasphemousRandomizer.dll",
+      "label": "Randomizer"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Randomizer.Multiworld",
+      "asset": "BlasphemousMultiworld.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/BlasphemousMultiworld.dll",
+      "label": "Multiworld"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.Randomizer.MapTracker",
+      "asset": "RandoMap.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/RandoMap.dll",
+      "label": "خريطة داخل اللعبة (Rando Map)"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.BootsOfPleading",
+      "asset": "BootsOfPleading.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/BootsOfPleading.dll",
+      "label": "Boots of Pleading",
+      "when": {
+        "boots_of_pleading": true
+      }
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/Blasphemous.DoubleJump",
+      "asset": "BlasDoubleJump.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/BlasDoubleJump.dll",
+      "label": "Double Jump",
+      "when": {
+        "purified_hand": true
+      }
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 774361
+    },
+    {
+      "type": "manual",
+      "id": "connect_blasphemous",
+      "every_time": true,
+      "text_ar": "اختر سيف فاضي: يطلع لك مربع، اكتب {address} والاسم {slot} (والباسورد لو فيه) واضغط Connect."
+    }
+  ],
+  "options": [
+    {
+      "key": "ending",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "any_ending",
+      "choices": [
+        {
+          "value": "any_ending",
+          "label_ar": "أي نهاية"
+        },
+        {
+          "value": "ending_a",
+          "label_ar": "النهاية A"
+        },
+        {
+          "value": "ending_c",
+          "label_ar": "النهاية C"
+        }
+      ]
+    },
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "",
+      "default": "normal",
+      "choices": [
+        {
+          "value": "easy",
+          "label_ar": "سهلة"
+        },
+        {
+          "value": "normal",
+          "label_ar": "عادية"
+        },
+        {
+          "value": "hard",
+          "label_ar": "صعبة"
+        }
+      ]
+    },
+    {
+      "key": "starting_location",
+      "label_ar": "وين تبدأ",
+      "help_ar": "",
+      "default": "brotherhood",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "brotherhood",
+          "label_ar": "Brotherhood"
+        },
+        {
+          "value": "albero",
+          "label_ar": "Albero"
+        },
+        {
+          "value": "convent",
+          "label_ar": "Convent"
+        },
+        {
+          "value": "grievance",
+          "label_ar": "Grievance"
+        },
+        {
+          "value": "knot_of_words",
+          "label_ar": "Knot of Words"
+        },
+        {
+          "value": "rooftops",
+          "label_ar": "Rooftops"
+        },
+        {
+          "value": "mourning_havoc",
+          "label_ar": "Mourning and Havoc"
+        }
+      ]
+    },
+    {
+      "key": "boots_of_pleading",
+      "label_ar": "Boots of Pleading",
+      "help_ar": "غرض إضافي يخليك تطيح على الشوك (البرنامج يركّب مودها)",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "purified_hand",
+      "label_ar": "Purified Hand of the Nun",
+      "help_ar": "غرض إضافي يعطيك نطة ثانية (البرنامج يركّب مودها)",
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: يركّب أدوات المودات و Multiworld ومتطلباته في مجلد اللعبة.",
+    "اضغط ▶ العب.",
+    "اختر سيف فاضي، واكتب العنوان واسمك في المربع اللي يطلع واضغط Connect.",
+    "الكونسول: زر \\ ، واكتب ap hint اسم الغرض للهنت."
+  ],
+  "checks_ar": "كل غرض في اللعبة (الـ Rosary beads، والـ Relics، والصلوات، والـ Quests...). ينرسل لحاله لما تاخذه.",
+  "checks_count_ar": "أكثر من 500، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "استخدم سيف فاضي لكل روم.",
+    "لو سويت Verify files في ستيم، اضغط «جهّز اللعبة» مرة ثانية."
+  ],
+  "death_link_key": "death_link"
+}

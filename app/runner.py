@@ -91,6 +91,8 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
         "death_link": "true" if session.get("death_link", True) else "false",
         "death_link_ar": "شغّال" if session.get("death_link", True) else "طافي",
         "slot": session.get("slot", ""),
+        # the name as UTF-8 hex (APDOOM's -applayerhex): survives any letters on the command line
+        "slot_hex": session.get("slot", "").encode("utf-8").hex().upper(),
         "host": host,
         "port": port,
         "address": f"{host}:{port}" if port else host,
@@ -456,6 +458,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
 
     elif t == "copy":
         src, dst = Path(s["from"]), Path(s["to"])
+        if not src.exists():  # e.g. DOOM.WAD: the game's own file, never downloaded by us
+            raise RuntimeError(s.get("missing_ar") or f"ما لقيت {src.name} في ملفات اللعبة. تأكد إن اللعبة مثبتة كاملة في ستيم.")
         dst.parent.mkdir(parents=True, exist_ok=True)
         if src.is_dir():
             shutil.copytree(src, dst, dirs_exist_ok=True)
@@ -572,11 +576,42 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         if exe.suffix.lower() in (".cmd", ".bat"):
             cmd = ["cmd", "/c", "start", "", str(exe)] + args
         cwd = s.get("cwd") or str(exe.parent)
-        if s.get("wait"):
+        if s.get("after_process"):  # a tool that attaches to the running game (The Witness randomizer)
+            name = s["after_process"]
+            threading.Thread(target=_start_after, args=(name, cmd, cwd), daemon=True).start()
+            task.say(f"✔ {exe.name} يشتغل لحاله أول ما تفتح اللعبة")
+        elif s.get("wait"):
             subprocess.run(cmd, cwd=cwd, check=True)
         else:
             subprocess.Popen(cmd, cwd=cwd)
-        task.say(f"✔ شغّلت {exe.name}")
+            task.say(f"✔ شغّلت {exe.name}")
+
+
+def process_running(name: str) -> bool:
+    """Is a program with this exe name running? (Windows tasklist; False elsewhere)"""
+    if os.name != "nt":
+        return False
+    try:
+        out = subprocess.run(["tasklist", "/FI", f"IMAGENAME eq {name}", "/NH"], capture_output=True,
+                             text=True, timeout=15, creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0)).stdout
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return name.lower() in out.lower()
+
+
+def _start_after(name: str, cmd: list, cwd: str, timeout: float = 600, poll: float = 3, sleep=None):
+    """Wait (up to 10 min) for the game's process, give it a few seconds to load, then start cmd."""
+    import time
+    sleep = sleep or time.sleep
+    waited = 0.0
+    while waited < timeout:
+        if process_running(name):
+            sleep(8)
+            subprocess.Popen(cmd, cwd=cwd)
+            return True
+        sleep(poll)
+        waited += poll
+    return False
 
 
 def run_phases(task: Task, recipe: dict, phases: list, session: dict = None, options: dict = None):

@@ -1,0 +1,158 @@
+{
+  "id": "heretic",
+  "name": "Heretic",
+  "name_ar": "Heretic",
+  "game": "Heretic",
+  "steam_appid": 3286930,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. تنلعب بنسخة APDOOM (Crispy Doom معدّلة) وملف اللعبة الأصلي HERETIC.WAD من ستيم. البرنامج ينزّلها وينسخ الملف ويشغّلها متصلة بالروم لحالها. تجي مع Heretic + Hexen في ستيم.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Heretic/setup/en",
+    "https://github.com/Daivuk/apdoom"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Daivuk/apdoom",
+      "asset": "*APDOOM*Win32.zip",
+      "extract": true,
+      "to": "{tools}",
+      "check": "{tools}/crispy-apheretic.exe",
+      "label": "APDOOM"
+    },
+    {
+      "type": "copy",
+      "from": "{game_dir}/base/HERETIC.WAD",
+      "to": "{tools}/HERETIC.WAD",
+      "label": "HERETIC.WAD",
+      "missing_ar": "ما لقيت HERETIC.WAD في مجلد اللعبة (base). تأكد إن اللعبة مثبتة كاملة من ستيم."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{tools}/crispy-apheretic.exe",
+      "label": "APDOOM",
+      "args": [
+        "-game",
+        "heretic",
+        "-apserver",
+        "{address}",
+        "-applayerhex",
+        "{slot_hex}"
+      ],
+      "optional_args": {
+        "-password": "{password}"
+      }
+    },
+    {
+      "type": "manual",
+      "id": "connect_heretic",
+      "every_time": true,
+      "text_ar": "اللعبة تتصل بالروم لحالها. تختار المرحلة من الشاشة اللي تطلع (فيها المفاتيح والتشيكات لكل مرحلة)."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "complete_all_levels",
+      "choices": [
+        {
+          "value": "complete_all_levels",
+          "label_ar": "تخلص كل مراحل الحلقات المختارة"
+        },
+        {
+          "value": "complete_boss_levels",
+          "label_ar": "تخلص مراحل الزعماء بس"
+        }
+      ]
+    },
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "",
+      "default": "medium",
+      "choices": [
+        {
+          "value": "wet_nurse",
+          "label_ar": "Thou needeth a wet-nurse (أسهل)"
+        },
+        {
+          "value": "easy",
+          "label_ar": "Yellowbellies-r-us"
+        },
+        {
+          "value": "medium",
+          "label_ar": "Bringest them oneth (عادي)"
+        },
+        {
+          "value": "hard",
+          "label_ar": "Thou art a smite-meister"
+        },
+        {
+          "value": "black_plague",
+          "label_ar": "Black plague possesses thee"
+        }
+      ]
+    },
+    {
+      "key": "episode1",
+      "label_ar": "الحلقة 1: City of the Damned",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode2",
+      "label_ar": "الحلقة 2: Hell's Maw",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode3",
+      "label_ar": "الحلقة 3: The Dome of D'Sparil",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode4",
+      "label_ar": "الحلقة 4: The Ossuary",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "episode5",
+      "label_ar": "الحلقة 5: The Stagnant Demesne",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "reset_level_on_death",
+      "label_ar": "ترجع المرحلة لما تموت",
+      "help_ar": "الوحوش ترجع، بس أغراضك وتشيكاتك تبقى",
+      "default": true,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "اللعبة لازم تكون مثبتة من ستيم (ملف HERETIC.WAD يجي معها).",
+    "اضغط «جهّز اللعبة»: ينزّل APDOOM وينسخ HERETIC.WAD لها.",
+    "اضغط ▶ العب: تنفتح اللعبة ومتصلة بالروم. ما تكتب شي.",
+    "من شاشة المراحل اختر أي مرحلة مفتوحة. المراحل تنفتح بأغراض تجيك من الشباب.",
+    "للهنت داخل اللعبة: T وبعدها مثلاً !hint e1m3 map"
+  ],
+  "checks_ar": "كل غرض في المراحل (أسلحة، مفاتيح، أدوات...) تشيك، وتخليص المرحلة تشيك. ينرسل لحاله.",
+  "checks_count_ar": "العدد يعتمد على الحلقات اللي تختارها، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تشغّلها من ستيم: نسخة ستيم ما فيها Archipelago. شغّلها من زر ▶ العب.",
+    "الموت يرجّع المرحلة من أولها (لو خيار «ترجع المرحلة لما تموت» شغّال)، بس أغراضك وتشيكاتك تبقى."
+  ],
+  "death_link_key": "death_link"
+}

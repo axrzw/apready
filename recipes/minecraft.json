@@ -1,0 +1,126 @@
+{
+  "id": "minecraft",
+  "name": "Minecraft",
+  "name_ar": "ماين كرافت",
+  "game": "Minecraft",
+  "steam_appid": null,
+  "verified": false,
+  "notes_ar": "ماين كرافت جافا (مو بيدروك). المود يشتغل على سيرفر صغير في جهازك (Minecraft Client يجهزه لحاله: Java و NeoForge)، وأنت تدخله من ماين كرافت العادي. واحد بس يختار ماين كرافت في الروم لكل عالم، والباقين يدخلون نفس السيرفر.",
+  "sources": [
+    "https://github.com/qixils/NeoForgeAP"
+  ],
+  "apworld": [
+    {
+      "type": "github_release",
+      "repo": "qixils/NeoForgeAP",
+      "asset": "minecraft.apworld",
+      "to": "{custom_worlds}",
+      "check": "{custom_worlds}/minecraft.apworld",
+      "label": "minecraft.apworld"
+    }
+  ],
+  "install": [],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{ap_dir}/ArchipelagoLauncher.exe",
+      "label": "Minecraft Client",
+      "args": [
+        "Minecraft Client"
+      ]
+    },
+    {
+      "type": "manual",
+      "id": "connect_minecraft",
+      "every_time": true,
+      "text_ar": "أول مرة في الروم: نزّل ملف .apmc حقك من صفحة الروم (جنب اسمك)، وفي Minecraft Client اضغط Open APMC File واختاره (وافق على EULA أول مرة). بعدها اختر عالمك من القائمة. السيرفر يشتغل: خل نافذته مفتوحة. افتح ماين كرافت جافا على نفس الإصدار وادخل Multiplayer > Direct Connection > localhost. لما الكل يدخل اكتب /start."
+    }
+  ],
+  "options": [
+    {
+      "key": "required_bosses",
+      "label_ar": "متى تخلص (الزعماء)",
+      "help_ar": "بعد ما تجمع الإنجازات المطلوبة يطلع الزعيم",
+      "default": "ender_dragon",
+      "choices": [
+        {
+          "value": "ender_dragon",
+          "label_ar": "تذبح Ender Dragon"
+        },
+        {
+          "value": "wither",
+          "label_ar": "تذبح Wither"
+        },
+        {
+          "value": "both",
+          "label_ar": "تذبح الاثنين"
+        },
+        {
+          "value": "none",
+          "label_ar": "بدون زعيم: الإنجازات تكفي"
+        }
+      ]
+    },
+    {
+      "key": "advancement_goal",
+      "label_ar": "كم إنجاز (Advancement) تحتاج",
+      "help_ar": "",
+      "default": 40,
+      "min": 0,
+      "max": 138
+    },
+    {
+      "key": "combat_difficulty",
+      "label_ar": "صعوبة القتال",
+      "help_ar": "كم عدة تحتاج قبل الأماكن الخطيرة والزعماء",
+      "default": "normal",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "easy",
+          "label_ar": "سهلة"
+        },
+        {
+          "value": "normal",
+          "label_ar": "عادية"
+        },
+        {
+          "value": "hard",
+          "label_ar": "صعبة"
+        }
+      ]
+    },
+    {
+      "key": "include_hard_advancements",
+      "label_ar": "إنجازات صعبة/طويلة",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "bee_traps",
+      "label_ar": "فخ النحل (بالمية)",
+      "help_ar": "نسبة الأغراض العادية اللي تصير فخ نحل",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "تحتاج ماين كرافت جافا (من Minecraft Launcher، مو من ستيم).",
+    "الهوست يحتاج نفس البرنامج: هو يركّب minecraft.apworld لحاله لما يولّد.",
+    "اضغط ▶ العب: ينفتح Minecraft Client.",
+    "أول مرة في الروم: نزّل ملف .apmc حقك من صفحة الروم، واضغط Open APMC File واختاره. يجهز السيرفر لحاله (Java و NeoForge).",
+    "افتح ماين كرافت جافا على الإصدار اللي يكتبه، وادخل Multiplayer > Direct Connection > localhost.",
+    "لما يدخل الكل، اكتب /start."
+  ],
+  "checks_ar": "الإنجازات (Advancements): كل إنجاز تاخذه تشيك. ينرسل لحاله.",
+  "checks_count_ar": "حوالي 90-110 إنجاز حسب الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تسكّر نافذة السيرفر وأنت تلعب.",
+    "واحد بس يحط ماين كرافت في الروم لكل عالم، والباقين يدخلون نفس السيرفر (localhost عند صاحب السيرفر، أو IP حقه)."
+  ],
+  "death_link_key": "death_link"
+}

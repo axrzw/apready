@@ -1,0 +1,123 @@
+{
+  "id": "inscryption",
+  "name": "Inscryption",
+  "name_ar": "إنسكربشن",
+  "game": "Inscryption",
+  "steam_appid": 1092790,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب المود ومتطلباته (BepInEx) من Thunderstore. المود يستخدم سيفات خاصة فيه.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Inscryption/setup/en",
+    "https://thunderstore.io/c/inscryption/p/Ballin_Inc/ArchipelagoMod/"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "thunderstore",
+      "packages": [
+        "Ballin_Inc-ArchipelagoMod"
+      ],
+      "label": "مود Archipelago (Thunderstore)"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1092790
+    },
+    {
+      "type": "manual",
+      "id": "connect_inscryption",
+      "every_time": true,
+      "text_ar": "اضغط New Game واكتب اسم للسيف. بعدها اكتب {address} والاسم {slot} (والباسورد لو فيه) واضغط Connect."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "full_story_in_order",
+      "choices": [
+        {
+          "value": "full_story_in_order",
+          "label_ar": "القصة كاملة بالترتيب"
+        },
+        {
+          "value": "full_story_any_order",
+          "label_ar": "القصة كاملة بأي ترتيب"
+        },
+        {
+          "value": "first_act",
+          "label_ar": "الفصل الأول بس (أقصر)"
+        }
+      ]
+    },
+    {
+      "key": "skip_tutorial",
+      "label_ar": "تخطي التعليم",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "randomize_deck",
+      "label_ar": "خلط الكروت",
+      "help_ar": "",
+      "default": "disable",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "disable",
+          "label_ar": "بدون"
+        },
+        {
+          "value": "every_encounter_within_same_type",
+          "label_ar": "كل مواجهة (نفس النوع)"
+        },
+        {
+          "value": "every_encounter_any_type",
+          "label_ar": "كل مواجهة (أي نوع)"
+        },
+        {
+          "value": "starting_only",
+          "label_ar": "بداية الدورة بس"
+        }
+      ]
+    },
+    {
+      "key": "act1_death_link_behaviour",
+      "label_ar": "وش تحسب موتة في الفصل الأول",
+      "help_ar": "",
+      "default": "sacrificed",
+      "deathlink": true,
+      "choices": [
+        {
+          "value": "sacrificed",
+          "label_ar": "لما تخسر الدورة كلها"
+        },
+        {
+          "value": "candle_extinguished",
+          "label_ar": "كل شمعة تنطفي"
+        }
+      ]
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: ينزّل BepInEx ومود Archipelago من Thunderstore.",
+    "اضغط ▶ العب: اللعبة تنفتح (تطلع نافذة سوداء مع اللعبة، عادي).",
+    "اضغط New Game واكتب اسم للسيف، بعدها اكتب بيانات الروم واضغط Connect.",
+    "تكمل بعدين؟ اضغط Play جنب السيف، والبيانات تكون معبّاة."
+  ],
+  "checks_ar": "الكروت الخاصة، والأغراض اللي تلقاها في الغرفة والخريطة، وحل الألغاز، والزعماء. ينرسل لحاله.",
+  "checks_count_ar": "حوالي 100 تشيك للقصة كاملة، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "خذ نسخة احتياط من SaveFile.gwsave قبل أول مرة.",
+    "لا تركّب مودات ثانية معه."
+  ],
+  "death_link_key": "death_link"
+}

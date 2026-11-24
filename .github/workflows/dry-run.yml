@@ -1,0 +1,18 @@
+name: dry-run
+# Every recipe in .github/dry-run.txt (all of them when it is empty) runs end to end with the REAL downloads on a fake
+# Steam layout (tools/dry_run.py), twice: the second run must download and ask nothing. Map packs are checked too.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["recipes/**", "tools/dry_run.py", "app/runner.py", ".github/dry-run.txt", ".github/workflows/dry-run.yml"]
+jobs:
+  dry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Dry run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.dry_run "$RUNNER_TEMP/dry" $(grep -v '^\s*#' .github/dry-run.txt || true)
