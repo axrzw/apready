@@ -56,6 +56,11 @@
   .bar { height:8px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
   .bar i { display:block; height:100%; background:var(--accent); }
   .death-chip { display:inline-block; margin:3px; padding:3px 10px; border-radius:12px; background:rgba(255,80,80,.12); color:#ff9a9a; }
+  .hints .h { padding:6px 0; border-bottom:1px solid var(--line); }
+  .hints .h.found { opacity:.45; text-decoration:line-through; }
+  .hints .h b { color:var(--text); }
+  .hints .h .imp { color:var(--warn); }
+  h4 { margin:14px 0 6px; font-size:15px; }
   #deathBar { padding:8px 24px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
   #deathBar.hidden { display:none; }
   #deathBar .death-chip.me { outline:1px solid #ff9a9a; }
@@ -196,6 +201,13 @@
         <button class="btn" onclick="watch()">تابع الروم</button>
       </div>
       <p id="wstatus" class="muted"></p>
+      <div class="row" id="trackerRow">
+        <button class="btn alt" id="btnMap" onclick="openMap()" disabled>🗺 افتح الخريطة</button>
+        <button class="btn alt" id="btnTrackMine" onclick="openTracker('mine')" disabled>🌐 تراكري</button>
+        <button class="btn alt" id="btnTrackAll" onclick="openTracker('all')" disabled>🌐 تراكر الكل</button>
+        <span id="trackerNote" class="muted"></span>
+      </div>
+      <pre id="maplog" class="log hidden"></pre>
       <button class="btn release" onclick="releaseAll()">🎁 Release: أرسل كل أغراضي الباقية للشباب</button>
     </div>
     <div class="panel">
@@ -205,6 +217,20 @@
     <div class="panel">
       <h3>☠ الموتات</h3>
       <div id="deaths" class="muted">ما مات أحد لسا.</div>
+    </div>
+    <div class="panel">
+      <h3>💡 التلميحات</h3>
+      <p class="muted">اكتب اسم غرض تحتاجه من لعبتك (مفتاح، سلاح، قدرة…) والروم يقولك عند مين هو ووين. كل تلميح ياخذ من نقاطك، والنقاط تزيد كل ما سويت تشيكات.</p>
+      <div class="row">
+        <input id="hintItem" list="hintItems" placeholder="اسم الغرض (يكمّل لك وأنت تكتب)" style="direction:ltr; min-width:260px">
+        <datalist id="hintItems"></datalist>
+        <button class="btn" onclick="askHint()">اطلب تلميح</button>
+        <span id="hintPoints" class="muted"></span>
+      </div>
+      <h4>🔎 أغراضك وين</h4>
+      <div id="hintsMine" class="hints muted">ما فيه تلميحات لسا.</div>
+      <h4>📦 لازم تجيبها للشباب</h4>
+      <div id="hintsTheirs" class="hints muted">ما أحد طلب منك شي لسا.</div>
     </div>
     <div class="panel">
       <div class="row chips">
@@ -523,6 +549,53 @@ function drawProgress(prog, me) {
   }));
 }
 const pct = p => p && p.total ? Math.floor(p.done * 100 / p.total) : 0;
+// trackers: archipelago.gg's pages for every game, and a PopTracker map for games that have a map pack
+let TRACKERS = {}, MYGAME = "";
+function drawTrackers(f) {
+  TRACKERS = f.trackers || {}; MYGAME = f.game || "";
+  const g = (S && S.games || []).find(x => x.game === MYGAME);
+  $("btnTrackMine").disabled = !TRACKERS.mine; $("btnTrackAll").disabled = !TRACKERS.all;
+  $("btnMap").disabled = !(g && g.has_map) || f.status !== "connected";
+  $("trackerNote").textContent = !MYGAME ? "تابع الروم عشان تشتغل" :
+    (g && g.has_map ? "" : "لعبتك ما لها خريطة للحين، بس التراكر يشتغل") + (TRACKERS.mine ? "" : " · التراكر لرومات archipelago.gg");
+}
+function openTracker(which) { if (TRACKERS[which]) api("/api/link", {url: TRACKERS[which]}); }
+function openMap() { $("maplog").classList.remove("hidden"); runTask("/api/map", {}, "maplog"); }
+
+let HINTITEMS_LOADED = false;
+const iso = t => "\u2066" + String(t ?? "") + "\u2069";  // a whole English name kept in one piece
+function drawHints(h) {
+  if (!h) return;
+  const pts = h.points == null ? "" : `نقاطك: ${h.points}` + (h.cost ? ` · التلميح بـ ${h.cost}` : "");
+  $("hintPoints").textContent = pts;
+  const line = (r, mine) => {
+    const d = document.createElement("div"); d.className = "h" + (r.found ? " found" : "");
+    d.dir = "rtl";
+    const item = document.createElement("b"); item.textContent = iso(r.item);
+    if (r.important) item.className = "imp";
+    const where = iso(r.location) + (r.entrance && r.entrance !== "Vanilla" ? ` (${iso(r.entrance)})` : "");
+    d.append(r.found ? "✔ " : "", item,
+      mine ? ` عند ${iso(r.finder)} في: ${where}` : ` لـ ${iso(r.receiver)} في: ${where}`);
+    return d;
+  };
+  const fill = (el, rows, mine, empty) => {
+    if (!rows.length) { el.textContent = empty; el.classList.add("muted"); return; }
+    el.classList.remove("muted"); el.replaceChildren(...rows.map(r => line(r, mine)));
+  };
+  fill($("hintsMine"), h.mine, true, "ما فيه تلميحات لسا.");
+  fill($("hintsTheirs"), h.theirs, false, "ما أحد طلب منك شي لسا.");
+  if (!HINTITEMS_LOADED && h.points != null) {
+    HINTITEMS_LOADED = true;
+    api("/api/hint_items").then(j => $("hintItems").replaceChildren(...j.items.map(n => {
+      const o = document.createElement("option"); o.value = n; return o; }))).catch(() => { HINTITEMS_LOADED = false; });
+  }
+}
+async function askHint() {
+  const item = $("hintItem").value.trim();
+  if (!item) return alert("اكتب اسم الغرض");
+  try { await api("/api/hint", {item}); $("hintItem").value = ""; } catch (e) { alert(e.message); }
+}
+
 function drawDeaths(d) {
   const names = Object.keys(d || {});
   if (!names.length) { $("deaths").textContent = "ما مات أحد لسا."; return; }
@@ -542,6 +615,8 @@ async function pollFeed() {
     $("wstatus").textContent = (STATUS[f.status] || f.status) + (f.room ? "  ·  " + f.room : "") + (f.error && f.status !== "connected" ? "  ·  " + f.error : "");
     drawProgress(f.progress, f.me);
     drawDeaths(f.deaths);
+    drawHints(f.hints);
+    drawTrackers(f);
     $("tab-watch").textContent = "📡 الروم" + (f.status === "connected" ? " ●" : "");
   } catch (e) {}
   setTimeout(pollFeed, 2000);

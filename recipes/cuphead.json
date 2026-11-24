@@ -9,7 +9,8 @@
   "sources": [
     "https://github.com/JKLeckr/CupheadArchipelagoMod",
     "https://github.com/JKLeckr/CupheadArchipelagoMod/blob/main/INSTALLING.md",
-    "https://github.com/JKLeckr/Archipelago-cuphead/releases"
+    "https://github.com/JKLeckr/Archipelago-cuphead/releases",
+    "https://github.com/TheArcticFox42/CupheadPoptracker"
   ],
   "apworld": [
     {
@@ -216,5 +217,20 @@
     "Death Link يشتغل داخل المراحل بس.",
     "المود لسا ألفا، سيّف كثير."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "map_tracker": {
+    "uid": "cuphead_poptracker",
+    "variant": "standard",
+    "download": "https://github.com/TheArcticFox42/CupheadPoptracker/archive/refs/tags/v1.2.2.zip",
+    "variant_if": [
+      {
+        "if": {
+          "use_dlc": [
+            true
+          ]
+        },
+        "variant": "var_dlc"
+      }
+    ]
+  }
 }

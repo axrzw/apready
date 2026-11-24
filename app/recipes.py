@@ -35,6 +35,12 @@ def validate(r: dict, source: str = "") -> dict:
             for k in (step.get("when") or {}):  # a step that only runs for some choices (Terraria + Calamity)
                 if k not in {o.get("key") for o in r.get("options", [])}:
                     raise RecipeError(f"{source}: {phase}[{i}] 'when' names unknown option '{k}'")
+    mt = r.get("map_tracker")
+    if mt is not None:  # PopTracker map pack (app/maptracker.py): only the pack's own GitHub releases/tags
+        if not isinstance(mt, dict) or not isinstance(mt.get("uid"), str) or not mt["uid"] or not re.fullmatch(
+                r"https://github\.com/[\w.-]+/[\w.-]+/(releases/download/\S+|archive/refs/tags/[^\s/]+)\.zip",
+                str(mt.get("download", ""))):
+            raise RecipeError(f"{source}: map_tracker needs a uid and a github.com release or tag zip")
     for k in ("guide_ar", "avoid_ar"):
         v = r.get(k, [])
         if not isinstance(v, list) or not all(isinstance(x, str) for x in v):

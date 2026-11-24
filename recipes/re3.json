@@ -10,7 +10,8 @@
     "https://therealsolidussnake.github.io/RE3R_AP_SetupGuide/",
     "https://github.com/TheRealSolidusSnake/RE3R_AP_World/releases",
     "https://github.com/TheRealSolidusSnake/RE3R_AP_Client/releases",
-    "https://github.com/praydog/REFramework/releases"
+    "https://github.com/praydog/REFramework/releases",
+    "https://github.com/TheRealSolidusSnake/RE3R_Poptracker"
   ],
   "apworld": [
     {
@@ -110,5 +111,10 @@
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
   "fixed_options": {
     "difficulty": "standard"
+  },
+  "map_tracker": {
+    "uid": "resident evil 3 remake_ap",
+    "variant": "Map Tracker",
+    "download": "https://github.com/TheRealSolidusSnake/RE3R_Poptracker/archive/refs/tags/0.2.6.zip"
   }
 }

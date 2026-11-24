@@ -9,7 +9,8 @@
   "sources": [
     "https://github.com/BenDipp/Archipelago/releases",
     "https://thepeacockproject.org/wiki/intel/installation/",
-    "https://github.com/thepeacockproject/Peacock/releases"
+    "https://github.com/thepeacockproject/Peacock/releases",
+    "https://github.com/BenDipp/HitmanPopTracker"
   ],
   "apworld": [
     {
@@ -464,5 +465,10 @@
       "goal_level",
       "starting_location"
     ]
-  ]
+  ],
+  "map_tracker": {
+    "uid": "hitman_woa",
+    "variant": "standard",
+    "download": "https://github.com/BenDipp/HitmanPopTracker/releases/download/v0.4.0/HitmanPopTracker_0.4.0.zip"
+  }
 }

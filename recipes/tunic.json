@@ -9,7 +9,8 @@
   "sources": [
     "https://github.com/silent-destroyer/tunic-randomizer#installation",
     "https://github.com/silent-destroyer/tunic-randomizer/releases",
-    "https://archipelago.gg/tutorial/TUNIC/setup/en"
+    "https://archipelago.gg/tutorial/TUNIC/setup/en",
+    "https://github.com/SapphireSapphic/TunicTracker"
   ],
   "apworld": [
     {
@@ -115,5 +116,10 @@
     "العبها عادي قبل الراندومايزر، مو منصوح تبدأ فيه.",
     "ابدأ New Game بعد ما تتصل."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "map_tracker": {
+    "uid": "tunic_sapphiresapphic",
+    "variant": "standard",
+    "download": "https://github.com/SapphireSapphic/TunicTracker/releases/download/2.3.0/TunicTracker.zip"
+  }
 }
