@@ -84,6 +84,19 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   heard in the room, and real totals My Ready AP apps share with a Bounce tagged `MyReadyAP`
   ({"kind": "deaths", "source", "deaths"}; "deaths?" asks the others). Shown = max of both per player;
   a remote app can't set my own number. Kept per seed in `%APPDATA%/APReady/deaths.json` (last 20).
+- Hints (📡 tab card): the feed reads the room's hint storage `_read_hints_<team>_<slot>` (Get + SetNotify):
+  «أغراضك وين» and «لازم تجيبها للشباب», found ones struck through; `/api/hint` sends `!hint <item>`
+  (suggestions from `/api/hint_items`, my game's item names); points from Connected/RoomUpdate, cost =
+  hint_cost % of my locations.
+- Trackers (📡 tab): archipelago.gg's pages (`/tracker/<id>/<team>/<slot>` and `/tracker/<id>`; needs the
+  room link so the tracker id is known) for every game, and `app/maptracker.py` for recipes with
+  `map_tracker` {uid, variant, variant_if?, download}: PopTracker (black-sliver, portable, in
+  %APPDATA%/APReady/tools/poptracker) + the pack, opened with --load-pack/--pack-variant/--ap-host/--ap-slot
+  so it connects by itself. Packs (vetted: AP packs for the same mod; releases or tag zips of the pack's
+  own repo): Hitman (BenDipp), TUNIC (SapphireSapphic), Terraria (SerpentAI), Cuphead (TheArcticFox42,
+  var_dlc with use_dlc), Balatro (graygooglitch), RE2R/RE3R (TheRealSolidusSnake), Sekiro (vonTungsten).
+  Content Warning's pack sits in a subfolder (not loadable as a tag zip); Stardew's is 2023 DEV; Brotato's
+  has no versions. CI `map-check.yml` starts PopTracker with the app's arguments on Windows.
 - `app/host.py`: installs the apworld for every game in `%APPDATA%/APReady/players`, copies
   the YAMLs to `Archipelago/Players`, runs ArchipelagoGenerate, and opens
   archipelago.gg/uploads. Most of these games are unofficial, so the website can't
@@ -131,7 +144,8 @@ open_folder = folder to show instead of printing its path), `copy`, `write_file`
 Archipelago per save slot; a new YAML marks a new game, so Play enables a slot that has no game
 save and is not enabled yet, and later Plays only update address/port of that slot; never
 touches a played slot; sets {save_slot} for the launch hint), `thunderstore` (packages: ["Namespace-Name"]; installs them and every dependency
-from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `json_list_remove` (path, items), `ini_set` (path, section, values, quote: true for
+from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `json_list_remove` (path, items), `github_file` (repo, path, branch, to, extract,
+check: a raw file the author ships in the repo), `ini_set` (path, section, values, quote: true for
 MelonPreferences TOML, false for BepInEx .cfg), `open_url`, `steam_launch`, `run` (exe may be a glob,
 optional_args only added when the value isn't empty), `apworld_builtin`.
 Any step can have `skip_if_exists` (path/glob): if it exists the step is skipped (one-time installers).
@@ -149,7 +163,7 @@ Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} 
 `bools` (keys to write as JSON true/false).
 
 ## Status (Nov 2026)
-28 recipes, all `"verified": false`: nobody has played them on a real PC yet. The Nov 2026
+31 recipes, all `"verified": false`: nobody has played them on a real PC yet. The Nov 2026
 work (PR #1, branch `claude/claude-md-recipes-review-j78ner`) did:
 - Checked every recipe against its sources and the real release files: repo, asset globs,
   exact `game` string, option keys/values (from Options.py), Death Link key and type.
@@ -195,6 +209,10 @@ Notes kept from the review:
 - Cuphead DLC: `use_dlc` (switch «عندي إضافة The Delicious Last Course», off by default) and `mode` (goal;
   the dlc_* goals `sets` use_dlc, else the apworld picks a random base mode). Advanced: `dlc_chalice`,
   `dlc_kingsleap`. Field names = option names (the apworld's own test enforces it).
+- Short games (Nov 2026): A Short Hike (BrandenEK: modding tools are a raw file in AShortHike.ModdingTools,
+  step `github_file`; ModdingAPI/Randomizer/MapTracker releases into Modding/; no Death Link), Risk of Rain 2
+  (Thunderstore Sneaki-Archipelago; connect fills BepInEx/config/com.Ijwu.Archipelago.cfg), Muse Dash
+  (MelonLoader v0.7.0 per the official guide + DeamonHunter mod; connect writes UserData/ArchSaves/LastLogin.txt).
 - Stardew: core apworld is world 7.4.x, so the mod glob is pinned to `StardewArchipelago.7.*.zip`.
 - RE Village releases are on Snokay/Archipelago-RE-Village (the LiterallyMetaphorical copy has none).
 
