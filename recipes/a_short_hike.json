@@ -1,0 +1,146 @@
+{
+  "id": "a_short_hike",
+  "name": "A Short Hike",
+  "name_ar": "إيه شورت هايك",
+  "game": "A Short Hike",
+  "steam_appid": 1055540,
+  "verified": false,
+  "notes_ar": "لعبة قصيرة وخفيفة (ساعتين تقريباً). مدعومة رسمياً في Archipelago. البرنامج يركّب أدوات المودات والراندومايزر وخريطة داخل اللعبة. ما فيها موت، فما فيها Death Link.",
+  "sources": [
+    "https://archipelago.gg/tutorial/A%20Short%20Hike/setup/en",
+    "https://github.com/BrandenEK/AShortHike.Randomizer",
+    "https://github.com/BrandenEK/AShortHike.ModdingAPI",
+    "https://github.com/BrandenEK/AShortHike.MapTracker",
+    "https://github.com/BrandenEK/AShortHike.Modding.Installer/blob/main/docs/install/ash_windows.md"
+  ],
+  "death_link_key": null,
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_file",
+      "repo": "BrandenEK/AShortHike.ModdingTools",
+      "path": "win32.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/winhttp.dll",
+      "label": "أدوات المودات (BepInEx)"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/AShortHike.ModdingAPI",
+      "asset": "ModdingAPI.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/ModdingAPI.dll",
+      "label": "Modding API"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/AShortHike.Randomizer",
+      "asset": "Randomizer.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/Randomizer.dll",
+      "label": "A Short Hike Randomizer"
+    },
+    {
+      "type": "github_release",
+      "repo": "BrandenEK/AShortHike.MapTracker",
+      "asset": "MapTracker.zip",
+      "extract": true,
+      "to": "{game_dir}/Modding",
+      "check": "{game_dir}/Modding/plugins/MapTracker.dll",
+      "label": "خريطة داخل اللعبة (Map Tracker)"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 1055540
+    },
+    {
+      "type": "manual",
+      "id": "connect_ash",
+      "every_time": true,
+      "text_ar": "ابدأ لعبة جديدة: بيطلع لك مربع، اكتب Server = {address} و Player = {slot} (والباسورد لو فيه) واضغط Connect. بعدها السيف يتذكرها."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "nap",
+      "choices": [
+        {
+          "value": "nap",
+          "label_ar": "توصل للقمة وتنام (الأساسي)"
+        },
+        {
+          "value": "photo",
+          "label_ar": "تصوّر من القمة"
+        },
+        {
+          "value": "races",
+          "label_ar": "تفوز بكل السباقات"
+        },
+        {
+          "value": "help_everyone",
+          "label_ar": "تساعد الكل (أطول)"
+        },
+        {
+          "value": "fishmonger",
+          "label_ar": "تصيد كل أنواع السمك"
+        }
+      ]
+    },
+    {
+      "key": "easier_races",
+      "label_ar": "سباقات أسهل",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "coins_in_shops",
+      "label_ar": "فلوس في المحلات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "golden_feathers",
+      "label_ar": "كم ريشة ذهبية",
+      "help_ar": "الريش يخليك تطير أبعد",
+      "default": 20,
+      "min": 0,
+      "max": 20,
+      "advanced": true
+    },
+    {
+      "key": "cost_multiplier",
+      "label_ar": "أسعار المحلات ٪",
+      "help_ar": "100 = عادي",
+      "default": 100,
+      "min": 25,
+      "max": 200,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "أول مرة: اضغط «جهّز اللعبة». البرنامج يركّب أدوات المودات والراندومايزر والخريطة.",
+    "اضغط ▶ العب، وابدأ لعبة جديدة: اكتب العنوان والاسم في المربع اللي يطلع واضغط Connect.",
+    "اضغط G تشوف هدفك ووش ناقصك، و M تفتح الخريطة.",
+    "تقدر تكمل نفس السيف بعدين، ويتصل لحاله."
+  ],
+  "checks_ar": "الصناديق والأغراض في الجزيرة (مكان كل غرض صار صندوق)، والمحلات، والسباقات. ينرسل أول ما تفتحه.",
+  "checks_count_ar": "تقريباً 100 تشيك، ويطلع الرقم بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تبدأ سيف جديد لنفس الروم: كمّل على نفس السيف.",
+    "لو مسحت مجلد Modding، اضغط «جهّز اللعبة» مرة ثانية."
+  ]
+}

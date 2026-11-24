@@ -25,10 +25,16 @@ jobs:
           New-Item -ItemType File tools/poptracker/portable.txt | Out-Null
           New-Item -ItemType Directory -Force tools/poptracker/packs | Out-Null
           Invoke-WebRequest "https://github.com/SapphireSapphic/TunicTracker/releases/download/2.3.0/TunicTracker.zip" -OutFile tools/poptracker/packs/tunic_sapphiresapphic.zip
-          $pt = Start-Process tools/poptracker/poptracker.exe -WorkingDirectory tools/poptracker -ArgumentList "--load-pack","tunic_sapphiresapphic","--pack-variant","standard","--ap-host","127.0.0.1:$port","--ap-slot","Mishal" -PassThru
+          '{"log": true}' | Out-File -Encoding ascii tools/poptracker/settings.json
+          & tools/poptracker/poptracker.exe --list-installed --no-console 2>&1 | Out-Host
+          $pt = Start-Process tools/poptracker/poptracker.exe -WorkingDirectory tools/poptracker -ArgumentList "--load-pack","tunic_sapphiresapphic","--pack-variant","standard","--ap-host","127.0.0.1:$port","--ap-slot","Mishal" -RedirectStandardOutput pt.out -RedirectStandardError pt.err -PassThru
           $ok = $false
           for ($i = 0; $i -lt 60 -and -not $ok; $i++) { Start-Sleep -Seconds 1; if (Select-String -Path room.log -Pattern '"cmd": "Connect"' -Quiet) { $ok = $true } }
           Get-Content room.log
+          Write-Host "PopTracker exited: $($pt.HasExited) code: $(if ($pt.HasExited) { $pt.ExitCode })"
+          Write-Host "--- stdout"; Get-Content pt.out -ErrorAction SilentlyContinue | Select-Object -Last 60
+          Write-Host "--- stderr"; Get-Content pt.err -ErrorAction SilentlyContinue | Select-Object -Last 30
+          Write-Host "--- files"; Get-ChildItem -Recurse tools/poptracker -Include *.txt,*.json,*.log | ForEach-Object { Write-Host $_.FullName; Get-Content $_ -ErrorAction SilentlyContinue | Select-Object -Last 40 }
           Stop-Process -Id $pt.Id -Force -ErrorAction SilentlyContinue
           Stop-Process -Id $room.Id -Force
           if (-not $ok) { throw "PopTracker did not connect to the room" }
