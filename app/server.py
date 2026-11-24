@@ -255,10 +255,10 @@ def _free_deaths(recipe: dict, body: dict, death_link: bool) -> int:
         return 0
 
 
-def _my_death(total: int, sent: bool):
+def _my_death(total: int, sent: bool, cause: str = ""):
     f = FEED["feed"]
     if f:
-        f.record_my_death()
+        f.record_my_death(sent, cause)
 
 
 def _options(recipe: dict, body: dict, yaml_first: bool = False) -> dict:

@@ -485,7 +485,8 @@ function drawFeed() {
     const d = document.createElement("div");
     d.className = "ev " + e.kind + (e.to_me ? " me" : "") + ((e.flags & 1) ? " prog" : "") + ((e.flags & 4) ? " trap" : "");
     const t = document.createElement("span"); t.className = "t"; t.textContent = e.t;
-    const x = document.createElement("span"); x.dir = "auto"; x.textContent = e.text;
+    const x = document.createElement("span"); // a line with Arabic in it (deaths) is right-to-left; the English names inside stay whole
+    x.dir = /[\u0600-\u06FF]/.test(e.text) ? "rtl" : "auto"; x.textContent = bidi(e.text);
     d.append(t, x); return d;
   }));
   if (!rows.length) box.innerHTML = '<p class="muted">ما فيه شي هنا لسا.</p>';

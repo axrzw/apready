@@ -152,6 +152,13 @@ class WebSocket:
             pass
 
 
+def death_text(who: str, cause: str = "", free: bool = False) -> str:
+    """One line for the log: who died, and how when the game says (Death Link's "cause")."""
+    head = f"🛟 {who} مات (موتة مجانية، ما انرسلت للشباب)" if free else f"☠ {who} مات"
+    cause = " ".join((cause or "").split())[:200]
+    return head + (f": {cause}" if cause else "")
+
+
 # ---------- the room feed ----------
 
 class RoomFeed:
@@ -296,12 +303,25 @@ class RoomFeed:
             counts = {n: max(self.deaths.get(n, 0), self.real.get(n, 0)) for n in names}
         return dict(sorted(counts.items(), key=lambda kv: -kv[1]))
 
-    def record_my_death(self):
-        """The relay saw this player die (sent on or kept as a free death): count it and tell the others."""
+    def record_my_death(self, sent: bool = True, cause: str = ""):
+        """The relay saw this player die (sent on or kept as a free death): count it and tell the others.
+        A free death never reaches the room as Death Link, so it is logged here and shared with the
+        other My Ready AP apps, cause included, so their logs show it too."""
         with self.lock:
             self.real[self.slot] = max(self.real.get(self.slot, 0), self.deaths.get(self.slot, 0)) + 1
         self._save_counts()
+        if not sent:
+            self._add("death", death_text(self.slot, cause, free=True), who=self.slot)
+            self._bounce_share({"kind": "death", "source": self.slot, "cause": (cause or "")[:200], "free": True})
         self._share_mine()
+
+    def _bounce_share(self, data: dict):
+        if self.status != "connected" or not self.ws:
+            return
+        try:
+            self._send({"cmd": "Bounce", "tags": [SHARE_TAG], "data": data})
+        except Exception:
+            pass
 
     def _share_mine(self):
         n = self.real.get(self.slot)
@@ -315,6 +335,11 @@ class RoomFeed:
     def _shared(self, d: dict):
         if d.get("kind") == "deaths?":
             self._share_mine()
+            return
+        if d.get("kind") == "death":  # another player's free death (it never reached the room as Death Link)
+            who, cause = d.get("source"), d.get("cause") or ""
+            if isinstance(who, str) and 0 < len(who) <= 32 and who != self.slot and isinstance(cause, str):
+                self._add("death", death_text(who, cause[:200], free=True), who=who)
             return
         who, n = d.get("source"), d.get("deaths")
         if d.get("kind") != "deaths" or not isinstance(who, str) or not 0 < len(who) <= 32 \
@@ -370,8 +395,8 @@ class RoomFeed:
                 if who == self.slot:
                     self.my_death_heard_at = time.time()
             self._save_counts()
-            cause = d.get("cause") or ""
-            self._add("death", f"☠ {who}" + (f" · {cause}" if cause else ""), who=who)
+            cause = d.get("cause") if isinstance(d.get("cause"), str) else ""
+            self._add("death", death_text(who, cause), who=who)
         elif cmd == "Bounced" and SHARE_TAG in p.get("tags", []) and isinstance(p.get("data"), dict):
             self._shared(p["data"])
 

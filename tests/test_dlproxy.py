@@ -14,7 +14,8 @@ def _death(n):
 
 def test_filter_holds_back_free_deaths():
     seen = []
-    p = dlproxy.DeathLinkProxy("h", 1, free=2, on_death=lambda total, sent: seen.append((total, sent)))
+    p = dlproxy.DeathLinkProxy("h", 1, free=2, on_death=lambda total, sent, cause: seen.append((total, sent)) or causes.append(cause))
+    causes = []
     try:
         other = json.dumps([{"cmd": "LocationChecks", "locations": [1]}])
         assert p.filter(other) == other  # untouched, byte for byte
@@ -25,6 +26,7 @@ def test_filter_holds_back_free_deaths():
         both = json.dumps([{"cmd": "LocationChecks", "locations": [2]}, json.loads(_death(4))[0]])
         assert json.loads(p.filter(both)) == [{"cmd": "LocationChecks", "locations": [2]}]  # death held, check kept
         assert seen == [(1, False), (2, False), (3, True), (4, False)]
+        assert causes == ["death 1", "death 2", "death 3", "death 4"]
     finally:
         p.stop()
 
