@@ -4,6 +4,8 @@ name: relay-check
 # send 3 deaths with 2 free -> exactly 1 reaches the room.
 on:
   workflow_dispatch:
+  push:
+    paths: ["app/dlproxy.py", "app/roomfeed.py", "tools/relay_check_room.py", ".github/workflows/relay-check.yml"]
 jobs:
   relay:
     runs-on: windows-latest
