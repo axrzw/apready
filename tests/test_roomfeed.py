@@ -137,7 +137,7 @@ def test_feed_reads_items_deaths_and_my_progress():
     assert "Fahad sent Button Activation to Mishal (The Item on the Desk)" in texts
     item = next(e for e in snap["events"] if e["kind"] == "item")
     assert item["to_me"] and not item["from_me"] and item["sender"] == "Fahad"
-    assert any(e["kind"] == "death" and e["text"] == "☠ Fahad · Fahad fell" for e in snap["events"])
+    assert any(e["kind"] == "death" and e["text"] == "☠ Fahad مات: Fahad fell" for e in snap["events"])
     assert snap["deaths"] == {"Fahad": 1}
     assert snap["progress"] == {"Mishal": {"done": 1, "total": 2, "goal": False}}
     assert any(e["kind"] == "goal" for e in snap["events"])
@@ -199,3 +199,22 @@ def test_death_counter_merges_shared_totals_and_survives_restarts(tmp_path):
     assert f2.death_counts() == {"Fahad": 5, "Mishal": 2}
     f3, _ = _feed([[{"cmd": "RoomInfo", "games": [], "seed_name": "OTHER"}]], store=store)
     assert f3.death_counts() == {}  # a new multiworld starts at zero
+
+
+def test_free_deaths_show_in_everyones_log():
+    """A free death never reaches the room as Death Link: my log shows it, and the other apps get it."""
+    room = ROOM[:3] + [
+        [{"cmd": "Bounced", "tags": ["MyReadyAP"], "data": {"kind": "death", "source": "Fahad", "cause": "Fahad  was\nshot", "free": True}}],
+        [{"cmd": "Bounced", "tags": ["MyReadyAP"], "data": {"kind": "death", "source": "Mishal", "cause": "fake"}}],  # not about me
+        [{"cmd": "Bounced", "tags": ["DeathLink"], "data": {"source": "Sara"}}],  # no cause given
+    ]
+    f, ws = _feed(room)
+    texts = [e["text"] for e in f.snapshot()["events"] if e["kind"] == "death"]
+    assert texts == ["🛟 Fahad مات (موتة مجانية، ما انرسلت للشباب): Fahad was shot", "☠ Sara مات"]
+    f.status, f.ws = "connected", ws
+    f.record_my_death(sent=False, cause="Mishal fell into lava")
+    assert f.snapshot()["events"][-1]["text"] == "🛟 Mishal مات (موتة مجانية، ما انرسلت للشباب): Mishal fell into lava"
+    shared = [p["data"] for p in ws.sent if p.get("cmd") == "Bounce" and p["data"].get("kind") == "death"]
+    assert shared == [{"kind": "death", "source": "Mishal", "cause": "Mishal fell into lava", "free": True}]
+    f.record_my_death(sent=True, cause="sent one")  # the room hears this one as Death Link: no extra log line
+    assert len([p for p in ws.sent if p.get("cmd") == "Bounce" and p["data"].get("kind") == "death"]) == 1

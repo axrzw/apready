@@ -52,7 +52,7 @@ def _upstream(host: str, port: int):
 class DeathLinkProxy:
     def __init__(self, host: str, port: int, free: int, on_death=None, connect=None):
         self.host, self.port, self.free = host, int(port), max(0, int(free))
-        self.on_death = on_death or (lambda total, sent: None)
+        self.on_death = on_death or (lambda total, sent, cause="": None)
         self._connect = connect or _upstream
         self.deaths = 0          # this player's deaths seen in this session
         self.last_death_at = 0.0 # when the relay last saw one (to tell if a death came another way)
@@ -176,8 +176,10 @@ class DeathLinkProxy:
                     if send:
                         self.sent += 1
                     total = self.deaths
+                data = p.get("data") if isinstance(p.get("data"), dict) else {}
+                cause = data.get("cause") if isinstance(data.get("cause"), str) else ""
                 try:
-                    self.on_death(total, send)
+                    self.on_death(total, send, cause)
                 except Exception:
                     pass
                 if not send:
