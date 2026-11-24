@@ -31,3 +31,12 @@ TVV1GK/DS3_AP_Maptracker
 Brokemia/Courier
 alwaysintreble/TheMessengerRandomizerModAP
 ArchipelagoMW/Archipelago
+BrandenEK/Blasphemous.Framework.Menus
+BrandenEK/Blasphemous.Framework.UI
+BrandenEK/Blasphemous.Framework.Credits
+BrandenEK/Blasphemous.Framework.Levels
+homothetyhk/HollowKnight.MenuChanger
+homothetyhk/HollowKnight.ItemChanger
+homothetyhk/HollowKnight.BenchwarpMod
+fifty-six/HollowKnight.QoL
+fifty-six/HollowKnight.Vasi

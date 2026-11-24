@@ -4,7 +4,7 @@ name: release-info
 on:
   workflow_dispatch:
   push:
-    paths: [".github/release-repos.txt", ".github/workflows/release-info.yml"]
+    paths: [".github/release-repos.txt", ".github/release-assets.txt", ".github/workflows/release-info.yml"]
 jobs:
   info:
     runs-on: ubuntu-latest
@@ -18,4 +18,25 @@ jobs:
             [ -z "$r" ] && continue
             echo "=== $r"
             gh api "repos/$r/releases?per_page=4" --jq '.[] | "\(.tag_name)\t\(if .prerelease then "pre" else "" end)\t\(.published_at[:10])\t\([.assets[].name] | join(" | "))"' || echo "  (no access)"
+          done
+      - name: Asset contents
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # .github/release-assets.txt: "owner/repo tag asset [grep regex]" -> the file list of that release file
+          mkdir -p _a
+          grep -v '^\s*#' .github/release-assets.txt | while read -r r tag asset pat; do
+            [ -z "$r" ] && continue
+            echo "=== $r $tag $asset"
+            rm -rf _a/*
+            gh release download "$tag" -R "$r" -p "$asset" -D _a || { echo "  (download failed)"; continue; }
+            f="_a/$asset"
+            case "$f" in
+              *.zip|*.apworld|*.jar) unzip -l "$f" | awk 'NR>3 {print "  " $4}' | grep -v '^  $' | head -80 ;;
+              *) ls -la "$f" ;;
+            esac
+            if [ -n "$pat" ]; then
+              mkdir -p _a/x && unzip -q -o "$f" -d _a/x 2>/dev/null
+              grep -rnoE ".{0,80}($pat).{0,80}" _a/x --include=*.py --include=*.json --include=*.cfg --include=*.txt --include=*.yaml --include=*.md | head -30
+            fi
           done
