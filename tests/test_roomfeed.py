@@ -218,3 +218,16 @@ def test_free_deaths_show_in_everyones_log():
     assert shared == [{"kind": "death", "source": "Mishal", "cause": "Mishal fell into lava", "free": True}]
     f.record_my_death(sent=True, cause="sent one")  # the room hears this one as Death Link: no extra log line
     assert len([p for p in ws.sent if p.get("cmd") == "Bounce" and p["data"].get("kind") == "death"]) == 1
+
+
+def test_server_chatter_stays_out_of_the_log():
+    """Join/Part (every client and app reconnect), tag changes and the tutorial line are noise."""
+    noise = [[{"cmd": "PrintJSON", "type": t, "data": [{"text": t}]}] for t in ("Join", "Part", "TagsChanged", "Tutorial")]
+    f, _ = _feed(ROOM[:3] + noise + ROOM[3:4])
+    kinds = [e["kind"] for e in f.snapshot()["events"]]
+    texts = " ".join(e["text"] for e in f.snapshot()["events"])
+    assert not any(t in texts for t in ("Join", "Part", "TagsChanged", "Tutorial"))
+    assert kinds.count("item") == 1
+    # a reconnect doesn't add another "connected" line
+    f._handle(ROOM[2][0])
+    assert [e["text"] for e in f.snapshot()["events"]].count("✔ متصل بالروم") == 1

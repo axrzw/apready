@@ -99,8 +99,8 @@
     {
       "key": "goal_level",
       "label_ar": "مرحلة الهدف",
-      "help_ar": "لو الهدف مرحلة معينة",
-      "default": "ica_facility",
+      "help_ar": "لو الهدف مرحلة معينة. لازم تختلف عن مرحلة البداية",
+      "default": "carpathian_mountains",
       "choices": [
         {
           "value": "ica_facility",
@@ -141,6 +141,54 @@
         {
           "value": "santa_fortuna",
           "label_ar": "Santa Fortuna"
+        },
+        {
+          "value": "mumbai",
+          "label_ar": "Mumbai"
+        },
+        {
+          "value": "whittleton_creek",
+          "label_ar": "Whittleton Creek"
+        },
+        {
+          "value": "isle_of_sgail",
+          "label_ar": "Isle of Sgàil"
+        },
+        {
+          "value": "new_york",
+          "label_ar": "New York"
+        },
+        {
+          "value": "haven_island",
+          "label_ar": "Haven Island"
+        },
+        {
+          "value": "dubai",
+          "label_ar": "Dubai"
+        },
+        {
+          "value": "dartmoor",
+          "label_ar": "Dartmoor"
+        },
+        {
+          "value": "berlin",
+          "label_ar": "Berlin"
+        },
+        {
+          "value": "chongqing",
+          "label_ar": "Chongqing"
+        },
+        {
+          "value": "mendoza",
+          "label_ar": "Mendoza"
+        },
+        {
+          "value": "carpathian_mountains",
+          "label_ar": "Carpathian Mountains"
+        },
+        {
+          "value": "ambrose_island",
+          "label_ar": "Ambrose Island"
         }
       ]
     },
@@ -197,6 +245,54 @@
         {
           "value": "santa_fortuna",
           "label_ar": "Santa Fortuna"
+        },
+        {
+          "value": "mumbai",
+          "label_ar": "Mumbai"
+        },
+        {
+          "value": "whittleton_creek",
+          "label_ar": "Whittleton Creek"
+        },
+        {
+          "value": "isle_of_sgail",
+          "label_ar": "Isle of Sgàil"
+        },
+        {
+          "value": "new_york",
+          "label_ar": "New York"
+        },
+        {
+          "value": "haven_island",
+          "label_ar": "Haven Island"
+        },
+        {
+          "value": "dubai",
+          "label_ar": "Dubai"
+        },
+        {
+          "value": "dartmoor",
+          "label_ar": "Dartmoor"
+        },
+        {
+          "value": "berlin",
+          "label_ar": "Berlin"
+        },
+        {
+          "value": "chongqing",
+          "label_ar": "Chongqing"
+        },
+        {
+          "value": "mendoza",
+          "label_ar": "Mendoza"
+        },
+        {
+          "value": "carpathian_mountains",
+          "label_ar": "Carpathian Mountains"
+        },
+        {
+          "value": "ambrose_island",
+          "label_ar": "Ambrose Island"
         }
       ]
     },
@@ -362,5 +458,11 @@
     "لا تستخدم Peacock اللي تلعب فيه عادي، البرنامج يستخدم نسخة خاصة.",
     "هذي اللعبة ما فيها Death Link."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "not_equal": [
+    [
+      "goal_level",
+      "starting_location"
+    ]
+  ]
 }

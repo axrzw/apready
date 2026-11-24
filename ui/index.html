@@ -208,13 +208,15 @@
     </div>
     <div class="panel">
       <div class="row chips">
-        <button class="chip on" data-f="all" onclick="setFilter('all')">الكل</button>
+        <button class="chip on" data-f="important" onclick="setFilter('important')">⭐ المهم</button>
+        <button class="chip" data-f="all" onclick="setFilter('all')">الكل</button>
         <button class="chip" data-f="death" onclick="setFilter('death')">☠ الموتات</button>
         <button class="chip" data-f="item" onclick="setFilter('item')">📦 الأغراض</button>
         <button class="chip" data-f="mine" onclick="setFilter('mine')">🎁 وصلتني</button>
         <button class="chip" data-f="hint" onclick="setFilter('hint')">💡 تلميحات</button>
       </div>
-      <div id="feed" class="feed"></div>
+      <button id="feedMore" class="btn alt small hidden" onclick="$('feed').scrollTop = 0; drawFeed(true)"></button>
+      <div id="feed" class="feed" onscroll="if (this.scrollTop < 5 && FEEDPENDING) drawFeed(true)"></div>
     </div>
   </section>
   <div id="need" class="need hidden">
@@ -316,7 +318,8 @@ function optRow(o, val) {
     const picked = new Set(Array.isArray(val) ? val : []);
     input = `<div class="multi">` + o.choices.map(c => {
       const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
-      return `<label dir="auto"><input type="checkbox" data-multi="${o.key}" value="${v}" ${picked.has(v)?'checked':''}> ${l}</label>`; }).join("") + `</div>`;
+      const sets = typeof c === "object" && c.sets ? ` data-sets='${JSON.stringify(c.sets)}'` : "";
+      return `<label dir="auto"><input type="checkbox" data-multi="${o.key}" value="${v}"${sets} ${picked.has(v)?'checked':''}> ${l}</label>`; }).join("") + `</div>`;
     return `<div class="opt multi-opt">${label}${input}</div>`;
   }
   if (o.choices) {
@@ -380,7 +383,7 @@ document.addEventListener("change", e => {
     }
   }
   // a choice that needs another option (a Calamity goal) switches it on, so what you see is what you get
-  const o = e.target.tagName === "SELECT" && e.target.selectedOptions[0];
+  const o = e.target.tagName === "SELECT" ? e.target.selectedOptions[0] : (e.target.dataset.multi && e.target.checked ? e.target : null);
   if (o && o.dataset.sets) for (const [k, v] of Object.entries(JSON.parse(o.dataset.sets))) {
     const el = document.querySelector(`#gamePanel [data-key="${k}"]`);
     if (el && el.type === "checkbox") el.checked = !!v; else if (el) el.value = v;
@@ -453,7 +456,7 @@ function generate() { runTask("/api/host/generate", {}, "hlog"); }
 function openFolder(what) { api("/api/open", {what}).catch(e => alert(e.message)); }
 
 // ---------- 📡 room watcher ----------
-let FEEDEV = [], FEEDNEXT = 0, FILTER = "all";
+let FEEDEV = [], FEEDNEXT = 0, FILTER = "important";
 const STATUS = {connecting: "… يتصل", reconnecting: "… انقطع، يعيد الاتصال", connected: "✔ متصل",
                 refused: "✖ الروم رفض الاتصال", off: "ما يتابع روم للحين"};
 async function watch() {
@@ -471,15 +474,27 @@ async function releaseAll() {
 function setFilter(f) {
   FILTER = f;
   document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.f === f));
-  drawFeed();
+  $("feed").scrollTop = 0; drawFeed(true);
 }
 function keep(e) {
   if (FILTER === "all") return true;
+  // what matters: deaths, goals/releases, items that are progression or concern me, hints, chat, my commands
+  if (FILTER === "important") return e.kind === "death" || e.kind === "goal" || e.kind === "hint" || e.kind === "chat"
+    || e.kind === "system" || (e.kind === "item" && (e.to_me || e.from_me || (e.flags & 1)));
   if (FILTER === "mine") return e.kind === "item" && e.to_me;
   return e.kind === FILTER;
 }
-function drawFeed() {
+let FEEDPENDING = 0;
+function drawFeed(force) {
   const box = $("feed");
+  // newest is on top: if the reader scrolled down into older lines, keep the log still and say how
+  // many new ones wait (shown when they press the button or scroll back to the top)
+  if (!force && box.scrollTop > 30 && box.children.length) {
+    $("feedMore").textContent = `⬆ ${FEEDPENDING} رسائل جديدة`;
+    $("feedMore").classList.toggle("hidden", !FEEDPENDING);
+    return;
+  }
+  FEEDPENDING = 0; $("feedMore").classList.add("hidden");
   const rows = FEEDEV.filter(keep).slice(-400).reverse();
   box.replaceChildren(...rows.map(e => {
     const d = document.createElement("div");
@@ -520,6 +535,7 @@ async function pollFeed() {
     const f = await api("/api/feed?since=" + FEEDNEXT);
     if (f.events && f.events.length) {
       FEEDEV = FEEDEV.concat(f.events).slice(-3000);
+      FEEDPENDING += f.events.filter(keep).length;
       FEEDNEXT = f.events[f.events.length - 1].i + 1;
       drawFeed();
     }

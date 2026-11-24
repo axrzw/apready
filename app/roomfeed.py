@@ -178,6 +178,7 @@ class RoomFeed:
         self.seed = None          # this multiworld (the counts are kept per seed, across restarts)
         self.store = store        # JSON file for the counts, or None
         self.my_death_heard_at = 0.0  # last Death Link from my own slot that reached the room
+        self._announced = False
         self.status = "connecting"
         self.error = ""
         self.my_slot = None
@@ -373,7 +374,9 @@ class RoomFeed:
                 self.games[int(s)] = info.get("game", "")
             self.status = "connected"
             self.error = ""
-            self._add("system", "✔ متصل بالروم")
+            if not self._announced:  # once; a quiet reconnect is not news
+                self._announced = True
+                self._add("system", "✔ متصل بالروم")
             self._share_mine()  # my real count, and ask the other apps for theirs
             self._send({"cmd": "Bounce", "tags": [SHARE_TAG], "data": {"kind": "deaths?"}})
         elif cmd == "ConnectionRefused":
@@ -430,7 +433,13 @@ class RoomFeed:
                 out.append(str(v))
         return "".join(out)
 
+    # server chatter nobody needs in the log: clients joining/leaving (every app reconnect too), tag
+    # changes, the server's tutorial line
+    NOISE = {"Join", "Part", "TagsChanged", "Tutorial"}
+
     def _print(self, p: dict):
+        if p.get("type") in self.NOISE:
+            return
         text = self._text(p.get("data", []))
         kind = {"ItemSend": "item", "ItemCheat": "item", "Hint": "hint", "Join": "join", "Part": "join",
                 "Chat": "chat", "ServerChat": "chat", "Goal": "goal", "Release": "goal", "Collect": "goal",
