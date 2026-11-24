@@ -90,7 +90,7 @@ class Handler(BaseHTTPRequestHandler):
             f, relay = FEED["feed"], dlproxy.ACTIVE["proxy"]
             return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"],
                                    "deaths": f.death_counts() if f else {}, "me": f.slot if f else "",
-                                   "free": {"left": relay.free_left(), "of": relay.free} if relay else None})
+                                   "free": dlproxy.status(f.my_death_heard_at if f else 0.0) if relay else None})
         if self.path == "/icon.png":
             return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":

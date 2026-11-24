@@ -170,6 +170,7 @@ class RoomFeed:
         self.real = {}            # player name -> real total shared by My Ready AP (free deaths included)
         self.seed = None          # this multiworld (the counts are kept per seed, across restarts)
         self.store = store        # JSON file for the counts, or None
+        self.my_death_heard_at = 0.0  # last Death Link from my own slot that reached the room
         self.status = "connecting"
         self.error = ""
         self.my_slot = None
@@ -366,6 +367,8 @@ class RoomFeed:
             who = d.get("source") or "؟"
             with self.lock:
                 self.deaths[who] = self.deaths.get(who, 0) + 1
+                if who == self.slot:
+                    self.my_death_heard_at = time.time()
             self._save_counts()
             cause = d.get("cause") or ""
             self._add("death", f"☠ {who}" + (f" · {cause}" if cause else ""), who=who)

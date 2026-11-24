@@ -73,6 +73,12 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   DeathLink Bounces: with N free deaths only every (N+1)th is sent. Deaths sent to the player are never
   touched. 0 = no relay, the game connects straight to the room. TLS attempts are closed so clients fall
   back to ws. The app stays alive after the window closes while a game is connected through the relay.
+  The bar under the tabs shows the address to type (games where the player types it: Brotato, Buckshot,
+  Content Warning, Cult of the Lamb, Elden Ring, Lethal Company, R.E.P.O., Sekiro, Stardew; Stardew and
+  Sekiro also remember it), whether a game is connected through the relay, and a warning when a death
+  of mine reached the room without passing the relay (`dlproxy.status`: the game is connected straight
+  to the room, so free deaths can't work). The upstream socket has no read timeout (was 15 s: a quiet
+  room dropped the game). CI `relay-check.yml` runs the real Archipelago.MultiClient.Net 6.7.1 through it.
 - Death counter: the bar under the tabs (from `/api/ping`) shows everyone's deaths: Death Link messages
   heard in the room, and real totals My Ready AP apps share with a Bounce tagged `MyReadyAP`
   ({"kind": "deaths", "source", "deaths"}; "deaths?" asks the others). Shown = max of both per player;

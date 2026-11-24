@@ -60,6 +60,12 @@
   #deathBar.hidden { display:none; }
   #deathBar .death-chip.me { outline:1px solid #ff9a9a; }
   #deathBar .free { color:var(--ok); margin-inline-start:8px; font-size:14px; }
+  #deathBar .relay { flex-basis:100%; font-size:14px; padding:6px 10px; border-radius:8px; margin-top:4px; }
+  #deathBar .relay.ok { color:var(--ok); }
+  #deathBar .relay.wait { color:var(--warn); background:rgba(245,165,36,.08); }
+  #deathBar .relay.bad { color:#ff9a9a; background:rgba(255,80,80,.12); border:1px solid #ff9a9a; }
+  #deathBar .relay code { background:#0b0d11; padding:2px 6px; border-radius:6px; }
+  .btn.small { padding:3px 10px; font-size:13px; }
   .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
   .guide summary { cursor:pointer; font-weight:600; }
   .guide ol, .guide ul { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
@@ -260,6 +266,15 @@ function drawDeathBar(j) {
   if (j.free) {
     const f = document.createElement("span"); f.className = "free";
     f.textContent = `🛟 باقي لك ${j.free.left} من ${j.free.of} موتات مجانية`; bar.append(f);
+    // the game must connect to the app (not to the room) for free deaths to work: say where it stands
+    const st = document.createElement("div"); st.className = "relay " + (j.free.bypass ? "bad" : j.free.connected ? "ok" : "wait");
+    const addr = document.createElement("code"); addr.dir = "ltr"; addr.textContent = j.free.address;
+    const copy = document.createElement("button"); copy.className = "btn alt small"; copy.textContent = "نسخ";
+    copy.onclick = () => navigator.clipboard.writeText(j.free.address).then(() => copy.textContent = "✔ انسخ");
+    if (j.free.bypass) st.append("⚠ لعبتك متصلة بالروم مباشرة، فالموتات المجانية ما تنحسب. اتصل من اللعبة على العنوان ", addr, " ", copy, " بدل عنوان الروم.");
+    else if (j.free.connected) st.append("✔ لعبتك متصلة عن طريق البرنامج، والموتات المجانية شغّالة.");
+    else st.append("⏳ لعبتك للحين ما اتصلت عن طريق البرنامج. لو تكتب العنوان في اللعبة بنفسك، اكتب ", addr, " ", copy, " (مو عنوان الروم).");
+    bar.append(st);
   }
 }
 async function ping() {

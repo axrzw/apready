@@ -112,18 +112,30 @@ def test_play_with_free_deaths(tmp_path, monkeypatch):
         assert json.loads(game.recv_text())[0]["cmd"] == "RoomInfo"
         game.send_text(json.dumps([{"cmd": "Connect", "name": "Mishal", "tags": ["DeathLink"]}]))
         assert json.loads(game.recv_text())[0]["cmd"] == "Connected"
-        assert ping()["free"] == {"left": 2, "of": 2}
+        fr = ping()["free"]
+        assert (fr["left"], fr["of"], fr["connected"], fr["bypass"]) == (2, 2, True, False)
+        assert fr["address"] == f"127.0.0.1:{s['port']}"
         for n in range(6):
             game.send_text(json.dumps([{"cmd": "Bounce", "tags": ["DeathLink"], "data": {"source": "Mishal", "cause": f"d{n + 1}"}}]))
         sent = lambda: [b["data"]["cause"] for b in room.bounces if "DeathLink" in b["tags"]]
         assert _wait(lambda: len(sent()) == 2) and sent() == ["d3", "d6"]  # only every 3rd death left home
         assert _wait(lambda: ping()["deaths"].get("Mishal") == 6)        # the counter shows all 6
-        assert ping()["free"] == {"left": 2, "of": 2}
+        assert ping()["free"]["left"] == 2 and not ping()["free"]["bypass"]
         shared = [b for b in room.bounces if "MyReadyAP" in b["tags"] and b["data"].get("kind") == "deaths"]
         assert shared and shared[-1]["data"]["deaths"] == 6                 # the others' apps learn the real number
         assert dlproxy.busy()                                               # closing the window waits for the game
         game.close()
         assert _wait(lambda: not dlproxy.busy())
+        assert ping()["free"]["connected"] is False
+        # the player typed the room's own address in the game: deaths reach the room without the relay
+        direct = roomfeed.WebSocket("127.0.0.1", room.port, secure=False)
+        direct.recv_text()
+        direct.send_text(json.dumps([{"cmd": "Connect", "name": "Mishal", "tags": ["DeathLink"]}]))
+        direct.recv_text()
+        time.sleep(5.2)  # a death the relay never saw, more than 5 s after its last one
+        direct.send_text(json.dumps([{"cmd": "Bounce", "tags": ["DeathLink"], "data": {"source": "Mishal", "cause": "direct"}}]))
+        assert _wait(lambda: ping()["free"]["bypass"] is True)             # the page warns: free deaths can't work
+        direct.close()
         # Play again with 0 free deaths: straight to the room, no relay
         post("/api/play", {"game": "tunic", "room": f"127.0.0.1:{room.port}", "options": {"free_deaths": 0}})
         assert sessions[-1]["host"] == "127.0.0.1" and int(sessions[-1]["port"]) == room.port

@@ -12,6 +12,7 @@ import json
 import socket
 import ssl
 import threading
+import time
 
 from . import roomfeed
 
@@ -54,6 +55,7 @@ class DeathLinkProxy:
         self.on_death = on_death or (lambda total, sent: None)
         self._connect = connect or _upstream
         self.deaths = 0          # this player's deaths seen in this session
+        self.last_death_at = 0.0 # when the relay last saw one (to tell if a death came another way)
         self.sent = 0
         self.clients = 0         # games connected right now (keeps the app alive while > 0)
         self.lock = threading.Lock()
@@ -169,6 +171,7 @@ class DeathLinkProxy:
             if isinstance(p, dict) and p.get("cmd") == "Bounce" and "DeathLink" in (p.get("tags") or []):
                 with self.lock:
                     self.deaths += 1
+                    self.last_death_at = time.time()
                     send = self.deaths % (self.free + 1) == 0
                     if send:
                         self.sent += 1
@@ -205,6 +208,18 @@ def stop():
     if ACTIVE["proxy"]:
         ACTIVE["proxy"].stop()
         ACTIVE["proxy"] = None
+
+
+def status(my_death_heard_at: float = 0.0):
+    """For the page: free deaths left, the address to type in the game, whether a game is connected
+    through the relay, and whether a death of mine reached the room WITHOUT passing the relay (the game
+    is connected straight to the room, so the free deaths can't work)."""
+    p = ACTIVE["proxy"]
+    if not p:
+        return None
+    bypass = bool(my_death_heard_at) and my_death_heard_at - p.last_death_at > 5
+    return {"left": p.free_left(), "of": p.free, "address": f"127.0.0.1:{p.local_port}",
+            "connected": p.clients > 0, "bypass": bypass}
 
 
 def busy() -> bool:
