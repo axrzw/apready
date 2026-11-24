@@ -74,3 +74,25 @@ def test_tls_hello_is_refused_so_the_game_falls_back_to_ws():
         assert s.recv(10) == b""  # closed
     finally:
         p.stop()
+
+
+def test_a_quiet_room_does_not_drop_the_game(monkeypatch):
+    """The upstream socket kept its 15 s connect timeout, so a room silent for 15 s cut the game off."""
+    got = threading.Event()
+
+    def room(conn):
+        time.sleep(1.5)  # longer than the (shortened) connect timeout below
+        conn.sendall(_frame(0x1, b'[{"cmd":"PrintJSON","data":[]}]'))
+        got.wait(5)
+
+    host, port = _ws_server(room)
+    p = dlproxy.DeathLinkProxy(host, port, free=1,
+                               connect=lambda h, pt: roomfeed.WebSocket(h, pt, secure=False, timeout=0.5)).start()
+    try:
+        game = roomfeed.WebSocket("127.0.0.1", p.local_port, secure=False, timeout=0.5)
+        assert game.sock.gettimeout() is None
+        assert json.loads(game.recv_text())[0]["cmd"] == "PrintJSON"  # still connected after the silence
+        got.set()
+        game.close()
+    finally:
+        p.stop()

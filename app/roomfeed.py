@@ -82,6 +82,9 @@ class WebSocket:
             raise ConnectionError(f"handshake refused: {status.decode(errors='replace')}")
         self.buf = head.split(b"\r\n\r\n", 1)[1]
         self.lock = threading.Lock()
+        # the timeout was only for connecting: a room can stay silent for minutes (no pings), and a read
+        # that times out would drop the connection (the free-deaths relay then cut the game off)
+        self.sock.settimeout(None)
 
     def _read(self, n: int) -> bytes:
         while len(self.buf) < n:
