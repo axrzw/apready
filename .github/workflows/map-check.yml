@@ -25,7 +25,8 @@ jobs:
           New-Item -ItemType File tools/poptracker/portable.txt | Out-Null
           New-Item -ItemType Directory -Force tools/poptracker/packs | Out-Null
           Invoke-WebRequest "https://github.com/SapphireSapphic/TunicTracker/releases/download/2.3.0/TunicTracker.zip" -OutFile tools/poptracker/packs/tunic_sapphiresapphic.zip
-          '{"log": true}' | Out-File -Encoding ascii tools/poptracker/settings.json
+          New-Item -ItemType Directory -Force tools/poptracker/portable-config/PopTracker | Out-Null
+          '{"check_for_updates": false, "log": true}' | Out-File -Encoding ascii tools/poptracker/portable-config/PopTracker/PopTracker.json
           & tools/poptracker/poptracker.exe --list-installed --no-console 2>&1 | Out-Host
           $pt = Start-Process tools/poptracker/poptracker.exe -WorkingDirectory tools/poptracker -ArgumentList "--load-pack","tunic_sapphiresapphic","--pack-variant","standard","--ap-host","127.0.0.1:$port","--ap-slot","Mishal" -RedirectStandardOutput pt.out -RedirectStandardError pt.err -PassThru
           $ok = $false

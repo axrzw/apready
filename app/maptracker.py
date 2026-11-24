@@ -67,6 +67,21 @@ def ensure_poptracker(task) -> Path:
     return exe
 
 
+def quiet_first_run():
+    """PopTracker asks 'Check for PopTracker updates on start?' on its first run and loads nothing until
+    someone answers. Answer it in its own (portable) config: the app keeps PopTracker up to date itself."""
+    import json
+    cfg = home() / "portable-config" / "PopTracker" / "PopTracker.json"
+    try:
+        data = json.loads(cfg.read_text(encoding="utf-8")) if cfg.exists() else {}
+    except ValueError:
+        data = {}
+    if data.get("check_for_updates") is not False:
+        data["check_for_updates"] = False
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        cfg.write_text(json.dumps(data, indent=4), encoding="utf-8")
+
+
 def ensure_pack(recipe: dict, task) -> Path:
     mt = recipe["map_tracker"]
     validate(mt, recipe["id"])
@@ -102,6 +117,7 @@ def open_map(task, recipe: dict, options: dict, host: str, port, slot: str, pass
         raise RuntimeError("الخريطة تشتغل على ويندوز بس")
     exe = ensure_poptracker(task)
     ensure_pack(recipe, task)
+    quiet_first_run()
     subprocess.Popen(command(exe, recipe, options, host, port, slot, password), cwd=str(exe.parent))
     task.say(f"✔ فتحت خريطة {recipe['name']}. تتصل بالروم لحالها وتتحدّث كل ما سويت تشيك.")
     task.say(f"👉 لو ما اتصلت خلال دقيقة: في PopTracker اضغط AP فوق يسار، واكتب {host}:{port} والاسم {slot}.")

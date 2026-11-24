@@ -43,3 +43,14 @@ def test_room_trackers_links():
     assert f.trackers() == {}
     f.my_slot, f.team = 3, 0
     assert f.trackers() == {"mine": "https://archipelago.gg/tracker/TrK9/0/3", "all": "https://archipelago.gg/tracker/TrK9"}
+
+
+def test_first_run_question_is_answered(tmp_path, monkeypatch):
+    """PopTracker waits on 'Check for updates on start?' until answered: the app answers it in its config."""
+    import json
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    cfg = maptracker.home() / "portable-config" / "PopTracker" / "PopTracker.json"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text('{"at_uri": "keep me"}')
+    maptracker.quiet_first_run()
+    assert json.loads(cfg.read_text()) == {"at_uri": "keep me", "check_for_updates": False}
