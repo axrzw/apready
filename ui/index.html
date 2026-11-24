@@ -353,6 +353,17 @@ function showDlOpts() {
 }
 document.addEventListener("change", e => {
   if (e.target.id === "deathlink") showDlOpts();
+  // a number box outside its range (or emptied) is put back in range right away, so what you see is used
+  if (e.target.type === "number" && e.target.dataset.key) {
+    const el = e.target, o = cur && cur.options.find(x => x.key === el.dataset.key);
+    if (o) {
+      let n = el.value === "" ? o.default : Math.round(Number(el.value));
+      if (Number.isNaN(n)) n = o.default;
+      if (o.min != null) n = Math.max(o.min, n);
+      if (o.max != null) n = Math.min(o.max, n);
+      el.value = n;
+    }
+  }
   // a choice that needs another option (a Calamity goal) switches it on, so what you see is what you get
   const o = e.target.tagName === "SELECT" && e.target.selectedOptions[0];
   if (o && o.dataset.sets) for (const [k, v] of Object.entries(JSON.parse(o.dataset.sets))) {
@@ -365,7 +376,7 @@ function collect() {
   const options = {};
   document.querySelectorAll("#gamePanel [data-key]").forEach(el => {
     const k = el.dataset.key;
-    options[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? Number(el.value) : el.value;
+    options[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? null : Number(el.value)) : el.value;
   });
   document.querySelectorAll("#gamePanel [data-multi]").forEach(el => {
     const k = el.dataset.multi;
