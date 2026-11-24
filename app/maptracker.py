@@ -68,16 +68,19 @@ def ensure_poptracker(task) -> Path:
 
 
 def quiet_first_run():
-    """PopTracker asks 'Check for PopTracker updates on start?' on its first run and loads nothing until
-    someone answers. Answer it in its own (portable) config: the app keeps PopTracker up to date itself."""
+    """PopTracker asks two questions on its first run ('Check for PopTracker updates on start?' and 'Add
+    Documents\\EmoTracker\\packs to the search path?') and loads nothing until someone answers. Answer them
+    in its own (portable) config: the app keeps PopTracker up to date itself."""
     import json
     cfg = home() / "portable-config" / "PopTracker" / "PopTracker.json"
     try:
         data = json.loads(cfg.read_text(encoding="utf-8")) if cfg.exists() else {}
     except ValueError:
         data = {}
-    if data.get("check_for_updates") is not False:
-        data["check_for_updates"] = False
+    # its two first-run questions: updates on start, and adding EmoTracker's pack folder
+    first_run = {"check_for_updates": False, "add_emo_packs": False}
+    if any(data.get(k) is not v for k, v in first_run.items()):
+        data.update(first_run)
         cfg.parent.mkdir(parents=True, exist_ok=True)
         cfg.write_text(json.dumps(data, indent=4), encoding="utf-8")
 

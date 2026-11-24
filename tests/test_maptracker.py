@@ -53,4 +53,4 @@ def test_first_run_question_is_answered(tmp_path, monkeypatch):
     cfg.parent.mkdir(parents=True)
     cfg.write_text('{"at_uri": "keep me"}')
     maptracker.quiet_first_run()
-    assert json.loads(cfg.read_text()) == {"at_uri": "keep me", "check_for_updates": False}
+    assert json.loads(cfg.read_text()) == {"at_uri": "keep me", "check_for_updates": False, "add_emo_packs": False}
