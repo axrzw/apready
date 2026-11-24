@@ -357,8 +357,8 @@ def test_multi_select_options_and_bo3_maps(all_recipes):
     y = rec.build_yaml(bo3, "M", {"maps": ["map_origins_enabled", "map_moon_enabled"], "goal_condition": "goal_round"}, True)
     assert "  map_origins_enabled: true" in y and "  map_moon_enabled: true" in y and "  map_shadows_enabled: false" in y
     assert "  maps:" not in y and "  goal_condition: goal_round" in y
-    y = rec.build_yaml(all_recipes["re4r"], "M", {"included_content": ["Main Campaign", "Separate Ways"]}, True)
-    assert '  included_content: ["Main Campaign", "Separate Ways"]' in y
+    y = rec.build_yaml(all_recipes["re4r"], "M", {"included_content": ["Main Campaign", "Mercenaries"]}, True)
+    assert '  included_content: ["Main Campaign", "Mercenaries"]' in y
     y = rec.build_yaml(all_recipes["hitman"], "M", {}, False)
     assert '  included_s2_dlc_locations: []' in y
 
@@ -462,3 +462,32 @@ def test_free_deaths_offered_for_every_death_link_game(all_recipes):
     tunic = all_recipes["tunic"]
     assert "free_deaths" not in rec.build_yaml(tunic, "M", {"free_deaths": 3}, True)  # app-only, never in the YAML
     assert not any(o["key"] == "free_deaths" for o in all_recipes["hitman"]["options"])
+
+
+def test_numbers_are_kept_inside_their_range(all_recipes):
+    """An emptied number box reached the YAML as 0 (goal_round minimum 2): generation failed."""
+    bo3 = all_recipes["bo3_zombies"]
+    y = rec.build_yaml(bo3, "M", {"goal_condition": "easter_egg_hunt", "goal_round": 0}, True)
+    assert "  goal_round: 2" in y
+    assert "  goal_round: 25" in rec.build_yaml(bo3, "M", {"goal_round": None}, True)   # empty box: default
+    assert "  goal_round: 100" in rec.build_yaml(bo3, "M", {"goal_round": 5000}, True)
+    assert "  goal_condition: easter_egg_hunt" in rec.build_yaml(bo3, "M", {"goal_condition": "nope"}, True)
+    # every option of every game, fed junk, still gives values the recipe allows
+    for r in all_recipes.values():
+        for o in r["options"]:
+            for junk in (None, "", -999, 10 ** 9, "x", []):
+                v = rec.clean_value(o, junk)
+                if "min" in o:
+                    assert o["min"] <= v <= o["max"], (r["id"], o["key"], junk, v)
+                elif o.get("choices") and not (o.get("multi") or o.get("as_toggles")):
+                    assert v in [c["value"] if isinstance(c, dict) else c for c in o["choices"]], (r["id"], o["key"])
+
+
+def test_re4r_no_separate_ways_yet(all_recipes):
+    """The RE4R apworld refuses Separate Ways ('coming in a later release'); an old saved choice is dropped."""
+    r = all_recipes["re4r"]
+    inc = next(o for o in r["options"] if o["key"] == "included_content")
+    assert "Separate Ways" not in [c["value"] for c in inc["choices"]]
+    assert 'included_content: ["Main Campaign"]' in rec.build_yaml(r, "M", {"included_content": ["Main Campaign", "Separate Ways"]}, True)
+    assert 'included_content: ["Main Campaign"]' in rec.build_yaml(r, "M", {"included_content": ["Separate Ways"]}, True)
+

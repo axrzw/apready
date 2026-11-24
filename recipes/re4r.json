@@ -68,7 +68,7 @@
     {
       "key": "included_content",
       "label_ar": "وش تلعب",
-      "help_ar": "Separate Ways يحتاج الـ DLC",
+      "help_ar": "تقدر تختار الاثنين. قصة آيدا (Separate Ways) للحين مو موجودة في المود",
       "multi": true,
       "default": [
         "Main Campaign"
@@ -77,10 +77,6 @@
         {
           "value": "Main Campaign",
           "label_ar": "القصة الأساسية"
-        },
-        {
-          "value": "Separate Ways",
-          "label_ar": "Separate Ways"
         },
         {
           "value": "Mercenaries",

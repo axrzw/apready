@@ -158,6 +158,35 @@ def step_applies(step: dict, options: dict) -> bool:
     return all(options.get(k) == v for k, v in (step.get("when") or {}).items())
 
 
+def clean_value(o: dict, v):
+    """A value the apworld will accept: numbers inside min/max (an empty or broken one takes the default),
+    choices from the list, on/off as a bool. Archipelago checks every option, even unused ones, so one bad
+    number (an emptied field sent as 0) stops the whole generation."""
+    d = o["default"]
+    if o.get("multi") or o.get("as_toggles"):
+        allowed = {c["value"] if isinstance(c, dict) else c for c in o.get("choices", [])}
+        kept = [x for x in v if x in allowed] if isinstance(v, list) else []
+        return kept if kept or not d else list(d)  # nothing valid left (a removed choice): the default
+    if isinstance(d, bool):
+        return v if isinstance(v, bool) else d
+    if o.get("choices"):
+        allowed = [c["value"] if isinstance(c, dict) else c for c in o["choices"]]
+        return v if v in allowed else (next((a for a in allowed if str(a) == str(v)), d))
+    if "min" in o or "max" in o or (isinstance(d, int) and not isinstance(d, bool)):
+        try:
+            n = int(v)
+        except (TypeError, ValueError):
+            return d
+        if v is None or v == "":
+            return d
+        if "min" in o:
+            n = max(o["min"], n)
+        if "max" in o:
+            n = min(o["max"], n)
+        return n
+    return v
+
+
 def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
                extra_text: str = "") -> str:
     game = recipe["game"]
@@ -171,7 +200,7 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
     values, added = {}, {}
     chosen = effective_options(recipe, chosen)
     for o in recipe.get("options", []):
-        v = chosen[o["key"]]
+        v = clean_value(o, chosen[o["key"]])
         if o.get("if_off") and not v:  # e.g. "I own this DLC" off -> exclude the DLC's locations
             for k, x in o["if_off"].items():
                 added[k] = added.get(k, []) + x if isinstance(x, list) else x
