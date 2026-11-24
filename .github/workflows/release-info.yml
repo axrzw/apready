@@ -35,7 +35,9 @@ jobs:
               *.zip|*.apworld|*.jar) unzip -Z1 "$f" | sed 's/^/  /' | head -${LIST_MAX:-80} ;;
               *) ls -la "$f" ;;
             esac
-            if [ -n "$pat" ]; then
+            if [ "${pat#FILE:}" != "$pat" ]; then  # FILE:<path inside the zip> prints that file
+              unzip -p "$f" "${pat#FILE:}" | head -400
+            elif [ -n "$pat" ]; then
               mkdir -p _a/x && unzip -q -o "$f" -d _a/x 2>/dev/null
               grep -rnE -A6 "$pat" _a/x --include=*.py --include=*.json --include=*.cfg --include=*.txt --include=*.yaml --include=*.md | head -120
             fi

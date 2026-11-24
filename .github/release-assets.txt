@@ -1,3 +1,2 @@
-# owner/repo tag asset [grep regex inside text files]: the release-info workflow lists what is inside
-nex3/Dark-Souls-III-Archipelago-client v3.0.13 DS3.Archipelago.3.0.13.zip
-qixils/NeoForgeAP v2.2.1 minecraft.apworld ^components|Component\(|add_argument|sys.argv|def launch_subprocess|def main\(
+# owner/repo tag asset [grep regex inside text files | FILE:<path in zip>]: the release-info workflow lists what is inside
+qixils/NeoForgeAP v2.2.1 minecraft.apworld FILE:minecraft/Options.py
