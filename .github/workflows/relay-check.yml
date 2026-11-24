@@ -1,0 +1,51 @@
+name: relay-check
+# Free-deaths relay against a real .NET Archipelago client (Archipelago.MultiClient.Net 6.7.1, the one the
+# Terraria mod ships), on Windows: log in through the relay, stay connected through 40 s of silence, and
+# send 3 deaths with 2 free -> exactly 1 reaches the room.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["app/dlproxy.py", "app/roomfeed.py", "tools/relay_check_room.py", ".github/workflows/relay-check.yml"]
+jobs:
+  relay:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Real client through the relay
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          New-Item -ItemType Directory -Force ci_lib | Out-Null
+          Invoke-WebRequest "https://github.com/Seldom-SE/archipelago_terraria_client/raw/main/lib/Archipelago.MultiClient.Net.dll" -OutFile ci_lib/Archipelago.MultiClient.Net.dll
+          Add-Type -Path ci_lib/Archipelago.MultiClient.Net.dll
+          $room = Start-Process python -ArgumentList "-m","tools.relay_check_room","2" -RedirectStandardOutput room.log -RedirectStandardError room.err -PassThru -NoNewWindow
+          $port = $null
+          for ($i = 0; $i -lt 50 -and -not $port; $i++) {
+            Start-Sleep -Milliseconds 200
+            if (Test-Path room.log) { $m = Select-String -Path room.log -Pattern "^RELAY (\d+)"; if ($m) { $port = [int]$m.Matches[0].Groups[1].Value } }
+          }
+          if (-not $port) { Get-Content room.err; throw "relay did not start" }
+          Write-Host "relay on port $port"
+          $session = [Archipelago.MultiClient.Net.ArchipelagoSessionFactory]::CreateSession("127.0.0.1", $port)
+          $flags = [Archipelago.MultiClient.Net.Enums.ItemsHandlingFlags]::AllItems
+          $result = $session.TryConnectAndLogin("Terraria", "Mishal", $flags, $null, $null, $null, $null)
+          if (-not $result.Successful) { Write-Host ($result.Errors -join "; "); Get-Content room.log; throw "login through the relay failed" }
+          Write-Host "logged in through the relay"
+          Start-Sleep -Seconds 40
+          if (-not $session.Socket.Connected) { throw "dropped after 40 s of silence" }
+          Write-Host "still connected after 40 s of silence"
+          $asm = [Archipelago.MultiClient.Net.ArchipelagoSession].Assembly
+          $provider = $asm.GetTypes() | Where-Object { $_.GetMethod("CreateDeathLinkService") } | Select-Object -First 1
+          $dls = $provider.GetMethod("CreateDeathLinkService").Invoke($null, @($session))
+          $dls.EnableDeathLink()
+          $dlType = $asm.GetTypes() | Where-Object { $_.Name -eq "DeathLink" -and $_.IsClass } | Select-Object -First 1
+          foreach ($n in 1..3) { $dls.SendDeathLink([Activator]::CreateInstance($dlType, @("Mishal", "ci death $n"))); Start-Sleep -Seconds 1 }
+          Start-Sleep -Seconds 3
+          Stop-Process -Id $room.Id -Force
+          Get-Content room.log
+          $deaths = @(Select-String -Path room.log -Pattern '"DeathLink"' | Where-Object { $_.Line -match '"cmd": "Bounce"' })
+          Write-Host "deaths that reached the room: $($deaths.Count)"
+          if ($deaths.Count -ne 1 -or $deaths[0].Line -notmatch "ci death 3") { throw "expected only the 3rd death (2 free)" }
+          Write-Host "OK: real client works through the relay"
