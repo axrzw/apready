@@ -150,7 +150,9 @@ def effective_options(recipe: dict, chosen: dict) -> dict:
     vals = {o["key"]: (chosen or {}).get(o["key"], o["default"]) for o in recipe.get("options", [])}
     for o in recipe.get("options", []):
         for c in o.get("choices", []):
-            if isinstance(c, dict) and c.get("sets") and vals.get(o["key"]) == c["value"]:
+            picked = vals.get(o["key"])
+            if isinstance(c, dict) and c.get("sets") and (
+                    picked == c["value"] or (isinstance(picked, list) and c["value"] in picked)):
                 vals.update(c["sets"])
     return vals
 
@@ -213,6 +215,17 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
                 values[c["value"]] = c["value"] in picked
         else:
             values[o["key"]] = v
+    # options the apworld refuses to see equal (Hitman: goal level = starting level): move the first one
+    for first, second in recipe.get("not_equal", []):
+        if first in values and values.get(first) == values.get(second):
+            o = next(x for x in recipe["options"] if x["key"] == first)
+            allowed = [c["value"] if isinstance(c, dict) else c for c in o.get("choices", [])]
+            values[first] = next((a for a in [o["default"]] + allowed if a != values[second]), values[first])
+    # combinations the apworld refuses: {"if": {key: [values]}, "set": {key: value}} (DST: a boss goal with
+    # caves off fails because the bosses live in the caves)
+    for rule in recipe.get("fix_if", []):
+        if all(values.get(k) in v for k, v in rule["if"].items()):
+            values.update(rule["set"])
     dl_key = recipe.get("death_link_key", "death_link")
     if dl_key:
         values[dl_key] = death_link

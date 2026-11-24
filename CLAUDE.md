@@ -58,7 +58,8 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   recipe draft: reads the apworld with `ast` (never imports it) for game name, options, the
   Death Link key and whether `true` is a valid value, client components; classifies mod zips;
   Steam appid from store search; prints the TODO list a human must check.
-- `app/roomfeed.py`: the 📡 tab. A read-only Archipelago client (tags TextOnly + DeathLink, items
+- `app/roomfeed.py`: the 📡 tab. The log drops server chatter (Join/Part/TagsChanged/Tutorial); the page's default filter
+  «⭐ المهم» and it doesn't redraw while the reader is scrolled down (a «⬆ N رسائل جديدة» button). A read-only Archipelago client (tags TextOnly + DeathLink, items
   handling 0) on the player's own slot, with a stdlib WebSocket (wss, then ws). It never plays,
   sends checks or sends deaths; it shows every PrintJSON (items sent/received, hints, goals) and
   every DeathLink bounce, counts deaths per player, and shows progress: everyone's from the
@@ -108,6 +109,11 @@ options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
                  Treasure Map: Expansion" off -> exclude_locations ["T.DLC"] (its 36 checks get filler).
                  A choice can carry `sets` {key: value}: picking it switches that option too (in the page
                  and in `effective_options`; Terraria's Calamity goals set calamity: true).
+not_equal [[a, b]] options the apworld refuses to see equal (Hitman goal/starting level): `a` moves.
+fix_if [{"if": {key: [values]}, "set": {...}}] combinations the apworld refuses (DST boss goal + no caves).
+build_yaml cleans every value (`clean_value`): numbers into min/max (empty = default), choices from the
+list, multi lists only known values. Option names/values were checked against each apworld's source with
+an ast reader (no import); RE3R 0.2.99 accepts only difficulty standard (fixed_options).
 fixed_options{}  always written
 apworld[]        steps the HOST needs (apworld install)
 install[]        one-time steps on the player's PC

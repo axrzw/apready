@@ -491,3 +491,33 @@ def test_re4r_no_separate_ways_yet(all_recipes):
     assert 'included_content: ["Main Campaign"]' in rec.build_yaml(r, "M", {"included_content": ["Main Campaign", "Separate Ways"]}, True)
     assert 'included_content: ["Main Campaign"]' in rec.build_yaml(r, "M", {"included_content": ["Separate Ways"]}, True)
 
+
+
+def test_hitman_default_goal_is_not_the_starting_level(all_recipes):
+    """The apworld refuses goal_level == starting_level; the defaults used to be both ICA Facility."""
+    h = all_recipes["hitman"]
+    y = rec.build_yaml(h, "M", {}, False)
+    assert "goal_level: carpathian_mountains" in y and "starting_location: ica_facility" in y
+    y = rec.build_yaml(h, "M", {"goal_level": "paris", "starting_location": "paris"}, False)
+    assert "starting_location: paris" in y and "goal_level: paris" not in y
+
+
+def test_elden_ring_dlc_goal_switches_dlc_on(all_recipes):
+    er = all_recipes["elden_ring"]
+    assert "enable_dlc: false" in rec.build_yaml(er, "M", {"goal": ["Final Boss"]}, True)
+    assert "enable_dlc: true" in rec.build_yaml(er, "M", {"goal": ["Final Boss", "DLC Final Boss"], "enable_dlc": False}, True)
+
+
+def test_dst_boss_goal_keeps_the_caves(all_recipes):
+    """DST refuses a boss goal when the boss's region (caves, Ancient Guardian) is turned off."""
+    d = all_recipes["dst"]
+    assert "cave_regions: auto" in rec.build_yaml(d, "M", {"goal": "bosses_any", "cave_regions": "none"}, True)
+    assert "cave_regions: none" in rec.build_yaml(d, "M", {"goal": "survival", "cave_regions": "none"}, True)
+
+
+def test_re3_only_standard_difficulty(all_recipes):
+    """RE3R 0.2.99 accepts only 'standard' (the others are commented out): a saved harder choice is ignored."""
+    r = all_recipes["re3"]
+    assert not any(o["key"] == "difficulty" for o in r["options"])
+    y = rec.build_yaml(r, "M", {"difficulty": "inferno"}, True)
+    assert "difficulty: standard" in y and "inferno" not in y

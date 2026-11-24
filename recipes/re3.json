@@ -5,7 +5,7 @@
   "game": "Resident Evil 3 Remake",
   "steam_appid": 952060,
   "verified": false,
-  "notes_ar": "نستخدم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas) لأن REFramework الرسمي لها. البرنامج يكتب العنوان والاسم داخل اللعبة.",
+  "notes_ar": "نستخدم النسخة اللي بدون RTX (من خصائص اللعبة في ستيم > Betas) لأن REFramework الرسمي لها. البرنامج يكتب العنوان والاسم داخل اللعبة. الصعوبة Standard بس: المود حالياً ما يقبل غيرها.",
   "sources": [
     "https://therealsolidussnake.github.io/RE3R_AP_SetupGuide/",
     "https://github.com/TheRealSolidusSnake/RE3R_AP_World/releases",
@@ -72,30 +72,6 @@
   ],
   "options": [
     {
-      "key": "difficulty",
-      "label_ar": "الصعوبة",
-      "help_ar": "لازم تلعب بنفس الصعوبة داخل اللعبة",
-      "default": "standard",
-      "choices": [
-        {
-          "value": "standard",
-          "label_ar": "عادية (Standard)"
-        },
-        {
-          "value": "hardcore",
-          "label_ar": "صعبة (Hardcore)"
-        },
-        {
-          "value": "nightmare",
-          "label_ar": "Nightmare"
-        },
-        {
-          "value": "inferno",
-          "label_ar": "Inferno"
-        }
-      ]
-    },
-    {
       "key": "bonus_start",
       "label_ar": "بداية مع مساعدة",
       "help_ar": "تبدأ مع علاج وذخيرة زيادة",
@@ -131,5 +107,8 @@
     "سيّف كثير، وبعد ما تخلص راندومايزر أعد تشغيل اللعبة قبل اللي بعده.",
     "فيه أماكن تفوت لو تقدمت (missable)، فدوّر قبل ما تكمل."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "fixed_options": {
+    "difficulty": "standard"
+  }
 }

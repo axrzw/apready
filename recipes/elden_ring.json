@@ -68,7 +68,7 @@
     {
       "key": "goal",
       "label_ar": "متى تخلص: البوسات اللي لازم تقتلهم",
-      "help_ar": "تقدر تختار أكثر من وحدة",
+      "help_ar": "تقدر تختار أكثر من وحدة. بوسات الـ DLC تشغّل زر الإضافة لحالها",
       "multi": true,
       "default": [
         "Final Boss"
@@ -104,11 +104,17 @@
         },
         {
           "value": "DLC Final Boss",
-          "label_ar": "البوس الأخير في الـ DLC"
+          "label_ar": "البوس الأخير في الـ DLC",
+          "sets": {
+            "enable_dlc": true
+          }
         },
         {
           "value": "All DLC Boss",
-          "label_ar": "كل بوسات الـ DLC"
+          "label_ar": "كل بوسات الـ DLC",
+          "sets": {
+            "enable_dlc": true
+          }
         },
         {
           "value": "Random",
