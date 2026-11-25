@@ -1,0 +1,174 @@
+{
+  "id": "the_witness",
+  "name": "The Witness",
+  "name_ar": "ذا ويتنس",
+  "game": "The Witness",
+  "steam_appid": 210970,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. لعبة ألغاز. الراندومايزر برنامج صغير يشتغل جنب اللعبة، والبرنامج يشغّله لحاله أول ما تفتح اللعبة.",
+  "sources": [
+    "https://archipelago.gg/tutorial/The%20Witness/setup/en",
+    "https://github.com/NewSoupVi/The-Witness-Randomizer-for-Archipelago",
+    "https://github.com/NewSoupVi/witness_archipelago_tracker"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "NewSoupVi/The-Witness-Randomizer-for-Archipelago",
+      "asset": "The.Witness.Randomizer.for.Archipelago.exe",
+      "to": "{tools}",
+      "check": "{tools}/The.Witness.Randomizer.for.Archipelago.exe",
+      "label": "The Witness Randomizer"
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 210970
+    },
+    {
+      "type": "run",
+      "exe": "{tools}/The.Witness.Randomizer.for.Archipelago.exe",
+      "label": "The Witness Randomizer",
+      "after_process": "witness64_d3d11.exe"
+    },
+    {
+      "type": "manual",
+      "id": "connect_witness",
+      "every_time": true,
+      "text_ar": "ابدأ سيف جديد في اللعبة. نافذة الراندومايزر تنفتح لحالها: اكتب {address} والاسم {slot} (والباسورد لو فيه) واضغط Connect. لو تكمل لعبة: حمّل نفس السيف واضغط Restore Credentials."
+    }
+  ],
+  "options": [
+    {
+      "key": "victory_condition",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "elevator",
+      "choices": [
+        {
+          "value": "elevator",
+          "label_ar": "تشغّل المصعد في قمة الجبل"
+        },
+        {
+          "value": "challenge",
+          "label_ar": "تخلص التحدي (Challenge)"
+        },
+        {
+          "value": "mountain_box_short",
+          "label_ar": "تحل صندوق الجبل (قصير)"
+        },
+        {
+          "value": "mountain_box_long",
+          "label_ar": "تحل صندوق الجبل (طويل)"
+        },
+        {
+          "value": "panel_hunt",
+          "label_ar": "تجمع ألواح معيّنة (Panel Hunt)"
+        }
+      ]
+    },
+    {
+      "key": "puzzle_randomization",
+      "label_ar": "صعوبة الألغاز",
+      "help_ar": "",
+      "default": "sigma_normal",
+      "choices": [
+        {
+          "value": "sigma_normal",
+          "label_ar": "عادية"
+        },
+        {
+          "value": "sigma_expert",
+          "label_ar": "خبير (صعبة جداً)"
+        },
+        {
+          "value": "umbra_variety",
+          "label_ar": "متنوعة"
+        },
+        {
+          "value": "none",
+          "label_ar": "زي اللعبة"
+        }
+      ]
+    },
+    {
+      "key": "shuffle_doors",
+      "label_ar": "الأبواب",
+      "help_ar": "تحتاج غرض عشان تفتح الأبواب",
+      "default": "off",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "عادية"
+        },
+        {
+          "value": "panels",
+          "label_ar": "ألواح الأبواب مقفلة"
+        },
+        {
+          "value": "doors",
+          "label_ar": "الأبواب نفسها"
+        },
+        {
+          "value": "mixed",
+          "label_ar": "خليط"
+        }
+      ]
+    },
+    {
+      "key": "mountain_lasers",
+      "label_ar": "كم ليزر عشان تدخل الجبل",
+      "help_ar": "",
+      "default": 7,
+      "min": 1,
+      "max": 11,
+      "advanced": true
+    },
+    {
+      "key": "puzzle_skip_amount",
+      "label_ar": "كم تخطي لغز",
+      "help_ar": "",
+      "default": 10,
+      "min": 0,
+      "max": 30,
+      "advanced": true
+    },
+    {
+      "key": "death_link_amnesty",
+      "label_ar": "كم غلطة مجانية قبل ما ترسل",
+      "help_ar": "في هذي اللعبة الموتة = تغلط في لغز. 1 = الغلطة الأولى ما ترسل والثانية ترسل",
+      "default": 1,
+      "min": 0,
+      "max": 5,
+      "deathlink": true
+    }
+  ],
+  "free_deaths_native": true,
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: ينزّل The Witness Randomizer.",
+    "اضغط ▶ العب: تنفتح اللعبة، وبعدها بشوي نافذة الراندومايزر.",
+    "في اللعبة ابدأ سيف جديد (New Game).",
+    "في نافذة الراندومايزر اكتب العنوان واسمك واضغط Connect. لا تسكّرها وأنت تلعب.",
+    "تكمل بعدين؟ حمّل نفس السيف، واضغط Restore Credentials وبعدها Connect."
+  ],
+  "checks_ar": "كل لوح (panel) تحله تشيك، والليزرات، وأشياء ثانية حسب الخيارات. ينرسل لحاله لما تحل اللوح.",
+  "checks_count_ar": "تقريباً 250-500 حسب الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تسكّر نافذة الراندومايزر وأنت تلعب: هي اللي ترسل التشيكات.",
+    "لكل روم سيف جديد في اللعبة."
+  ],
+  "map_tracker": {
+    "uid": "witness_ap_tracker_newsoupvi",
+    "variant": "standard",
+    "download": "https://github.com/NewSoupVi/witness_archipelago_tracker/releases/download/v0.6.8.2/witness_archipelago_tracker.zip"
+  },
+  "death_link_key": "death_link"
+}

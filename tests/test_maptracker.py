@@ -7,7 +7,8 @@ from app import maptracker, recipes as rec, roomfeed
 def test_every_map_pack_is_a_github_release_or_tag_zip():
     R = rec.load_all()
     with_map = sorted(rid for rid, r in R.items() if r.get("map_tracker"))
-    assert with_map == ["balatro", "cuphead", "hitman", "re2", "re3", "sekiro", "terraria", "tunic"]
+    assert with_map == ["a_hat_in_time", "balatro", "cuphead", "dark_souls_3", "doom_1993", "hitman", "noita", "re2", "re3",
+                        "sekiro", "terraria", "the_witness", "tunic"]
     for rid in with_map:
         maptracker.validate(R[rid]["map_tracker"], rid)
     bad = dict(R["tunic"], map_tracker={"uid": "x", "download": "https://evil.example/pack.zip"})

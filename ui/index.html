@@ -329,7 +329,7 @@ async function refresh() {
   $("games").innerHTML = S.games.map(g => `
     <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">
       <b dir="ltr">${g.name}</b>
-      <span class="tag ${g.installed?'':'no'}">${g.installed?'موجودة في ستيم':'مو مثبتة'}</span><br>
+      <span class="tag ${g.installed?'':'no'}">${!g.steam?'مو من ستيم':g.installed?'موجودة في ستيم':'مو مثبتة'}</span><br>
       ${g.verified?'':'<span class="tag no">وصفة تجريبية</span>'}
     </div>`).join("");
   $("players").innerHTML = S.players.length

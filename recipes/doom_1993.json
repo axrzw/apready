@@ -1,0 +1,204 @@
+{
+  "id": "doom_1993",
+  "name": "DOOM (1993)",
+  "name_ar": "DOOM (1993)",
+  "game": "DOOM 1993",
+  "steam_appid": 2280,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. تنلعب بنسخة APDOOM (Crispy Doom معدّلة) وملف اللعبة الأصلي DOOM.WAD من ستيم. البرنامج ينزّلها وينسخ الملف ويشغّلها متصلة بالروم لحالها.",
+  "sources": [
+    "https://archipelago.gg/tutorial/DOOM%201993/setup/en",
+    "https://github.com/Daivuk/apdoom",
+    "https://github.com/Ozone31/doom-ap-tracker"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Daivuk/apdoom",
+      "asset": "*APDOOM*Win32.zip",
+      "extract": true,
+      "to": "{tools}",
+      "check": "{tools}/crispy-apdoom.exe",
+      "label": "APDOOM"
+    },
+    {
+      "type": "copy",
+      "from": "{game_dir}/base/DOOM.WAD",
+      "to": "{tools}/DOOM.WAD",
+      "label": "DOOM.WAD",
+      "missing_ar": "ما لقيت DOOM.WAD في مجلد اللعبة (base). تأكد إن اللعبة مثبتة كاملة من ستيم."
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{tools}/crispy-apdoom.exe",
+      "label": "APDOOM",
+      "args": [
+        "-game",
+        "doom",
+        "-apserver",
+        "{address}",
+        "-applayerhex",
+        "{slot_hex}"
+      ],
+      "optional_args": {
+        "-password": "{password}"
+      }
+    },
+    {
+      "type": "manual",
+      "id": "connect_doom_1993",
+      "every_time": true,
+      "text_ar": "اللعبة تتصل بالروم لحالها. تختار المرحلة من الشاشة اللي تطلع (فيها المفاتيح والتشيكات لكل مرحلة)."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "complete_all_levels",
+      "choices": [
+        {
+          "value": "complete_all_levels",
+          "label_ar": "تخلص كل مراحل الحلقات المختارة"
+        },
+        {
+          "value": "complete_boss_levels",
+          "label_ar": "تخلص مراحل الزعماء بس"
+        }
+      ]
+    },
+    {
+      "key": "difficulty",
+      "label_ar": "الصعوبة",
+      "help_ar": "",
+      "default": "medium",
+      "choices": [
+        {
+          "value": "baby",
+          "label_ar": "I'm too young to die (أسهل)"
+        },
+        {
+          "value": "easy",
+          "label_ar": "Hey, not too rough"
+        },
+        {
+          "value": "medium",
+          "label_ar": "Hurt me plenty (عادي)"
+        },
+        {
+          "value": "hard",
+          "label_ar": "Ultra-Violence"
+        },
+        {
+          "value": "nightmare",
+          "label_ar": "Nightmare!"
+        }
+      ]
+    },
+    {
+      "key": "episode1",
+      "label_ar": "الحلقة 1: Knee-Deep in the Dead",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode2",
+      "label_ar": "الحلقة 2: The Shores of Hell",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode3",
+      "label_ar": "الحلقة 3: Inferno",
+      "help_ar": "",
+      "default": true
+    },
+    {
+      "key": "episode4",
+      "label_ar": "الحلقة 4: Thy Flesh Consumed",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "reset_level_on_death",
+      "label_ar": "ترجع المرحلة لما تموت",
+      "help_ar": "الوحوش ترجع، بس أغراضك وتشيكاتك تبقى",
+      "default": true,
+      "advanced": true
+    },
+    {
+      "key": "random_monsters",
+      "label_ar": "الوحوش",
+      "help_ar": "",
+      "default": "shuffle",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "vanilla",
+          "label_ar": "زي اللعبة"
+        },
+        {
+          "value": "shuffle",
+          "label_ar": "مخلوطة داخل المرحلة"
+        },
+        {
+          "value": "random_balanced",
+          "label_ar": "عشوائية متوازنة"
+        },
+        {
+          "value": "random_chaotic",
+          "label_ar": "عشوائية فوضى"
+        }
+      ]
+    },
+    {
+      "key": "flip_levels",
+      "label_ar": "قلب المراحل",
+      "help_ar": "",
+      "default": "vanilla",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "vanilla",
+          "label_ar": "عادي"
+        },
+        {
+          "value": "flipped",
+          "label_ar": "كلها مقلوبة"
+        },
+        {
+          "value": "randomly_flipped",
+          "label_ar": "بعضها مقلوب"
+        }
+      ]
+    }
+  ],
+  "guide_ar": [
+    "اللعبة لازم تكون مثبتة من ستيم (ملف DOOM.WAD يجي معها).",
+    "اضغط «جهّز اللعبة»: ينزّل APDOOM وينسخ DOOM.WAD لها.",
+    "اضغط ▶ العب: تنفتح اللعبة ومتصلة بالروم. ما تكتب شي.",
+    "من شاشة المراحل اختر أي مرحلة مفتوحة. المراحل تنفتح بأغراض تجيك من الشباب.",
+    "للهنت داخل اللعبة: T وبعدها مثلاً !hint e1m3 map"
+  ],
+  "checks_ar": "كل غرض في المراحل (أسلحة، مفاتيح، دروع، خرائط...) تشيك، وتخليص المرحلة تشيك. ينرسل لحاله.",
+  "checks_count_ar": "العدد يعتمد على الحلقات اللي تختارها، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تشغّلها من ستيم: نسخة ستيم ما فيها Archipelago. شغّلها من زر ▶ العب.",
+    "الموت يرجّع المرحلة من أولها (لو خيار «ترجع المرحلة لما تموت» شغّال)، بس أغراضك وتشيكاتك تبقى."
+  ],
+  "map_tracker": {
+    "uid": "ap_doom",
+    "variant": "standard",
+    "download": "https://github.com/Ozone31/doom-ap-tracker/archive/refs/tags/v1.2.3.zip"
+  },
+  "death_link_key": "death_link"
+}

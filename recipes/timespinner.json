@@ -1,0 +1,119 @@
+{
+  "id": "timespinner",
+  "name": "Timespinner",
+  "name_ar": "تايم سبنر",
+  "game": "Timespinner",
+  "steam_appid": 368620,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. الراندومايزر (TsRandomizer) ينحط في مجلد اللعبة وينفتح بدالها.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Timespinner/setup/en",
+    "https://github.com/Jarno458/TsRandomizer"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "Jarno458/TsRandomizer",
+      "asset": "Windows.*.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/TsRandomizer.exe",
+      "label": "TsRandomizer",
+      "strip_top_folder": true
+    }
+  ],
+  "connect": [],
+  "launch": [
+    {
+      "type": "run",
+      "exe": "{game_dir}/TsRandomizer.exe",
+      "label": "TsRandomizer"
+    },
+    {
+      "type": "manual",
+      "id": "connect_timespinner",
+      "every_time": true,
+      "text_ar": "New Game > على << Select Seed >> اضغط يسار لين يصير << Archipelago >> واختاره. اكتب {address} والاسم {slot} (تقدر تلصق بـ Ctrl+V) واضغط Connect، وبعدها اختر الصعوبة."
+    }
+  ],
+  "options": [
+    {
+      "key": "inverted",
+      "label_ar": "تبدأ في الماضي (Inverted)",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "start_with_jewelry_box",
+      "label_ar": "تبدأ مع Jewelry Box",
+      "help_ar": "",
+      "default": false
+    },
+    {
+      "key": "boss_rando",
+      "label_ar": "خلط الزعماء",
+      "help_ar": "",
+      "default": "off",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "بدون"
+        },
+        {
+          "value": "scaled",
+          "label_ar": "مخلوطة وقوتها على قد المكان"
+        },
+        {
+          "value": "unscaled",
+          "label_ar": "مخلوطة بقوتها الأصلية"
+        }
+      ]
+    },
+    {
+      "key": "enemy_rando",
+      "label_ar": "خلط الأعداء",
+      "help_ar": "",
+      "default": "off",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "بدون"
+        },
+        {
+          "value": "scaled",
+          "label_ar": "مخلوطة وقوتها على قد المكان"
+        },
+        {
+          "value": "unscaled",
+          "label_ar": "مخلوطة بقوتها الأصلية"
+        }
+      ]
+    },
+    {
+      "key": "lore_checks",
+      "label_ar": "الذكريات والمذكرات تشيكات",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    }
+  ],
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: يحط TsRandomizer في مجلد اللعبة.",
+    "اضغط ▶ العب: ينفتح TsRandomizer (هو اللعبة بالراندو).",
+    "New Game، وغيّر << Select Seed >> إلى << Archipelago >> بزر يسار، واكتب بيانات الروم.",
+    "اضغط Connect واختر الصعوبة، وتبدأ."
+  ],
+  "checks_ar": "كل الصناديق، والأغراض على الأرض، والزعماء، وأشياء ثانية حسب الخيارات. ينرسل لحاله.",
+  "checks_count_ar": "حوالي 200 تشيك، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "شغّلها من ▶ العب مو من ستيم: ستيم يفتح اللعبة العادية بدون راندو."
+  ],
+  "death_link_key": "death_link"
+}

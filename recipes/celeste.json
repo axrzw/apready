@@ -1,0 +1,175 @@
+{
+  "id": "celeste",
+  "name": "Celeste",
+  "name_ar": "سيليست",
+  "game": "Celeste (Open World)",
+  "steam_appid": 504230,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago (Celeste Open World). البرنامج يركّب Everest (محمّل مودات سيليست) والمود ويكتب بيانات الاتصال.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Celeste%20(Open%20World)/guide/en",
+    "https://github.com/PoryGoneDev/Celeste-Archipelago-Open-World",
+    "https://github.com/EverestAPI/Everest"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "EverestAPI/Everest",
+      "asset": "main.zip",
+      "extract": true,
+      "to": "{game_dir}",
+      "check": "{game_dir}/MiniInstaller-win64.exe",
+      "label": "Everest",
+      "strip_top_folder": true,
+      "tag_prefix": "stable-",
+      "skip_if_exists": "{game_dir}/everest-lib"
+    },
+    {
+      "type": "run",
+      "exe": "{game_dir}/MiniInstaller-win64.exe",
+      "label": "تركيب Everest",
+      "wait": true,
+      "skip_if_exists": "{game_dir}/everest-lib"
+    },
+    {
+      "type": "github_release",
+      "repo": "PoryGoneDev/Celeste-Archipelago-Open-World",
+      "asset": "Archipelago_Open_World.zip",
+      "to": "{game_dir}/Mods",
+      "check": "{game_dir}/Mods/Archipelago_Open_World.zip",
+      "label": "مود Archipelago"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "path": "{game_dir}/Saves/modsettings-Archipelago Open World.celeste",
+      "content": "Address: '{address}'\nSlotName: '{slot}'\nPassword: '{password}'\n",
+      "label": "بيانات الاتصال"
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 504230
+    },
+    {
+      "type": "manual",
+      "id": "connect_celeste",
+      "every_time": true,
+      "text_ar": "في القائمة الرئيسية اضغط Connect: البيانات معبّاة ({address} و {slot})، اضغط Connect. اسمك في الروم لازم يكون 16 حرف أو أقل."
+    }
+  ],
+  "options": [
+    {
+      "key": "goal_area",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "the_summit_a",
+      "choices": [
+        {
+          "value": "the_summit_a",
+          "label_ar": "The Summit (A)"
+        },
+        {
+          "value": "the_summit_b",
+          "label_ar": "The Summit (B)"
+        },
+        {
+          "value": "the_summit_c",
+          "label_ar": "The Summit (C)"
+        },
+        {
+          "value": "core_a",
+          "label_ar": "Core (A)"
+        },
+        {
+          "value": "core_b",
+          "label_ar": "Core (B)"
+        },
+        {
+          "value": "core_c",
+          "label_ar": "Core (C)"
+        },
+        {
+          "value": "empty_space",
+          "label_ar": "Empty Space"
+        },
+        {
+          "value": "farewell",
+          "label_ar": "Farewell"
+        },
+        {
+          "value": "farewell_golden",
+          "label_ar": "Farewell (الفراولة الذهبية)"
+        }
+      ]
+    },
+    {
+      "key": "total_strawberries",
+      "label_ar": "كم فراولة في اللعبة",
+      "help_ar": "",
+      "default": 50,
+      "min": 0,
+      "max": 202
+    },
+    {
+      "key": "strawberries_required_percentage",
+      "label_ar": "كم بالمية من الفراولة تحتاج عشان تخلص",
+      "help_ar": "",
+      "default": 80,
+      "min": 0,
+      "max": 100
+    },
+    {
+      "key": "include_core",
+      "label_ar": "المرحلة 8 (Core)",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "include_b_sides",
+      "label_ar": "مراحل B-Side",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "include_c_sides",
+      "label_ar": "مراحل C-Side",
+      "help_ar": "",
+      "default": false,
+      "advanced": true
+    },
+    {
+      "key": "death_link_amnesty",
+      "label_ar": "كل كم موتة ترسل وحدة للشباب",
+      "help_ar": "سيليست كلها موت! 10 = كل 10 موتات ترسل وحدة",
+      "default": 10,
+      "min": 1,
+      "max": 30,
+      "deathlink": true
+    }
+  ],
+  "free_deaths_native": true,
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: يركّب Everest (يطلع شباك أسود ثواني) ومود Archipelago.",
+    "اضغط ▶ العب: يكتب بيانات الروم ويشغّل اللعبة من ستيم (بتشوف شعار Everest).",
+    "في القائمة الرئيسية اضغط Connect، البيانات معبّاة، اضغط Connect.",
+    "ابدأ سيف جديد. المراحل تنفتح بالأغراض اللي تجيك.",
+    "تبي تكتب أوامر؟ من Mod Options شغّل Debug Mode، وبعدها ~ يفتح الكونسول: !ap !hint اسم الغرض."
+  ],
+  "checks_ar": "الفراولات، والكاسيتات، والقلوب الكريستال، ونهاية كل مرحلة، وأشياء ثانية حسب الخيارات. ينرسل لحاله.",
+  "checks_count_ar": "يعتمد على الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "اسمك في الروم 16 حرف أو أقل (المود ما يقبل أطول).",
+    "لو سويت Verify files في ستيم، اضغط «جهّز اللعبة» مرة ثانية."
+  ],
+  "death_link_key": "death_link"
+}

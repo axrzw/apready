@@ -1,0 +1,2 @@
+# owner/repo tag asset [grep regex inside text files | FILE:<path in zip>]: the release-info workflow lists what is inside
+qixils/NeoForgeAP v2.2.1 minecraft.apworld FILE:minecraft/Options.py

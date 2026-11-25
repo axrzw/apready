@@ -1,0 +1,212 @@
+{
+  "id": "hollow_knight",
+  "name": "Hollow Knight",
+  "name_ar": "هولو نايت",
+  "game": "Hollow Knight",
+  "steam_appid": 367520,
+  "verified": false,
+  "notes_ar": "رسمية في Archipelago. البرنامج يركّب Modding API ومود Archipelago ومتطلباته (نفس اللي يسويه Lumafly) ويكتب بيانات الاتصال.",
+  "sources": [
+    "https://archipelago.gg/tutorial/Hollow%20Knight/setup/en",
+    "https://github.com/ArchipelagoMW-HollowKnight/Archipelago.HollowKnight",
+    "https://github.com/hk-modding/modlinks"
+  ],
+  "apworld": [
+    {
+      "type": "apworld_builtin"
+    }
+  ],
+  "install": [
+    {
+      "type": "github_release",
+      "repo": "hk-modding/api",
+      "asset": "moddingapi.*.windows.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed",
+      "check": "{game_dir}/hollow_knight_Data/Managed/MMHOOK_Assembly-CSharp.dll",
+      "label": "Modding API"
+    },
+    {
+      "type": "github_release",
+      "repo": "fifty-six/HollowKnight.Vasi",
+      "asset": "Vasi.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/Vasi",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/Vasi/Vasi.dll",
+      "label": "Vasi"
+    },
+    {
+      "type": "github_release",
+      "repo": "homothetyhk/HollowKnight.MenuChanger",
+      "asset": "MenuChanger.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/MenuChanger",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/MenuChanger/MenuChanger.dll",
+      "label": "MenuChanger"
+    },
+    {
+      "type": "github_release",
+      "repo": "homothetyhk/HollowKnight.ItemChanger",
+      "asset": "ItemChanger.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/ItemChanger",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/ItemChanger/ItemChanger.dll",
+      "label": "ItemChanger"
+    },
+    {
+      "type": "github_release",
+      "repo": "homothetyhk/HollowKnight.BenchwarpMod",
+      "asset": "Benchwarp.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/Benchwarp",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/Benchwarp/Benchwarp.dll",
+      "label": "Benchwarp"
+    },
+    {
+      "type": "github_release",
+      "repo": "fifty-six/HollowKnight.QoL",
+      "asset": "QoL.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/QoL",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/QoL/QoL.dll",
+      "label": "QoL"
+    },
+    {
+      "type": "github_release",
+      "repo": "ArchipelagoMW-HollowKnight/Archipelago.HollowKnight",
+      "asset": "Archipelago.zip",
+      "extract": true,
+      "to": "{game_dir}/hollow_knight_Data/Managed/Mods/Archipelago",
+      "check": "{game_dir}/hollow_knight_Data/Managed/Mods/Archipelago/Archipelago.HollowKnight.dll",
+      "label": "مود Archipelago"
+    }
+  ],
+  "connect": [
+    {
+      "type": "write_file",
+      "path": "{locallow}/Team Cherry/Hollow Knight/ArchipelagoMod.GlobalSettings.json",
+      "merge": true,
+      "ints": [
+        "ServerPort"
+      ],
+      "content": {
+        "MenuConnectionDetails": {
+          "ServerUrl": "{host}",
+          "ServerPort": "{port}",
+          "SlotName": "{slot}",
+          "ServerPassword": "{password}"
+        }
+      },
+      "label": "بيانات الاتصال"
+    }
+  ],
+  "launch": [
+    {
+      "type": "steam_launch",
+      "appid": 367520
+    },
+    {
+      "type": "manual",
+      "id": "connect_hk",
+      "every_time": true,
+      "text_ar": "سوّ سيف جديد، واختر وضع Archipelago. البيانات معبّاة ({address} و {slot})، اضغط Start."
+    }
+  ],
+  "options": [
+    {
+      "key": "Goal",
+      "label_ar": "متى تخلص",
+      "help_ar": "",
+      "default": "any",
+      "choices": [
+        {
+          "value": "any",
+          "label_ar": "أي نهاية"
+        },
+        {
+          "value": "hollowknight",
+          "label_ar": "تذبح Hollow Knight"
+        },
+        {
+          "value": "siblings",
+          "label_ar": "Sealed Siblings"
+        },
+        {
+          "value": "radiance",
+          "label_ar": "تذبح The Radiance"
+        },
+        {
+          "value": "godhome",
+          "label_ar": "Pantheon 5 في Godhome"
+        },
+        {
+          "value": "godhome_flower",
+          "label_ar": "Godhome + الوردة"
+        },
+        {
+          "value": "grub_hunt",
+          "label_ar": "تجمع الـ Grubs"
+        }
+      ]
+    },
+    {
+      "key": "WhitePalace",
+      "label_ar": "White Palace",
+      "help_ar": "",
+      "default": "exclude",
+      "advanced": true,
+      "choices": [
+        {
+          "value": "exclude",
+          "label_ar": "بدونه"
+        },
+        {
+          "value": "kingfragment",
+          "label_ar": "King Fragment بس"
+        },
+        {
+          "value": "nopathofpain",
+          "label_ar": "بدون Path of Pain"
+        },
+        {
+          "value": "include",
+          "label_ar": "كله"
+        }
+      ]
+    },
+    {
+      "key": "DeathLinkShade",
+      "label_ar": "الشبح (Shade) لما تموت بالـ Death Link",
+      "help_ar": "",
+      "default": "shade",
+      "deathlink": true,
+      "choices": [
+        {
+          "value": "shade",
+          "label_ar": "يطلع شبح لو ما عندك واحد"
+        },
+        {
+          "value": "shadeless",
+          "label_ar": "بدون شبح"
+        },
+        {
+          "value": "vanilla",
+          "label_ar": "زي الموت العادي"
+        }
+      ]
+    }
+  ],
+  "death_link_key": "DeathLink",
+  "guide_ar": [
+    "اضغط «جهّز اللعبة»: يركّب Modding API ومود Archipelago ومتطلباته في مجلد اللعبة.",
+    "اضغط ▶ العب: يكتب بيانات الروم ويشغّل اللعبة.",
+    "سوّ سيف جديد، واختر وضع Archipelago من شاشة الأوضاع.",
+    "البيانات معبّاة، اضغط Start. اللعبة توقف ثواني وهي توزع الأغراض، عادي."
+  ],
+  "checks_ar": "التشارمز، والقدرات، والمفاتيح، والـ Grubs، وشظايا القلب والروح، والخرائط، وأماكن كثيرة ثانية حسب الخيارات. ينرسل لحاله لما تاخذه.",
+  "checks_count_ar": "يعتمد كثير على الخيارات (مئات)، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "avoid_ar": [
+    "لا تركّب BepInEx لهذي اللعبة: يخرب المودات حقتها.",
+    "لو سويت Verify files في ستيم، اضغط «جهّز اللعبة» مرة ثانية."
+  ]
+}
