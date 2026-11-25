@@ -168,6 +168,25 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
             />
           </div>
         )}
+        {s.kind === "guess" && (
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1.5">
+              <span className="label">الإكمال التلقائي</span>
+              <Segmented
+                value={s.autocomplete}
+                onChange={(v) => set("autocomplete", v)}
+                options={[
+                  { value: "on", label: "مفعّل" },
+                  { value: "reduced", label: "مفعّل بنقاط أقل" },
+                  { value: "off", label: "مطفأ (تحدي)" },
+                ]}
+              />
+            </div>
+            <Check checked={s.firstOnly} onChange={(b) => set("firstOnly", b)}>
+              الأول فقط ياخذ النقاط
+            </Check>
+          </div>
+        )}
         {s.kind === "describer" && (
           <div className="flex flex-wrap gap-4">
             <Segmented

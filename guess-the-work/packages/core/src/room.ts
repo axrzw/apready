@@ -60,6 +60,8 @@ export interface Player {
   score: number;
   streak: number;
   lastSeen: number;
+  /** joined while a game was running: watches until they ask to play */
+  spectator?: boolean;
 }
 
 export interface AnswerState {
@@ -117,7 +119,18 @@ export interface RoomState {
   tag?: string;
   /** "اعتمد جوابي": a player asks the others to accept what they typed */
   aliasVote?: AliasVote;
+  /** players who loaded the current question's media */
+  loaded?: string[];
+  kicked?: string[];
+  paused?: boolean;
+  pausedAt?: number;
+  pausedLeft?: number;
 }
+
+/** A question waits for everyone's media at most this long. */
+export const PRELOAD_MAX_MS = 6000;
+/** Countdown after everybody loaded. */
+export const START_DELAY_MS = 1000;
 
 export interface AliasVote {
   by: string;
@@ -155,6 +168,7 @@ export function createRoom(code: string, host: { id: string; name: string; avata
 }
 
 export function join(s: RoomState, p: { id: string; name: string; avatar?: string; color?: string }, now = Date.now()): RoomState {
+  if (s.kicked?.includes(p.id)) return s;
   const found = s.players.find((x) => x.id === p.id);
   if (found) {
     found.lastSeen = now;
@@ -163,8 +177,9 @@ export function join(s: RoomState, p: { id: string; name: string; avatar?: strin
     found.color = p.color;
     return s;
   }
-  s.players.push({ ...p, score: 0, streak: 0, lastSeen: now });
-  systemMsg(s, `${p.name} دخل الغرفة`, now);
+  const running = s.phase !== "lobby" && s.phase !== "finished";
+  s.players.push({ ...p, score: 0, streak: 0, lastSeen: now, spectator: running || undefined });
+  systemMsg(s, running ? `${p.name} يتفرج` : `${p.name} دخل الغرفة`, now);
   return s;
 }
 
@@ -212,8 +227,75 @@ function openQuestion(s: RoomState, now: number) {
   s.answers = {};
   s.aliasVote = undefined;
   s.hintsUsed = {};
+  s.loaded = [];
   const q = s.questions[s.index];
-  setPhase(s, "question", now, (q.timeLimitMs || s.settings.timeLimitSec * 1000) / 1000);
+  // the clock starts when everyone has the media (or after PRELOAD_MAX_MS)
+  const limit = q.timeLimitMs || s.settings.timeLimitSec * 1000;
+  s.phase = "question";
+  s.phaseStartedAt = now + PRELOAD_MAX_MS;
+  s.phaseEndsAt = s.phaseStartedAt + limit;
+}
+
+function activePlayers(s: RoomState, now: number) {
+  return s.players.filter((p) => !p.spectator && now - p.lastSeen < 30_000);
+}
+
+/** A client says it has the question's media. When all active players have it, a short countdown starts. */
+export function markLoaded(s: RoomState, playerId: string, questionId: string, now = Date.now()) {
+  const q = s.questions[s.index];
+  if (s.phase !== "question" || q?.id !== questionId || now >= s.phaseStartedAt) return;
+  s.loaded = [...new Set([...(s.loaded ?? []), playerId])];
+  if (activePlayers(s, now).every((p) => s.loaded!.includes(p.id))) {
+    const limit = s.phaseEndsAt - s.phaseStartedAt;
+    s.phaseStartedAt = Math.min(s.phaseStartedAt, now + START_DELAY_MS);
+    s.phaseEndsAt = s.phaseStartedAt + limit;
+  }
+}
+
+function hostOnly(s: RoomState, by: string) {
+  if (by !== s.hostId) throw new Error("only the host");
+}
+
+export function kick(s: RoomState, by: string, target: string, now = Date.now()) {
+  hostOnly(s, by);
+  if (target === by) throw new Error("not yourself");
+  const p = s.players.find((x) => x.id === target);
+  s.players = s.players.filter((x) => x.id !== target);
+  s.kicked = [...new Set([...(s.kicked ?? []), target])];
+  if (p) systemMsg(s, `${p.name} انطرد`, now);
+}
+
+export function transferHost(s: RoomState, by: string, to: string, now = Date.now()) {
+  hostOnly(s, by);
+  const p = s.players.find((x) => x.id === to);
+  if (!p) throw new Error("no such player");
+  s.hostId = to;
+  systemMsg(s, `${p.name} صار المضيف`, now);
+}
+
+/** Freezes the clock (answers wait). */
+export function pause(s: RoomState, by: string, now = Date.now()) {
+  hostOnly(s, by);
+  if (s.paused || !Number.isFinite(s.phaseEndsAt)) return;
+  s.paused = true;
+  s.pausedAt = now;
+  s.pausedLeft = Math.max(0, s.phaseEndsAt - now);
+  s.phaseEndsAt = Number.POSITIVE_INFINITY;
+}
+
+export function resume(s: RoomState, by: string, now = Date.now()) {
+  hostOnly(s, by);
+  if (!s.paused) return;
+  const shift = now - (s.pausedAt ?? now);
+  s.phaseStartedAt += shift;
+  s.phaseEndsAt = now + (s.pausedLeft ?? 0);
+  s.paused = false;
+  s.pausedAt = s.pausedLeft = undefined;
+}
+
+export function becomePlayer(s: RoomState, uid: string) {
+  const p = s.players.find((x) => x.id === uid);
+  if (p) p.spectator = false;
 }
 
 export function currentQuestion(s: RoomState): Question | undefined {
@@ -250,9 +332,9 @@ export interface Submission {
 
 export function submitAnswer(s: RoomState, playerId: string, sub: Submission, now = Date.now()): AnswerResult {
   const q = currentQuestion(s);
-  if (!q || s.phase !== "question" || now > s.phaseEndsAt) return { correct: false, factor: 0, points: 0, closed: true };
+  if (!q || s.phase !== "question" || s.paused || now > s.phaseEndsAt || now < s.phaseStartedAt) return { correct: false, factor: 0, points: 0, closed: true };
   const player = s.players.find((p) => p.id === playerId);
-  if (!player) return { correct: false, factor: 0, points: 0, closed: true };
+  if (!player || player.spectator) return { correct: false, factor: 0, points: 0, closed: true };
   const prev = s.answers[playerId];
   if (prev?.correct) return { ...prev, already: true };
   const usingChoice = sub.choice !== undefined && q.answerType === "text";
@@ -296,7 +378,7 @@ export function submitAnswer(s: RoomState, playerId: string, sub: Submission, no
 function allDone(s: RoomState) {
   const q = currentQuestion(s);
   if (!q) return false;
-  return s.players.every((p) => {
+  return s.players.filter((p) => !p.spectator).every((p) => {
     const a = s.answers[p.id];
     return a && (a.correct || a.method === "choice" || q.answerType !== "text");
   });
@@ -410,6 +492,7 @@ export interface PublicPlayer {
   answered: boolean;
   correct?: boolean;
   online: boolean;
+  spectator?: boolean;
 }
 
 export interface PublicRoom<Q> {
@@ -432,6 +515,9 @@ export interface PublicRoom<Q> {
   chat: ChatMessage[];
   party?: unknown;
   tag?: string;
+  paused: boolean;
+  /** how many players loaded the current question */
+  loaded: number;
   aliasVote?: { by: string; text: string; yes: number; no: number; myVote?: boolean; status: AliasVote["status"] };
 }
 
@@ -453,7 +539,10 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
       answered: !!s.answers[p.id],
       correct: s.phase === "reveal" ? !!s.answers[p.id]?.correct : undefined,
       online: now - p.lastSeen < 20_000,
+      spectator: !!p.spectator,
     })),
+    paused: !!s.paused,
+    loaded: s.loaded?.length ?? 0,
     phase: s.phase,
     phaseStartedAt: s.phaseStartedAt,
     phaseEndsAt: Number.isFinite(s.phaseEndsAt) ? s.phaseEndsAt : null,

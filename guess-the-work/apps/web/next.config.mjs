@@ -4,7 +4,13 @@ const nextConfig = {
   serverExternalPackages: ["sharp", "@electric-sql/pglite", "ffmpeg-static", "tesseract.js"],
   // ffmpeg binary + db migrations must ship with the functions
   outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
-  outputFileTracingIncludes: { "/**": ["../../packages/db/migrations/**", "../../snapshot/**"] },
+  outputFileTracingIncludes: {
+    "/**": ["../../packages/db/migrations/**"],
+    "/api/m/[token]": ["../../node_modules/.pnpm/ffmpeg-static@*/node_modules/ffmpeg-static/ffmpeg"],
+    "/api/admin/clip": ["../../node_modules/.pnpm/ffmpeg-static@*/node_modules/ffmpeg-static/ffmpeg"],
+  },
+  // local data (PGlite folder, media cache) never ships
+  outputFileTracingExcludes: { "/**": ["../../data/**", "../../snapshot/**", "**/tesseract.js-core/**"] },
   poweredByHeader: false,
   images: { unoptimized: true },
   async headers() {

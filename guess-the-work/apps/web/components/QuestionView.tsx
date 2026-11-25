@@ -7,6 +7,8 @@ import { t } from "@/lib/i18n";
 import { Icon } from "@/lib/icons";
 import { play } from "@/lib/sound";
 import { useTick, type View } from "./useRoom";
+import type { Index, Suggestion } from "@gtw/core/autocomplete";
+import { loadIndex, suggest, type AcKind } from "@/lib/autocomplete-client";
 import { CountUp, Waveform } from "./ui";
 
 type Act = (a: Record<string, unknown>) => Promise<unknown>;
@@ -20,6 +22,23 @@ export default function QuestionView({ view, act, now, lang }: { view: View; act
   const duration = (view.phaseEndsAt ?? view.phaseStartedAt) - view.phaseStartedAt;
   const L = (ar?: string, en?: string) => (lang === "ar" ? ar || en : en || ar) ?? "";
   const audio = AUDIO_MODES.includes(q.mode);
+  usePreload(view, act);
+
+  // the clock starts when everyone has the media: until then, a short countdown
+  if (live && now() < view.phaseStartedAt) {
+    const secs = Math.ceil((view.phaseStartedAt - now()) / 1000);
+    return (
+      <div className="flex flex-col items-center gap-4 py-16 text-center" aria-live="polite">
+        <div className="label">STAND BY</div>
+        <motion.div key={secs} initial={{ scale: 1.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="num font-display text-7xl text-accent">
+          {secs}
+        </motion.div>
+        <p className="text-sm text-muted">
+          نحمّل السؤال عند الكل <span className="num">({view.loaded}/{view.players.filter((p) => !p.spectator).length})</span>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <AnimatePresence mode="wait">
@@ -71,6 +90,26 @@ export default function QuestionView({ view, act, now, lang }: { view: View; act
       </motion.div>
     </AnimatePresence>
   );
+}
+
+/** Downloads the question's media, then tells the server this player is ready. */
+function usePreload(view: View, act: Act) {
+  const q = view.question!;
+  const qid = q.id;
+  const live = view.phase === "question";
+  const sent = useRef<string | null>(null);
+  useEffect(() => {
+    if (!live || sent.current === qid) return;
+    sent.current = qid;
+    const urls = [
+      ...q.assets.map((a) => (a.type === "image" ? `${a.url}?s=0` : a.url)),
+      ...(q.items ?? []).map((i) => i.image).filter((x): x is string => !!x),
+      ...(q.choices ?? []).map((c) => c.image).filter((x): x is string => !!x),
+    ];
+    const timeout = new Promise((r) => setTimeout(r, 5000));
+    void Promise.race([Promise.all(urls.map((u) => fetch(u).then((r) => r.blob()).catch(() => null))), timeout]).then(() => act({ type: "loaded", questionId: qid }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qid, live]);
 }
 
 function Redacted({ text }: { text: string }) {
@@ -213,30 +252,32 @@ function AnswerBox({ view, act, lang }: { view: View; act: Act; lang: Lang }) {
   const q = view.question!;
   const mine = view.myAnswer;
   const [text, setText] = useState("");
-  const [sugs, setSugs] = useState<string[]>([]);
+  const [sugs, setSugs] = useState<Suggestion[]>([]);
+  const [index, setIndex] = useState<Index | null>(null);
   const [active, setActive] = useState(-1);
   const [useChoices, setUseChoices] = useState(view.settings.method === "choice");
   const [shake, setShake] = useState(false);
   const [order, setOrder] = useState<string[]>(() => q.choices?.map((c) => c.id) ?? []);
-  const kind = ["shadow", "eyes", "character_name", "voice_actor"].includes(q.mode) ? "character" : "work";
+  const kind: AcKind | null =
+    view.settings.autocomplete === "off" || q.mode === "common_link" ? null : ["shadow", "eyes", "character_name", "voice_actor"].includes(q.mode) ? "character" : q.mode === "song" ? "song" : "work";
 
+  // reset only when the question changes (polling brings a new object every second)
+  const choiceIds = (q.choices ?? []).map((c) => c.id).join(",");
   useEffect(() => {
     setText("");
     setUseChoices(view.settings.method === "choice");
-    setOrder(q.choices?.map((c) => c.id) ?? []);
-  }, [q.id, view.settings.method, q.choices]);
+    setOrder(choiceIds ? choiceIds.split(",") : []);
+  }, [q.id, view.settings.method, choiceIds]);
 
+  // the whole library's names, downloaded once; searching is local and instant
   useEffect(() => {
-    if (text.trim().length < 2 || q.mode === "common_link" || q.mode === "song") return setSugs([]);
-    const tm = setTimeout(async () => {
-      const r = await fetch(`/api/suggest?kind=${kind}&q=${encodeURIComponent(text)}`);
-      if (r.ok) {
-        setSugs(await r.json());
-        setActive(-1);
-      }
-    }, 120);
-    return () => clearTimeout(tm);
-  }, [text, kind, q.mode]);
+    setIndex(null);
+    if (kind) void loadIndex(kind).then(setIndex, () => setIndex(null));
+  }, [kind]);
+  useEffect(() => {
+    setSugs(index && kind ? suggest(index, text) : []);
+    setActive(-1);
+  }, [text, index, kind]);
 
   const send = async (sub: Record<string, unknown>) => {
     const r = (await act({ type: "answer", submission: sub })) as { correct?: boolean; factor?: number } | null;
@@ -303,7 +344,7 @@ function AnswerBox({ view, act, lang }: { view: View; act: Act; lang: Lang }) {
         className={`flex gap-2 ${shake ? "shake" : ""}`}
         onSubmit={(e) => {
           e.preventDefault();
-          if (active >= 0 && sugs[active]) return void send({ text: sugs[active] });
+          if (active >= 0 && sugs[active]) return void send({ entityId: sugs[active].id });
           if (text.trim()) void send({ text });
         }}
       >
@@ -334,12 +375,30 @@ function AnswerBox({ view, act, lang }: { view: View; act: Act; lang: Lang }) {
       </form>
       <AnimatePresence>
         {sugs.length > 0 && (
-          <motion.ul initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="absolute inset-x-0 top-[52px] z-20 overflow-hidden rounded-md border border-lineStrong bg-raise shadow-xl">
-            {sugs.map((s, i) => (
-              <li key={s}>
-                <button className={`flex w-full items-center gap-2 px-3 py-2.5 text-start text-[15px] ${i === active ? "bg-surface2" : "hover:bg-surface2"}`} onMouseDown={(e) => e.preventDefault()} onClick={() => send({ text: s })}>
-                  <Icon name="Search" size={14} className="text-faint" />
-                  {s}
+          <motion.ul
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            role="listbox"
+            className="absolute inset-x-0 bottom-[calc(100%+6px)] z-20 max-h-[40dvh] overflow-y-auto rounded-md border border-lineStrong bg-raise shadow-xl"
+          >
+            {sugs.map((sg, i) => (
+              <li key={sg.id} role="option" aria-selected={i === active}>
+                <button
+                  className={`flex w-full flex-col items-start px-3 py-2.5 text-start ${i === active ? "bg-surface2" : "hover:bg-surface2"}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => send({ entityId: sg.id })}
+                >
+                  <span className="text-[15px]" data-bidi>
+                    {lang === "ar" ? sg.labelAr || sg.label : sg.label}
+                  </span>
+                  {sg.matched !== (lang === "ar" ? sg.labelAr || sg.label : sg.label) && (
+                    <span className="text-xs text-muted" data-bidi>
+                      {sg.matched.slice(0, sg.hl[0])}
+                      <mark className="bg-transparent text-accent">{sg.matched.slice(sg.hl[0], sg.hl[1])}</mark>
+                      {sg.matched.slice(sg.hl[1])}
+                    </span>
+                  )}
                 </button>
               </li>
             ))}
@@ -398,7 +457,10 @@ function Reveal({ view, lang, act }: { view: View; lang: Lang; act: Act }) {
               .map((x) => (
                 <li key={x.id} className="flex items-center gap-3 text-sm">
                   <span className="h-2 w-2 rounded-full" style={{ background: x.p?.color ?? "#9c978e" }} />
-                  <span className="flex-1">{x.p?.name ?? "؟"}</span>
+                  <span className="flex-1">
+                    {x.p?.name ?? "؟"}
+                    {x.breakdown && x.points > 0 && <Breakdown b={x.breakdown} />}
+                  </span>
                   <Icon name={x.correct ? "Check" : x.factor ? "CircleSlash" : "X"} size={14} className={x.correct ? "text-ok" : x.factor ? "text-accent" : "text-faint"} />
                   <span className="num w-14 text-end">{x.points ? <CountUp value={x.points} /> : <span className="text-faint">0</span>}</span>
                 </li>
@@ -454,5 +516,21 @@ function Reveal({ view, lang, act }: { view: View; lang: Lang; act: Act }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** "150 × سرعة 90% × سلسلة +10% + أول واحد 50" */
+function Breakdown({ b }: { b: NonNullable<NonNullable<View["reveal"]>["results"][number]["breakdown"]> }) {
+  const parts = [`${b.base}`];
+  if (b.speed < 1) parts.push(`سرعة ${Math.round(b.speed * 100)}%`);
+  if (b.method < 1) parts.push(b.method === 0.5 ? "اختيار ٥٠%" : `إكمال ${Math.round(b.method * 100)}%`);
+  if (b.hints < 1) parts.push(`تلميحات ${Math.round(b.hints * 100)}%`);
+  if (b.streak > 1) parts.push(`سلسلة +${Math.round((b.streak - 1) * 100)}%`);
+  if (b.factor < 1) parts.push(`جزئي ${Math.round(b.factor * 100)}%`);
+  return (
+    <span className="num block text-[11px] text-faint">
+      {parts.join(" × ")}
+      {b.bonus > 0 && ` + ترتيب ${b.bonus}`}
+    </span>
   );
 }

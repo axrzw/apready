@@ -8,13 +8,13 @@ export default function Timer({ start, end, now }: { start: number; end: number 
   useTick(200);
   const last = useRef(-1);
   const left = end ? Math.max(0, end - now()) : 0;
-  const secs = Math.ceil(left / 1000);
+  const secs = Math.ceil(Math.min(left, (end ?? start) - start) / 1000);
   useEffect(() => {
     if (end && secs <= 5 && secs > 0 && secs !== last.current) play("tick");
     last.current = secs;
   }, [secs, end]);
   if (!end) return null;
-  const frac = end - start > 0 ? left / (end - start) : 0;
+  const frac = end - start > 0 ? Math.min(1, left / (end - start)) : 0;
   const low = frac < 0.25;
   return (
     <div className="flex items-center gap-3" role="timer" aria-live="off">

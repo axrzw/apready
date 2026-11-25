@@ -17,12 +17,17 @@
     "backup": "pnpm --filter @gtw/ingest backup",
     "restore": "pnpm --filter @gtw/ingest restore",
     "db:setup": "pnpm --filter @gtw/ingest db:setup",
-    "lint": "pnpm --filter web lint"
+    "lint": "pnpm --filter web lint",
+    "vercel-build": "pnpm --filter @gtw/ingest db:setup && pnpm --filter web build",
+    "e2e": "node e2e/e2e.cjs"
   },
   "devDependencies": {
     "typescript": "5.9.3",
     "vitest": "3.2.7",
     "tsx": "4.20.6",
     "@types/node": "22.15.30"
+  },
+  "engines": {
+    "node": ">=22.13"
   }
 }

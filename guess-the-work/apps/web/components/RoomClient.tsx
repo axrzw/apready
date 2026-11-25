@@ -64,6 +64,7 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
     );
 
   const isHost = view.hostId === view.me;
+  const me = view.players.find((p) => p.id === view.me);
   const solo = view.tag === "solo";
   const kind = view.settings.kind;
   const mode = view.question ? MODES.find((m) => m.id === view.question!.mode) : undefined;
@@ -92,7 +93,29 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
           )}
         </div>
 
-        {view.phase !== "lobby" && view.phase !== "finished" && <Timer start={view.phaseStartedAt} end={view.phaseEndsAt} now={now} />}
+        {view.phase !== "lobby" && view.phase !== "finished" && !view.paused && <Timer start={view.phaseStartedAt} end={view.phaseEndsAt} now={now} />}
+        {view.paused && (
+          <div className="flex items-center justify-between rounded-md border border-accent/40 bg-accent/10 px-4 py-3">
+            <span className="flex items-center gap-2">
+              <Icon name="Pause" size={18} className="text-accent" /> موقوف مؤقتاً
+            </span>
+            {isHost && (
+              <button className="btn-primary h-9" onClick={() => act({ type: "resume" })}>
+                <Icon name="Play" size={16} /> كمّل
+              </button>
+            )}
+          </div>
+        )}
+        {me?.spectator && view.phase !== "lobby" && (
+          <div className="flex items-center justify-between rounded-md border border-line bg-surface px-4 py-3 text-sm">
+            <span className="flex items-center gap-2 text-muted">
+              <Icon name="Eye" size={16} /> تتفرج على الجولة الحالية
+            </span>
+            <button className="btn-ghost h-9" onClick={() => act({ type: "play" })}>
+              انضم كلاعب
+            </button>
+          </div>
+        )}
 
         {view.phase === "lobby" && <Lobby view={view} act={act} lang={lang} isHost={isHost} />}
         {(view.phase === "question" || view.phase === "reveal") && view.question && <QuestionView view={view} act={act} now={now} lang={lang} />}
@@ -101,7 +124,12 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
         {view.phase === "finished" && <Finished view={view} act={act} lang={lang} isHost={isHost} />}
 
         {isHost && (view.phase === "question" || view.phase === "reveal") && (
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-2">
+            {!view.paused && (
+              <button className="btn-quiet border border-line" onClick={() => act({ type: "pause" })}>
+                <Icon name="Pause" size={16} /> إيقاف مؤقت
+              </button>
+            )}
             <button className="btn-quiet border border-line" onClick={() => act({ type: "skip" })}>
               <Icon name="SkipForward" size={16} className="rtl:-scale-x-100" />
               {view.phase === "reveal" ? t(lang, "next") : t(lang, "skip")}
@@ -112,7 +140,7 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
       <aside className="space-y-4">
         <div className="panel p-3">
           <div className="label mb-2 px-2">{t(lang, "players")}</div>
-          <Scoreboard view={view} />
+          <Scoreboard view={view} act={act} />
         </div>
         {!solo && (
           <div className="panel p-3">

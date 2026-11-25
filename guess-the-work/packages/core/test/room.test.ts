@@ -12,7 +12,14 @@ function room(t0 = 1_000_000) {
   const s = createRoom("ABCDE", { id: "a", name: "Ali" }, { method: "both" }, t0);
   join(s, { id: "b", name: "Badr" }, t0);
   startGuess(s, "a", qs(), t0);
+  begin(s, t0);
   return s;
+}
+
+/** everyone loaded: the clock of the current question starts at t */
+function begin(s: ReturnType<typeof createRoom>, t: number) {
+  s.phaseStartedAt = t;
+  s.phaseEndsAt = t + 30_000;
 }
 
 describe("room", () => {
@@ -39,6 +46,7 @@ describe("room", () => {
     tick(s, s.phaseEndsAt);
     expect(s.phase).toBe("question");
     expect(s.index).toBe(1);
+    expect(s.phaseStartedAt).toBeGreaterThan(t0 + 21_000); // waits for the media again
   });
   it("does not freeze when a player disconnects", () => {
     const t0 = 1_000_000;
@@ -129,6 +137,7 @@ describe("scoring inside the room", () => {
     join(s, { id: "c", name: "C" }, t0);
     updateSettings(s, "a", { firstOnly: true });
     startGuess(s, "a", qs(), t0);
+    begin(s, t0);
     const q = s.questions[0];
     expect(submitAnswer(s, "b", { entityId: q.entity!.id }, t0).correct).toBe(true);
     expect(s.answers.b.breakdown?.bonus).toBe(50);

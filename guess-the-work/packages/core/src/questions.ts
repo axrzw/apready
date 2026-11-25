@@ -314,20 +314,22 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
       if (!w) return null;
       const m = lib.mediaById.get(id);
       const level = o.sceneLevel ?? 1;
-      let asset: Asset;
+      const assets: Asset[] = [];
       if (m && (m.kind === "clip" || m.kind === "clip_silent")) {
-        // prefer the clip matching the level (silent = level 2, with sound = level 3)
-        const want = level === 3 ? "clip" : "clip_silent";
-        const twin = lib.media.find((x) => x.kind === want && x.meta?.theme === m.meta?.theme && x.id.split(":").pop() === m.id.split(":").pop());
-        const use = twin ?? m;
-        asset = { type: "video", src: use.src, muted: use.kind === "clip_silent" };
+        // the picture is always the silent clip; with sound, the audio comes as its own audio-only file (SPEC 3)
+        const n = m.id.split(":").pop();
+        const silent = m.kind === "clip_silent" ? m : lib.media.find((x) => x.kind === "clip_silent" && x.meta?.theme === m.meta?.theme && x.id.split(":").pop() === n);
+        const sound = m.kind === "clip" ? m : lib.media.find((x) => x.kind === "clip" && x.meta?.theme === m.meta?.theme && x.id.split(":").pop() === n);
+        if (!silent) return null;
+        assets.push({ type: "video", src: silent.src, muted: true });
+        if (level === 3 && sound) assets.push({ type: "audio", src: sound.src, effect: "normal", start: 0, duration: 4 });
       } else {
         const src = m?.src ?? w.screenshots?.[Number(id.split(":shot").pop())];
         if (!src) return null;
-        asset = { type: "image", src, effect: "tiles", steps: EFFECTS.tiles.steps, seed: seed(rng) };
+        assets.push({ type: "image", src, effect: "tiles", steps: EFFECTS.tiles.steps, seed: seed(rng) });
       }
       const ans = workAnswer(lib, w, rng);
-      return { ...base(mode, c.key, w, o), promptAr: "من أي عمل هذا المشهد؟", promptEn: "Which work is this scene from?", assets: [asset], answerType: "text", ...ans, hints: hintsFor(lib, w, ans.names) };
+      return { ...base(mode, c.key, w, o), promptAr: "من أي عمل هذا المشهد؟", promptEn: "Which work is this scene from?", assets, answerType: "text", ...ans, hints: hintsFor(lib, w, ans.names) };
     }
     case "poster": {
       if (!w?.posterUrl) return null;

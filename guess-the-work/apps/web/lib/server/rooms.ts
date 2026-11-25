@@ -2,7 +2,13 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import {
   backToLobby,
+  becomePlayer,
   createRoom,
+  kick,
+  markLoaded,
+  pause,
+  resume,
+  transferHost,
   join,
   proposeAlias,
   publicRoom,
@@ -175,6 +181,7 @@ export async function roomExists(code: string) {
 
 export async function joinRoom(code: string, user: Session) {
   const { state } = await mutate(code.toUpperCase(), (s, _fx, now) => join(s, player(user), now));
+  if (state.kicked?.includes(user.uid)) throw new Error("انطردت من هذي الغرفة");
   return state;
 }
 
@@ -272,7 +279,13 @@ export type RoomAction =
   | { type: "draw_submit"; png: string }
   | { type: "draw_vote"; drawingId: string; kind: "best" | "funny" }
   | { type: "alias_propose"; text: string }
-  | { type: "alias_vote"; yes: boolean };
+  | { type: "alias_vote"; yes: boolean }
+  | { type: "loaded"; questionId: string }
+  | { type: "kick"; playerId: string }
+  | { type: "transfer"; playerId: string }
+  | { type: "pause" }
+  | { type: "resume" }
+  | { type: "play" };
 
 export async function act(code: string, user: Session, a: RoomAction): Promise<unknown> {
   // the PNG is stored before the room write (it may retry)
@@ -287,6 +300,24 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
         return drawer.guess(s, user.uid, a.submission.text ?? "", now);
       case "hint":
         return { open: requestHint(s, user.uid, now) };
+      case "loaded":
+        markLoaded(s, user.uid, a.questionId, now);
+        return { ok: true };
+      case "kick":
+        kick(s, user.uid, a.playerId, now);
+        return { ok: true };
+      case "transfer":
+        transferHost(s, user.uid, a.playerId, now);
+        return { ok: true };
+      case "pause":
+        pause(s, user.uid, now);
+        return { ok: true };
+      case "resume":
+        resume(s, user.uid, now);
+        return { ok: true };
+      case "play":
+        becomePlayer(s, user.uid);
+        return { ok: true };
       case "skip":
         skip(s, user.uid, now);
         return { ok: true };

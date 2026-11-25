@@ -3,6 +3,8 @@ import { jobNames, runningJobs, hasYtDlp } from "@/lib/server/admin";
 import { CATEGORY_AR, TIER_AR } from "@gtw/core/i18n";
 import { CATEGORIES, DEFAULT_TIER_MIX, TIERS, type Category, type Tier, type TierMix } from "@gtw/core/types";
 import AdminActions from "@/components/AdminActions";
+import SourcesPanel from "@/components/SourcesPanel";
+import { listSources } from "@/lib/server/sources";
 import { PageTitle } from "@/components/ui";
 import { Icon } from "@/lib/icons";
 
@@ -17,7 +19,7 @@ const JOB_AR: Record<string, string> = {
 
 export default async function Admin() {
   const repo = getRepo();
-  const [cov, counts, jobs, mix] = await Promise.all([repo.coverage(), repo.counts(), repo.listJobs(15), repo.getSetting<TierMix>("defaultMix")]);
+  const [cov, counts, jobs, mix, sources] = await Promise.all([repo.coverage(), repo.counts(), repo.listJobs(15), repo.getSetting<TierMix>("defaultMix"), listSources()]);
   const total = cov.reduce((s, r) => s + r.count, 0) || 1;
   const byTier = Object.fromEntries(TIERS.map((t) => [t, cov.filter((r) => r.tier === t).reduce((s, r) => s + r.count, 0)])) as Record<Tier, number>;
   const byCat = Object.fromEntries(CATEGORIES.map((c) => [c, cov.filter((r) => r.category === c).reduce((s, r) => s + r.count, 0)])) as Record<Category, number>;
@@ -91,6 +93,7 @@ export default async function Admin() {
           <div className="flex flex-wrap gap-1 text-sm">{genres.slice(0, 40).map(([g, n]) => <span key={g} className="toggle">{g} <b>{n}</b></span>)}</div>
         </div>
       </div>
+      <SourcesPanel sources={sources} />
       <AdminActions jobs={jobNames().map((n) => ({ id: n, label: JOB_AR[n] ?? n }))} running={runningJobs().map((j) => j.name)} mix={mix ?? DEFAULT_TIER_MIX} ytdlp={hasYtDlp()} />
       <div className="panel p-4">
         <h2 className="mb-2 font-bold">آخر المهام</h2>

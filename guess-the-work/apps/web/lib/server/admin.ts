@@ -26,6 +26,8 @@ const g = globalThis as unknown as { __gtwJobs?: Map<string, { started: number; 
 const running = (g.__gtwJobs ??= new Map());
 
 export function jobNames() {
+  // these spawn local scripts: only on a machine with the repo (not on Vercel)
+  if (process.env.VERCEL) return [];
   return Object.keys(JOBS);
 }
 
