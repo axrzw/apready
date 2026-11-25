@@ -91,6 +91,7 @@ describe("room", () => {
     const s = room(t0);
     expect(submitAnswer(s, "a", { text: s.questions[0].names[0] }, t0 + 31_000).closed).toBe(true);
     skip(s, "a", t0 + 1000);
+    expect(tick(s, t0 + 1000).closed).toBeTruthy(); // the clock closes it, so the answers get stored
     expect(s.phase).toBe("reveal");
     leave(s, "a");
     expect(s.hostId).toBe("b");

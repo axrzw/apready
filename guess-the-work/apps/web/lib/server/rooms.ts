@@ -20,14 +20,20 @@ import {
   tick,
   updateSettings,
   voteAlias,
+  QUESTION_KINDS,
   type RoomSettings,
   type RoomState,
   type Submission,
 } from "@gtw/core/room";
 import { generateQuestions } from "@gtw/core/generate";
+import { buildSocialQuestions } from "@gtw/core/social";
+import { buildSummary, titlesFor } from "@gtw/core/summary";
+import { shuffle } from "@gtw/core/rng";
+import { buildPackQuestions, type PackData } from "@gtw/core/packs";
 import { publicQuestion, type Question } from "@gtw/core/questions";
 import { adaptMix } from "@gtw/core/tiers";
 import { seeded } from "@gtw/core/rng";
+import type { WatchStatus } from "@gtw/core/group";
 import * as describer from "@gtw/core/describer";
 import * as drawer from "@gtw/core/drawer";
 import { getLibrary, invalidateLibrary } from "./library";
@@ -45,7 +51,7 @@ type Effects = (() => Promise<void>)[];
 
 async function saveAnswers(s: RoomState, q: Question, answers: RoomState["answers"], hints: RoomState["hintsUsed"], fx: Effects) {
   const players = s.players.map((p) => p.id);
-  const roomCode = s.tag ?? s.code;
+  const roomCode = answersRoom(s);
   const start = s.phaseStartedAt;
   fx.push(async () => {
     const repo = getRepo();
@@ -75,7 +81,7 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
   let changed = false;
   for (let i = 0; i < 60; i++) {
     const before = `${s.phase}|${s.index}|${s.phaseEndsAt}`;
-    if (s.settings.kind === "guess") {
+    if (QUESTION_KINDS.includes(s.settings.kind)) {
       const q = s.questions[s.index];
       const answers = { ...s.answers };
       const hints = { ...s.hintsUsed };
@@ -109,8 +115,38 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
   return changed;
 }
 
+/** Where a room's answers are filed: the daily tag / pack tag, else the room code (solo games each their own). */
+export function answersRoom(s: RoomState) {
+  return s.tag && s.tag !== "solo" ? s.tag : s.code;
+}
+
+/** Game over: the night summary goes to the archive and everybody's titles are recomputed. */
+function finalize(s: RoomState, fx: Effects) {
+  const room = answersRoom(s);
+  const players = s.players.filter((p) => !p.spectator).map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color, avatar: p.avatar }));
+  const id = `${s.code}-${s.phaseStartedAt}`;
+  const kind = s.settings.kind;
+  fx.push(async () => {
+    const repo = getRepo();
+    const ids = new Set(players.map((p) => p.id));
+    const answers = (await repo.answersOfRoom(room)).filter((a) => ids.has(a.userId));
+    const drawings = kind === "drawer" ? (await repo.listDrawings(room)).filter((d) => ids.has(d.userId)) : [];
+    const summary = buildSummary({ players, answers, drawings });
+    if (summary.questions || drawings.length) await repo.saveSession({ id, roomCode: s.code, summary: { ...summary, kind }, at: Date.now() });
+    const users = await repo.listUsers();
+    const stats = await Promise.all(
+      users.map(async (u) => {
+        const st = await repo.playerStats(u.id);
+        const n = st.byMode.reduce((x, m) => x + m.answers, 0);
+        return { ...st, answers: n };
+      }),
+    );
+    await repo.setSetting("titles", Object.fromEntries(titlesFor(stats)));
+  });
+}
+
 function saveParty(s: RoomState, rows: describer.ScoredRow[], fx: Effects) {
-  const roomCode = s.tag ?? s.code;
+  const roomCode = answersRoom(s);
   fx.push(async () => {
     const repo = getRepo();
     for (const r of rows) await repo.recordAnswer({ ...r, roomCode, at: Date.now() });
@@ -128,9 +164,11 @@ async function mutate<T>(code: string, fn: (s: RoomState, fx: Effects, now: numb
     const s = row.state;
     const now = Date.now();
     const fx: Effects = [];
+    const wasFinished = s.phase === "finished";
     await advance(s, now, fx);
     const result = await fn(s, fx, now);
     await advance(s, Date.now(), fx);
+    if (!wasFinished && s.phase === "finished") finalize(s, fx);
     if (await repo.saveRoom(code, s, row.version)) {
       for (const f of fx) await f();
       return { state: s, result };
@@ -147,8 +185,10 @@ async function current(code: string): Promise<RoomState | null> {
     const row = await repo.getRoom<RoomState>(code);
     if (!row) return null;
     const fx: Effects = [];
+    const wasFinished = row.state.phase === "finished";
     const changed = await advance(row.state, Date.now(), fx);
     if (!changed) return row.state;
+    if (!wasFinished && row.state.phase === "finished") finalize(row.state, fx);
     if (await repo.saveRoom(code, row.state, row.version)) {
       for (const f of fx) await f();
       return row.state;
@@ -162,9 +202,13 @@ const player = (u: Session) => ({ id: u.uid, name: u.name, avatar: u.avatar, col
 export async function newRoom(user: Session, settings: Partial<RoomSettings>, tag?: string, code?: string): Promise<RoomState> {
   const repo = getRepo();
   if (Math.random() < 0.1) void repo.deleteRoomsBefore(Date.now() - 3 * 86_400_000);
+  // the admin's scoring numbers (and default tier mix) for new rooms
+  const scoring = await repo.getSetting<RoomSettings["scoring"]>("scoring");
+  const mix = await repo.getSetting<RoomSettings["mix"]>("defaultMix");
+  const withDefaults: Partial<RoomSettings> = { ...(scoring ? { scoring } : {}), ...(mix && !settings.mix ? { mix } : {}), ...settings };
   for (let i = 0; i < 10; i++) {
     const c = code ?? roomCode();
-    const s = createRoom(c, player(user), settings);
+    const s = createRoom(c, player(user), withDefaults);
     s.tag = tag;
     if (await repo.saveRoom(c, s, 0)) return s;
     if (code) {
@@ -212,10 +256,17 @@ export async function viewRoom(code: string, uid: string) {
   const exp = (Math.floor(s.createdAt / 86_400_000) + 3) * 86_400_000;
   const image = (src: string) => assetUrl({ a: { type: "plain", src }, e: exp });
   const view = publicRoom(s, uid, Date.now(), (q) => present(s, q), image);
+  view.titles = await titlesCached();
   const priv = (r: describer.TokenReq) => assetUrl({ a: r.asset, u: r.users, e: exp });
   if (s.settings.kind === "describer" || s.settings.kind === "camera") view.party = describer.describerView(s, uid, priv, image);
   if (s.settings.kind === "drawer") view.party = drawer.drawerView(s, uid, priv, image);
   return view;
+}
+
+let titleCache: { at: number; v: Record<string, string[]> } | null = null;
+async function titlesCached() {
+  if (!titleCache || Date.now() - titleCache.at > 60_000) titleCache = { at: Date.now(), v: (await getRepo().getSetting<Record<string, string[]>>("titles")) ?? {} };
+  return titleCache.v;
 }
 
 /** Room state for the media route (reveal step check). */
@@ -236,8 +287,32 @@ async function start(s: RoomState, uid: string, now: number) {
   const daily = s.tag?.startsWith("daily:");
   const seen = daily ? undefined : await repo.seen(ids);
   const rng = daily ? seeded(s.tag!) : seeded(randomBytes(8).toString("hex"));
-  if (s.settings.kind === "guess") {
+  // the watch log: question source, group tiers, own-only, spoilers
+  const users = await repo.listUsers();
+  const watch = new Map<string, Map<string, WatchStatus>>();
+  for (const e of await repo.watchAll()) {
+    let m = watch.get(e.workId);
+    if (!m) watch.set(e.workId, (m = new Map()));
+    m.set(e.userId, e.status);
+  }
+  const st = s.settings;
+  const group = { watch, roomPlayers: ids, groupPlayers: users.filter((u) => !u.kicked).map((u) => u.id), source: st.source ?? "any", excludeOwnOnly: !!st.excludeOwnOnly, noSpoilers: st.noSpoilers !== false, mix: st.groupMix, weight: st.groupWeight ?? 0 };
+  if (s.settings.kind === "social") {
+    const log = await repo.watchAll();
+    const qs = buildSocialQuestions(lib, { modes: st.socialModes?.length ? st.socialModes : ["who_watched", "guess_rating"], count: st.count, players: s.players.map((p) => ({ id: p.id, name: p.name })), log, rng });
+    if (!qs.length) throw new Error("ما فيه أسئلة اجتماعية: سجّلوا أعمال وقيّموها في «سجلّي» أول");
+    startGuess(s, uid, qs, now);
+  } else if (s.settings.kind === "pack") {
+    const pack = st.packId ? await repo.getPack(st.packId) : undefined;
+    if (!pack) throw new Error("الباقة مو موجودة");
+    const qs = buildPackQuestions(lib, pack.data as PackData, rng);
+    if (!qs.length) throw new Error("الباقة فاضية");
+    s.tag = `pack:${pack.id}`;
+    startGuess(s, uid, qs, now);
+  } else if (s.settings.kind === "guess") {
     const qs = generateQuestions(lib, {
+      group,
+      years: [st.years?.[0] ?? undefined, st.years?.[1] ?? undefined],
       modes: s.settings.modes,
       count: s.settings.count,
       mix,
@@ -290,7 +365,8 @@ export type RoomAction =
   | { type: "camera_none" }
   | { type: "camera_choice"; choice: "talk" | "skip" | "back" }
   | { type: "report_violation" }
-  | { type: "approve_report"; id: number; approve: boolean };
+  | { type: "approve_report"; id: number; approve: boolean }
+  | { type: "revenge"; players: string[] };
 
 export async function act(code: string, user: Session, a: RoomAction): Promise<unknown> {
   // the PNG is stored before the room write (it may retry)
@@ -300,7 +376,7 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
     if (!s.players.some((p) => p.id === user.uid)) throw new Error("not in the room");
     switch (a.type) {
       case "answer":
-        if (s.settings.kind === "guess") return submitAnswer(s, user.uid, a.submission, now);
+        if (QUESTION_KINDS.includes(s.settings.kind)) return submitAnswer(s, user.uid, a.submission, now);
         if (s.settings.kind === "describer" || s.settings.kind === "camera") return describer.guess(s, user.uid, a.submission.text ?? "", now);
         return drawer.guess(s, user.uid, a.submission.text ?? "", now);
       case "hint":
@@ -334,6 +410,20 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
         return { ok: true };
       case "report_violation":
         return { id: describer.reportViolation(s, user.uid, now) };
+      case "revenge": {
+        // «ثأر»: the same questions in another order, only for the chosen players
+        if (user.uid !== s.hostId || s.phase !== "finished" || !QUESTION_KINDS.includes(s.settings.kind)) throw new Error("only the host, at the end");
+        const chosen = s.players.filter((p) => a.players.includes(p.id) || p.id === user.uid);
+        if (chosen.length < 2) throw new Error("اختر لاعب على الأقل");
+        const next = createRoom(roomCode(), { id: user.uid, name: user.name, avatar: user.avatar, color: user.color }, s.settings, now);
+        for (const p of chosen) if (p.id !== user.uid) join(next, { id: p.id, name: p.name, avatar: p.avatar, color: p.color }, now);
+        next.tag = s.tag === "solo" ? undefined : s.tag?.startsWith("pack:") ? s.tag : undefined;
+        startGuess(next, user.uid, shuffle(s.questions, Math.random), now);
+        next.players.forEach((p) => (p.lastSeen = now));
+        if (!(await getRepo().saveRoom(next.code, next, 0))) throw new Error("try again");
+        s.revenge = { code: next.code, players: chosen.map((p) => p.id) };
+        return { code: next.code };
+      }
       case "approve_report":
         describer.approveReport(s, user.uid, a.id, a.approve);
         return { ok: true };
@@ -346,9 +436,12 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
       case "lobby":
         backToLobby(s, user.uid, now);
         return { ok: true };
-      case "settings":
-        updateSettings(s, user.uid, a.settings);
+      case "settings": {
+        const { scoring: _ignored, ...rest } = a.settings;
+        void _ignored;
+        updateSettings(s, user.uid, rest);
         return { ok: true };
+      }
       case "chat": {
         const text = a.text.slice(0, 300).trim();
         if (!text) return { ok: true };

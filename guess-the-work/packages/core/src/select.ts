@@ -9,9 +9,13 @@ export interface Candidate {
   workId: string;
   tier: Tier;
   category: Category;
+  /** finer section (donghua, asian drama...) for the room's section filter */
+  section?: string;
   year?: number;
   genres?: string[];
   studios?: string[];
+  /** the group's tier for this work (watch log) */
+  groupTier?: import("./group").GroupTier;
 }
 
 export interface SelectOptions {
@@ -23,7 +27,11 @@ export interface SelectOptions {
   now?: number;
   /** a seen question may come back after this many days (or when nothing unseen is left) */
   repeatAfterDays?: number;
-  categories?: Category[];
+  /** categories or sections (anime, donghua, asian_drama...) */
+  categories?: string[];
+  /** share of each group tier, and how much it counts against the global tiers (0-100) */
+  groupMix?: import("./group").GroupMix;
+  groupWeight?: number;
 }
 
 function decade(y?: number) {
@@ -37,7 +45,7 @@ function decade(y?: number) {
 export function selectQuestions<C extends Candidate>(pool: readonly C[], o: SelectOptions): C[] {
   const now = o.now ?? Date.now();
   const repeatMs = (o.repeatAfterDays ?? 30) * 86_400_000;
-  const filtered = o.categories?.length ? pool.filter((c) => o.categories!.includes(c.category)) : [...pool];
+  const filtered = o.categories?.length ? pool.filter((c) => o.categories!.includes(c.section ?? c.category) || o.categories!.includes(c.category)) : [...pool];
   const fresh = (c: C) => {
     const t = o.seen?.get(c.key);
     return t === undefined || now - t >= repeatMs;
@@ -66,8 +74,21 @@ export function selectQuestions<C extends Candidate>(pool: readonly C[], o: Sele
   const decades = new Map<number, number>();
   const genres = new Map<string, number>();
   const studios = new Map<string, number>();
+  // group tiers: each candidate is weighted so the chosen ones follow groupMix (blended by groupWeight)
+  const gAvail = new Map<string, number>();
+  if (o.groupMix) for (const c of filtered) gAvail.set(c.groupTier ?? "group_unknown", (gAvail.get(c.groupTier ?? "group_unknown") ?? 0) + 1);
+  const gTotal = o.groupMix ? Object.values(o.groupMix).reduce((a, b) => a + b, 0) || 1 : 1;
+  const gw = Math.max(0, Math.min(1, (o.groupWeight ?? 50) / 100));
+  const groupFactor = (c: C) => {
+    if (!o.groupMix) return 1;
+    const t = c.groupTier ?? "group_unknown";
+    const share = (o.groupMix[t] ?? 0) / gTotal;
+    const avail = gAvail.get(t) ?? 1;
+    const f = share / avail;
+    return gw >= 1 ? f : (1 - gw) / filtered.length + gw * f;
+  };
   const weight = (c: C) => {
-    let w = 1;
+    let w = groupFactor(c);
     w /= 1 + 2 * (decades.get(decade(c.year)) ?? 0);
     for (const g of c.genres ?? []) w /= 1 + 0.5 * (genres.get(g) ?? 0);
     for (const s of c.studios ?? []) w /= 1 + 2 * (studios.get(s) ?? 0);
@@ -98,6 +119,7 @@ export function selectQuestions<C extends Candidate>(pool: readonly C[], o: Sele
       options = [...options].sort((a, b) => (o.seen?.get(a.key) ?? 0) - (o.seen?.get(b.key) ?? 0)).slice(0, 20);
     }
     const ws = options.map(weight);
+    if (ws.every((x) => x <= 0)) continue;
     let r = o.rng() * ws.reduce((a, b) => a + b, 0);
     let idx = 0;
     for (; idx < ws.length - 1; idx++) {

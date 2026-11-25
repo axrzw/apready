@@ -12,7 +12,7 @@ import { matchAnswer } from "@gtw/core/match";
 const fx = (n: string) => JSON.parse(readFileSync(join(__dirname, "fixtures", n), "utf8"));
 
 describe("AniList mapping", () => {
-  const [aot, dora] = (fx("anilist-page.json").data.Page.media as Parameters<typeof mapMedia>[0][]).map(mapMedia);
+  const [aot, dora] = (fx("anilist-page.json").data.Page.media as Parameters<typeof mapMedia>[0][]).map((m) => mapMedia(m));
   it("maps titles, tier, characters and voice actors", () => {
     expect(aot.work.id).toBe("anilist:16498");
     expect(aot.work.title).toBe("Attack on Titan");

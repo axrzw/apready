@@ -10,6 +10,11 @@ export async function GET(req: Request) {
   const secret = process.env.E2E_SECRET;
   const url = new URL(req.url);
   if (!secret || url.searchParams.get("secret") !== secret) return new Response("not found", { status: 404 });
+  if (url.searchParams.get("debug") === "sessions") {
+    const { getRepo } = await import("@/lib/server/repo");
+    const code = String(url.searchParams.get("code"));
+    return Response.json({ sessions: await getRepo().listSessions(5), answers: await getRepo().answersOfRoom(code) });
+  }
   const s = await roomForMedia(String(url.searchParams.get("code")).toUpperCase());
   const party = s?.party as { item?: { names: string[]; display: { title: string } } } | undefined;
   if (s && party?.item) return Response.json({ phase: s.phase, names: party.item.names, title: party.item.display.title });

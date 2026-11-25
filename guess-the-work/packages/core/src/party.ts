@@ -27,7 +27,7 @@ export interface PickOptions {
   mix: TierMix;
   rng: Rng;
   seen?: Map<string, number>;
-  categories?: Category[];
+  categories?: string[];
 }
 
 export function pickPartyItems(lib: LibraryIndex, n: number, o: PickOptions, prefix: string): PartyItem[] {

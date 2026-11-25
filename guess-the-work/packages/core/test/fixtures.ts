@@ -13,7 +13,7 @@ export function makeLibrary(n = 40): ReturnType<typeof indexLibrary> {
       year: 1990 + i, season: "SPRING", genres: ["Action", i % 2 ? "Drama" : "Comedy"], tags: ["Tag A", "Tag B", "Tag C", "Tag D", `Work Number ${i} Title lore`],
       studios: [`Studio ${i % 4}`], creators: [`Author ${i % 5}`], score: 60 + (i % 30), popularity: 1000 * (i + 1), tier: tiers[i % 4], episodes: 12,
       synopsis: `Hero${i} lives in a city. Work Number ${i} Title is about Hero${i} and friends fighting monsters across a long journey with many twists and a great ending that nobody expects at all.`,
-      posterUrl: `https://img.test/p${i}.jpg`, screenshots: [`https://img.test/s${i}.jpg`],
+      posterUrl: `https://img.test/p${i}.jpg`, screenshots: [`https://img.test/s${i}.jpg`], airing: i % 7 === 0 || undefined,
     });
     for (let k = 0; k < 4; k++)
       characters.push({ id: `c${i}-${k}`, workId: id, name: `Hero${i} Person${k}`, aliases: [`Hero${i}`], imageUrl: `https://img.test/c${i}-${k}.jpg`, role: k === 0 ? "MAIN" : "SUPPORTING", voiceActorId: `va${(i + k) % 6}` });

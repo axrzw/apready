@@ -10,6 +10,7 @@ import { useTick, type View } from "./useRoom";
 import type { Index, Suggestion } from "@gtw/core/autocomplete";
 import { loadIndex, suggest, type AcKind } from "@/lib/autocomplete-client";
 import { CountUp, Waveform } from "./ui";
+import WishButton from "./WishButton";
 
 type Act = (a: Record<string, unknown>) => Promise<unknown>;
 const AUDIO_MODES = ["opening", "ending", "ost", "audio_edit", "song"];
@@ -301,6 +302,21 @@ function AnswerBox({ view, act, lang }: { view: View; act: Act; lang: Lang }) {
       </motion.div>
     );
 
+  if (q.excluded?.includes(view.me))
+    return <p className="text-center text-muted">{q.answerType === "number" ? "هذا تقييمك، الباقين يخمنونه." : "أنت شفته، تتفرج على هذا السؤال."}</p>;
+
+  if (q.answerType === "multi") return <MultiPick choices={q.choices!} onSend={(picks) => send({ picks })} />;
+  if (q.answerType === "number")
+    return (
+      <div className="mx-auto grid max-w-md grid-cols-5 gap-2" dir="ltr">
+        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+          <button key={n} className="num h-12 rounded-md border border-line font-display text-xl transition-colors hover:border-accent hover:text-accent" onClick={() => send({ number: n })}>
+            {n}
+          </button>
+        ))}
+      </div>
+    );
+
   if (q.answerType === "order")
     return (
       <div className="mx-auto max-w-xl space-y-2">
@@ -467,6 +483,8 @@ function Reveal({ view, lang, act }: { view: View; lang: Lang; act: Act }) {
               ))}
           </ul>
           <div className="flex flex-wrap gap-2 pt-2">
+            {r.workId && <SeenButton workId={r.workId} />}
+            {r.workId && <WishButton workId={r.workId} compact />}
             <button
               className="btn-quiet border border-line"
               disabled={reported}
@@ -532,5 +550,40 @@ function Breakdown({ b }: { b: NonNullable<NonNullable<View["reveal"]>["results"
       {parts.join(" × ")}
       {b.bonus > 0 && ` + ترتيب ${b.bonus}`}
     </span>
+  );
+}
+
+/** «شفته» right after a question: the watch log grows while playing. */
+function SeenButton({ workId }: { workId: string }) {
+  const [on, setOn] = useState(false);
+  return (
+    <button
+      className={`toggle h-8 ${on ? "toggle-on" : ""}`}
+      onClick={async () => {
+        await fetch("/api/watch", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ workId, status: on ? null : "seen" }) });
+        setOn(!on);
+      }}
+    >
+      <Icon name="Check" size={14} /> {on ? "سجّلته" : "شفته"}
+    </button>
+  );
+}
+
+function MultiPick({ choices, onSend }: { choices: { id: string; label: string }[]; onSend: (picks: string[]) => void }) {
+  const [picked, setPicked] = useState<string[]>([]);
+  return (
+    <div className="mx-auto max-w-md space-y-3">
+      <div className="flex flex-wrap justify-center gap-2">
+        {choices.map((c) => (
+          <button key={c.id} className={`toggle h-11 px-4 text-base ${picked.includes(c.id) ? "toggle-on" : ""}`} onClick={() => setPicked((p) => (p.includes(c.id) ? p.filter((x) => x !== c.id) : [...p, c.id]))}>
+            {picked.includes(c.id) && <Icon name="Check" size={16} />}
+            {c.label}
+          </button>
+        ))}
+      </div>
+      <button className="btn-primary w-full" onClick={() => onSend(picked)}>
+        هذولا اللي شافوه
+      </button>
+    </div>
   );
 }

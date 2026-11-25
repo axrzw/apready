@@ -22,6 +22,10 @@ export default async function Home() {
     { href: "/daily", icon: "CalendarDays", title: t(lang, "daily"), text: "نفس الأسئلة للكل، مرة باليوم" },
     { href: "/leaderboard", icon: "Trophy", title: t(lang, "leaderboard"), text: "لكل طور وللمجموع" },
     { href: "/stats", icon: "BarChart3", title: t(lang, "stats"), text: "أقوى قسم، أضعف طور، كم عمل مظلوم عرفت" },
+    { href: "/log", icon: "Library", title: "سجّل اللي شفته", text: "بطاقات تسحبها، وتقييم من 10" },
+    { href: "/packs", icon: "Swords", title: "باقتي", text: "ابنِ أسئلة من أعمالك وتحدَّ الشباب" },
+    { href: "/discover", icon: "Sparkles", title: "اكتشف", text: "توصيات من أقرب صاحب لذوقك" },
+    { href: "/sessions", icon: "Clapperboard", title: "أرشيف السهرات", text: "ملخص كل جلسة وبطاقة المشاركة" },
     { href: "/gallery", icon: "Palette", title: t(lang, "gallery"), text: "رسمات طور الرسّام" },
     ...(s.admin ? [{ href: "/admin", icon: "Wrench", title: t(lang, "admin"), text: "المكتبة، التغطية، البلاغات، المصادر" }] : []),
   ];

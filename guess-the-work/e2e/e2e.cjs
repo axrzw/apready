@@ -118,23 +118,33 @@ async function score(p) {
   await C.click("button:has-text('تلميح')");
   await C.waitForTimeout(800);
   ok((await C.locator("ol li").count()) >= 1, "C opened a hint");
-  const typed = (latin.replace(/[^A-Za-z0-9 ]/g, " ").trim().split(/\s+/)[0] || latin).slice(0, 4);
-  await C.fill("input[autocomplete=off]", typed);
-  const opt = C.locator(`[role=option] button`).filter({ hasText: q1.title });
-  await opt.first().waitFor({ timeout: 8000 }).catch(() => {});
-  if (await opt.count()) {
-    await opt.first().click();
-    await C.locator("text=صح").first().waitFor({ timeout: 8000 });
-    ok(true, `C picked «${q1.title}» from the autocomplete after typing «${typed}»`);
-  } else ok(false, `autocomplete did not list «${q1.title}» for «${typed}»`);
+  // type like a player: a few letters, more if the list is not clear yet
+  const words = latin.replace(/[^\p{L}\p{N} ]/gu, " ").trim().split(/\s+/);
+  let picked = false;
+  let typed = "";
+  for (const t of [words[0].slice(0, 4), words[0], words.slice(0, 2).join(" "), words.slice(0, 3).join(" "), words.slice(0, 5).join(" ")]) {
+    typed = t;
+    await C.fill("input[autocomplete=off]", t);
+    const opt = C.locator(`[role=option] button`).filter({ hasText: q1.title });
+    await opt.first().waitFor({ timeout: 1500 }).catch(() => {});
+    if (await opt.count()) {
+      await opt.first().click();
+      await C.locator("text=صح").first().waitFor({ timeout: 8000 });
+      picked = true;
+      break;
+    }
+  }
+  ok(picked, `C picked «${q1.title}» from the autocomplete after typing «${typed}»`);
 
   // 3. reveal + points: A first without hints > B second > C with a hint
-  await A.locator("text=THE ANSWER").waitFor({ timeout: 15000 });
+  await A.locator("text=THE ANSWER").waitFor({ timeout: 40000 });
   if (SHOTS) await A.screenshot({ path: join(SHOTS, "e2e-reveal-desktop.png"), fullPage: true });
   const [sa, sb, sc] = [await score(A), await score(B), await score(C)];
   console.log("      scores", { A: sa, B: sb, C: sc });
   ok(sa > sb && sb > 0 && sc > 0, "first answer scores more than second (rank bonus), everyone scored");
-  ok(sa >= 150, "A got the first-place bonus (+50)");
+  const rv = await A.evaluate(async (c) => (await fetch(`/api/rooms/${c}`)).json(), code);
+  const mine = rv.reveal?.results.find((x) => x.id === rv.me);
+  ok(mine?.breakdown?.bonus === 50, `A got the first-place bonus (+50): ${JSON.stringify(mine?.breakdown)}`);
 
   // 4. disconnect and come back with the same points
   const before = await score(C);

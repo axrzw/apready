@@ -2,7 +2,7 @@
 import { motion } from "framer-motion";
 import { Avatar, CountUp } from "./ui";
 
-export default function LeaderTable({ rows }: { rows: { userId: string; name: string; points: number; correct: number; answers: number; color?: string; avatar?: string }[] }) {
+export default function LeaderTable({ rows }: { rows: { userId: string; name: string; points: number; correct: number; answers: number; color?: string; avatar?: string; title?: string }[] }) {
   const max = Math.max(1, ...rows.map((r) => r.points));
   return (
     <ol className="divide-y divide-line border-y border-line">
@@ -11,7 +11,10 @@ export default function LeaderTable({ rows }: { rows: { userId: string; name: st
           <span className={`num font-display text-2xl ${i === 0 ? "text-accent" : "text-faint"}`}>{i + 1}</span>
           <Avatar name={r.name} color={r.color} icon={r.avatar} size={34} />
           <div className="min-w-0">
-            <div className="truncate">{r.name}</div>
+            <div className="truncate">
+              {r.name}
+              {r.title && <span className="ms-2 text-xs text-accent/80">{r.title}</span>}
+            </div>
             <div className="mt-1 h-[3px] rounded-full bg-line">
               <motion.div className="h-full rounded-full bg-accent" initial={{ width: 0 }} animate={{ width: `${(r.points / max) * 100}%` }} transition={{ duration: 0.8, delay: 0.1 + i * 0.04 }} />
             </div>

@@ -5,7 +5,7 @@ import type { Http } from "../http";
 export const ANILIST_URL = "https://graphql.anilist.co";
 
 const MEDIA_FIELDS = `
-  id idMal isAdult format season seasonYear episodes duration genres averageScore popularity favourites
+  id idMal isAdult format status countryOfOrigin season seasonYear episodes duration genres averageScore popularity favourites
   title { romaji english native } synonyms
   description(asHtml: false)
   coverImage { extraLarge large } bannerImage
@@ -19,10 +19,10 @@ const MEDIA_FIELDS = `
     }
   }`;
 
-export const PAGE_QUERY = `query ($page: Int, $perPage: Int, $sort: [MediaSort], $season: MediaSeason, $seasonYear: Int, $ids: [Int], $popGreater: Int, $popLesser: Int, $scoreGreater: Int) {
+export const PAGE_QUERY = `query ($page: Int, $perPage: Int, $type: MediaType, $sort: [MediaSort], $season: MediaSeason, $seasonYear: Int, $ids: [Int], $popGreater: Int, $popLesser: Int, $scoreGreater: Int) {
   Page(page: $page, perPage: $perPage) {
     pageInfo { total lastPage hasNextPage }
-    media(type: ANIME, isAdult: false, format_not_in: [MUSIC], sort: $sort, season: $season, seasonYear: $seasonYear, id_in: $ids, popularity_greater: $popGreater, popularity_lesser: $popLesser, averageScore_greater: $scoreGreater) { ${MEDIA_FIELDS} }
+    media(type: $type, isAdult: false, format_not_in: [MUSIC], sort: $sort, season: $season, seasonYear: $seasonYear, id_in: $ids, popularity_greater: $popGreater, popularity_lesser: $popLesser, averageScore_greater: $scoreGreater) { ${MEDIA_FIELDS} }
   }
 }`;
 
@@ -31,6 +31,8 @@ export interface AniMedia {
   idMal: number | null;
   isAdult: boolean;
   format: string | null;
+  status?: string | null;
+  countryOfOrigin?: string | null;
   season: string | null;
   seasonYear: number | null;
   episodes: number | null;
@@ -60,10 +62,10 @@ interface PageResp {
   data: { Page: { pageInfo: { total: number; lastPage: number; hasNextPage: boolean }; media: AniMedia[] } };
 }
 
-export interface PageVars { page: number; perPage?: number; sort?: string[]; season?: string; seasonYear?: number; ids?: number[]; popGreater?: number; popLesser?: number; scoreGreater?: number }
+export interface PageVars { page: number; type?: "ANIME" | "MANGA"; perPage?: number; sort?: string[]; season?: string; seasonYear?: number; ids?: number[]; popGreater?: number; popLesser?: number; scoreGreater?: number }
 
 export async function fetchPage(http: Http, vars: PageVars) {
-  const body = JSON.stringify({ query: PAGE_QUERY, variables: { perPage: 50, sort: ["POPULARITY_DESC"], ...vars } });
+  const body = JSON.stringify({ query: PAGE_QUERY, variables: { perPage: 50, sort: ["POPULARITY_DESC"], type: "ANIME", ...vars } });
   const r = await http.json<PageResp>(ANILIST_URL, { method: "POST", body, headers: { "content-type": "application/json" } });
   return r.data.Page;
 }
@@ -100,15 +102,16 @@ export interface Mapped {
   people: Person[];
 }
 
-export function mapMedia(m: AniMedia): Mapped {
+export function mapMedia(m: AniMedia, type: "ANIME" | "MANGA" = "ANIME"): Mapped {
+  const manga = type === "MANGA";
   const title = m.title.english ?? m.title.romaji ?? m.title.native ?? `AniList ${m.id}`;
   const bareTitle = title.replace(/\s*[(（][^)）]*[)）]\s*$/, "").trim();
-  const workId = `anilist:${m.id}`;
+  const workId = manga ? `anilist-manga:${m.id}` : `anilist:${m.id}`;
   const score = m.averageScore ?? undefined;
   const author = m.staff?.edges.find((e) => /original creator|story|original story/i.test(e.role))?.node.name.full;
   const work: Work = {
     id: workId,
-    category: "anime",
+    category: manga ? "manga" : "anime",
     title,
     aliases: withoutParens([bareTitle, ...uniq([m.title.romaji, m.title.native, m.title.english, ...m.synonyms])]).filter((a) => a !== title),
     format: m.format ?? undefined,
@@ -118,15 +121,20 @@ export function mapMedia(m: AniMedia): Mapped {
     tags: m.tags.filter((t) => !t.isMediaSpoiler && !t.isGeneralSpoiler && !t.isAdult && t.rank >= 50).map((t) => t.name),
     studios: m.studios.nodes.map((s) => s.name),
     creators: author ? [author] : [],
+    ...(manga ? { studios: (m.staff?.edges ?? []).filter((e) => /story|art/i.test(e.role)).map((e) => e.node.name.full).slice(0, 2) } : {}),
     score,
     popularity: m.popularity,
-    tier: computeTier({ category: "anime", popularity: m.popularity, score }),
+    tier: computeTier({ category: manga ? "manga" : "anime", popularity: m.popularity, score }),
     episodes: m.episodes ?? undefined,
     synopsis: cleanText(m.description),
     posterUrl: m.coverImage.extraLarge ?? m.coverImage.large ?? undefined,
     bannerUrl: m.bannerImage ?? undefined,
-    sourceIds: { anilist: m.id, ...(m.idMal ? { mal: m.idMal } : {}) },
+    sourceIds: manga ? { anilistManga: m.id } : { anilist: m.id, ...(m.idMal ? { mal: m.idMal } : {}) },
     adult: m.isAdult,
+    airing: m.status === "RELEASING" || undefined,
+    subtype: manga
+      ? m.format === "NOVEL" ? "light_novel" : m.countryOfOrigin === "KR" ? "manhwa" : m.countryOfOrigin === "CN" ? "manhua" : "manga"
+      : m.countryOfOrigin === "CN" ? "donghua" : m.countryOfOrigin === "KR" ? "aeni" : undefined,
   };
   const people = new Map<string, Person>();
   const characters: Character[] = m.characters.edges

@@ -4,6 +4,10 @@ import { CATEGORY_AR, TIER_AR } from "@gtw/core/i18n";
 import { CATEGORIES, DEFAULT_TIER_MIX, TIERS, type Category, type Tier, type TierMix } from "@gtw/core/types";
 import AdminActions from "@/components/AdminActions";
 import SourcesPanel from "@/components/SourcesPanel";
+import ScoringAdmin from "@/components/ScoringAdmin";
+import { DEFAULT_SCORING, type ScoringConfig } from "@gtw/core/scoring";
+import { getLibrary } from "@/lib/server/library";
+import { candidatesFor, MODES } from "@gtw/core/questions";
 import { listSources } from "@/lib/server/sources";
 import { PageTitle } from "@/components/ui";
 import { Icon } from "@/lib/icons";
@@ -19,7 +23,16 @@ const JOB_AR: Record<string, string> = {
 
 export default async function Admin() {
   const repo = getRepo();
-  const [cov, counts, jobs, mix, sources] = await Promise.all([repo.coverage(), repo.counts(), repo.listJobs(15), repo.getSetting<TierMix>("defaultMix"), listSources()]);
+  const [cov, counts, jobs, mix, sources, watch, users] = await Promise.all([repo.coverage(), repo.counts(), repo.listJobs(15), repo.getSetting<TierMix>("defaultMix"), listSources(), repo.watchAll(), repo.listUsers()]);
+  const scoring = (await repo.getSetting<ScoringConfig>("scoring")) ?? DEFAULT_SCORING;
+  const lib = await getLibrary();
+  const byMode = MODES.map((m) => ({ m, n: candidatesFor(m.id, lib).length }));
+  // group tiers from the watch log
+  const group = users.filter((u) => !u.kicked).map((u) => u.id);
+  const seenBy = new Map<string, Set<string>>();
+  for (const e of watch) if (e.status !== "not_seen") seenBy.set(e.workId, new Set([...(seenBy.get(e.workId) ?? []), e.userId]));
+  const gCommon = [...seenBy.values()].filter((s) => s.size > group.length / 2).length;
+  const gNiche = [...seenBy.values()].filter((s) => s.size > 0 && s.size <= group.length / 2).length;
   const total = cov.reduce((s, r) => s + r.count, 0) || 1;
   const byTier = Object.fromEntries(TIERS.map((t) => [t, cov.filter((r) => r.tier === t).reduce((s, r) => s + r.count, 0)])) as Record<Tier, number>;
   const byCat = Object.fromEntries(CATEGORIES.map((c) => [c, cov.filter((r) => r.category === c).reduce((s, r) => s + r.count, 0)])) as Record<Category, number>;
@@ -77,6 +90,15 @@ export default async function Admin() {
           </tbody>
         </table>
       </div>
+      <div className="panel p-4">
+        <h2 className="mb-2 font-display text-lg">طبقات القروب (من سجلات المشاهدة)</h2>
+        <div className="num flex flex-wrap gap-6 text-sm">
+          <span>أغلبنا شافه: <b>{gCommon}</b></span>
+          <span>واحد أو اثنين: <b>{gNiche}</b></span>
+          <span>محد شافه: <b>{counts.works - gCommon - gNiche}</b></span>
+          <span className="text-faint">سجلات: {watch.length}</span>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="panel p-4">
           <h2 className="mb-2 font-bold">حسب العقد</h2>
@@ -93,7 +115,18 @@ export default async function Admin() {
           <div className="flex flex-wrap gap-1 text-sm">{genres.slice(0, 40).map(([g, n]) => <span key={g} className="toggle">{g} <b>{n}</b></span>)}</div>
         </div>
       </div>
+      <div className="panel p-4">
+        <h2 className="mb-2 font-display text-lg">حسب الطور (أسئلة ممكنة)</h2>
+        <div className="num flex flex-wrap gap-2 text-sm">
+          {byMode.map(({ m, n }) => (
+            <span key={m.id} className={`rounded-sm border px-2 py-0.5 ${n ? "border-line" : "border-signal/40 text-signal"}`}>
+              {m.ar} <b>{n.toLocaleString("en-US")}</b>
+            </span>
+          ))}
+        </div>
+      </div>
       <SourcesPanel sources={sources} />
+      <ScoringAdmin initial={scoring} />
       <AdminActions jobs={jobNames().map((n) => ({ id: n, label: JOB_AR[n] ?? n }))} running={runningJobs().map((j) => j.name)} mix={mix ?? DEFAULT_TIER_MIX} ytdlp={hasYtDlp()} />
       <div className="panel p-4">
         <h2 className="mb-2 font-bold">آخر المهام</h2>

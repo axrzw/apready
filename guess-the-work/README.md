@@ -10,17 +10,19 @@
 
 ## التشغيل على جهازك
 
-المتطلبات: Node.js 22.13 أو أحدث، و pnpm 10، و ffmpeg (لقص الصوت والمقاطع).
+المتطلبات: Node.js 22.13 أو أحدث، و pnpm 10. (ffmpeg ينزل لحاله مع `ffmpeg-static`.)
 
 ```bash
 cd guess-the-work
 pnpm install
-cp .env.example apps/web/.env.local      # بدون أي مفتاح يشتغل محلياً
-pnpm snapshot:import                     # المكتبة الجاهزة (5000+ عمل) في ثواني
+cp .env.example apps/web/.env.local      # فيه GROUP_PASSWORD (محلياً الافتراضي "dev")
+pnpm db:setup                            # migrations + المكتبة الجاهزة (5,189 عمل) في PGlite، بدون Docker
 pnpm build && pnpm start                 # أو: pnpm dev
 ```
 
-افتح http://localhost:3000، اكتب اسمك في «وضع التطوير»، وعلّم «أدمن» إذا تبي لوحة الأدمن.
+افتح http://localhost:3000، واكتب كلمة سر القروب (`dev` محلياً) واسمك. أول واحد يدخل يصير الأدمن (أو ادخل بـ `ADMIN_PASSWORD`).
+
+**النشر على Vercel من الجوال:** `docs/DEPLOY.md`.
 
 ### سحب المكتبة من الصفر أو توسيعها
 
@@ -37,9 +39,10 @@ pnpm weekly                                             # المهمة الأس�
 ### الاختبارات
 
 ```bash
-pnpm test          # vitest: المطابقة، الاختيار، التلميحات، النقاط، الغرف، الواصف، الرسّام، المصادر، التأثيرات، ffmpeg
-pnpm typecheck
-pnpm build
+pnpm test          # 192 اختبار: المطابقة، الإكمال، النقاط، الغرف، الأطوار، خط الصوت (ffprobe)، المصادر، منع الإيموجي
+pnpm lint && pnpm typecheck && pnpm build
+# E2E بـ 3 متصفحات (السيرفر شغّال مع E2E_SECRET في .env.local):
+E2E_SECRET=... ADMIN_PASSWORD=... pnpm e2e
 ```
 
 ## البنية
@@ -49,10 +52,10 @@ guess-the-work/
   apps/web           Next.js 15 (App Router) + Tailwind، الموقع والـ API والغرف (SSE)
   packages/core      كل منطق اللعبة بدون واجهة: المطابقة، الطبقات، الاختيار، التلميحات، النقاط،
                      بناء الأسئلة لكل طور، محرك الغرف، الواصف، الرسّام (جاهز لبوت ديسكورد)
-  packages/db        طبقة البيانات: واجهة Repo + SQLite (node:sqlite) + Supabase
+  packages/db        طبقة البيانات: واجهة Repo + Drizzle (PGlite محلياً، Neon في الإنتاج) + migrations
   packages/ingest    سحب البيانات (AniList, Wikidata, Kitsu, Jikan, AnimeThemes, TVmaze, VNDB, TMDB, IGDB)،
                      ffmpeg (صوت/لقطات/مقاطع)، sharp (التأثيرات)، tesseract.js (OCR)، المهمة الأسبوعية
-  supabase/migrations  نفس الجداول لـ Postgres/Supabase
+  e2e/               اختبارات Playwright بـ 3 لاعبين
   snapshot/          المكتبة الجاهزة مضغوطة
   docs/              الخطة، القرارات، الأسئلة، العوائق، تقرير الصباح
 ```
@@ -63,11 +66,6 @@ guess-the-work/
 - الكشف التدريجي يحسبه السيرفر من الوقت، فما ينفع تطلب «الدرجة الأخيرة» قبل وقتها.
 - عناصر الواصف والرسّام الخاصة روابطها مقفلة على صاحبها.
 - الاقتراحات أثناء الكتابة تجي من المكتبة كلها، مو من الجواب.
-
-### الانتقال لـ Supabase
-1. أنشئ مشروع، وشغّل `supabase/migrations/0001_init.sql` في SQL Editor.
-2. في `.env.local`: `DATA_BACKEND=supabase`، `SUPABASE_URL`، `SUPABASE_SERVICE_ROLE_KEY` (و `REALTIME=supabase` إذا بتشغّل أكثر من سيرفر).
-3. انقل البيانات: `pnpm snapshot:export` من SQLite ثم استورده في Supabase (أو شغّل seed مع `DATA_BACKEND=supabase`).
 
 ### نقل المشروع لمستودع لحاله
 ```bash

@@ -13,7 +13,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
   const { mode, range } = await searchParams;
   const since = range === "week" ? Date.now() - 7 * 86_400_000 : range === "month" ? Date.now() - 30 * 86_400_000 : undefined;
   const repo = getRepo();
-  const [rows, users] = await Promise.all([repo.leaderboard({ mode, since }), repo.listUsers()]);
+  const [rows, users, titles] = await Promise.all([repo.leaderboard({ mode, since }), repo.listUsers(), repo.getSetting<Record<string, string[]>>("titles")]);
   const tabs = [{ id: "", ar: "المجموع", en: "Overall", icon: "Trophy" }, ...MODES, { id: "describer", ar: "الواصف", en: "Describer", icon: "Mic" }, { id: "drawer", ar: "الرسّام", en: "Drawer", icon: "Pen" }];
   const ranges = [
     ["", "كل الوقت"],
@@ -40,7 +40,7 @@ export default async function Leaderboard({ searchParams }: { searchParams: Prom
         ))}
       </div>
       {rows.length ? (
-        <LeaderTable rows={rows.map((r) => ({ ...r, color: users.find((u) => u.id === r.userId)?.color, avatar: users.find((u) => u.id === r.userId)?.avatar }))} />
+        <LeaderTable rows={rows.map((r) => ({ ...r, color: users.find((u) => u.id === r.userId)?.color, avatar: users.find((u) => u.id === r.userId)?.avatar, title: titles?.[r.userId]?.join(" · ") }))} />
       ) : (
         <Empty icon="Trophy" title="ما أحد لعب للحين" text="أول جولة تملأ اللوحة." action={<Link href="/play" className="btn-primary">العب الحين</Link>} />
       )}

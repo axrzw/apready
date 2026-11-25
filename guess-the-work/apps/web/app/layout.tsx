@@ -27,7 +27,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const nav = [
     { href: "/", icon: "LayoutGrid", label: lang === "ar" ? "الرئيسية" : "Home" },
     { href: "/play", icon: "Play", label: t(lang, "solo") },
-    { href: "/daily", icon: "CalendarDays", label: t(lang, "daily") },
+    { href: "/log", icon: "Library", label: lang === "ar" ? "سجلّي" : "My log" },
     { href: "/leaderboard", icon: "Trophy", label: t(lang, "leaderboard") },
     { href: "/stats", icon: "BarChart3", label: t(lang, "stats") },
   ];
@@ -41,7 +41,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <span className="text-accent">خمّن</span>
                 <span>العمل</span>
               </Link>
-              {s && <NavLinks items={[...nav, { href: "/gallery", icon: "Palette", label: t(lang, "gallery") }, ...(s.admin ? [{ href: "/admin", icon: "Wrench", label: t(lang, "admin") }] : [])]} className="ms-4 hidden md:flex" />}
+              {s && <NavLinks items={[...nav, { href: "/daily", icon: "CalendarDays", label: t(lang, "daily") }, { href: "/mine", icon: "Star", label: lang === "ar" ? "قائمتي" : "My list" }, { href: "/discover", icon: "Sparkles", label: lang === "ar" ? "اكتشف" : "Discover" }, { href: "/gallery", icon: "Palette", label: t(lang, "gallery") }, ...(s.admin ? [{ href: "/admin", icon: "Wrench", label: t(lang, "admin") }] : [])]} className="ms-4 hidden md:flex" />}
               <div className="ms-auto flex items-center gap-2">
                 <HeaderTools lang={lang} />
                 {s && (

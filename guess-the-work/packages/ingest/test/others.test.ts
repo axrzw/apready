@@ -49,3 +49,20 @@ describe("VNDB adult filter", () => {
     expect(mapVndb({ ...v, tags: [...v.tags, { name: "Sexual Content", spoiler: 0, rating: 2.5, category: "ero" }] })).toBeNull();
   });
 });
+
+describe("manga sources", () => {
+  it("MangaDex: manhwa from Korean, cover URL, tier by rank", async () => {
+    const { mapMangadex } = await import("../src/sources/mangadex");
+    const d = JSON.parse(readFileSync(join(__dirname, "fixtures", "mangadex.json"), "utf8"));
+    const w = mapMangadex(d.data[0], 0)!;
+    expect(w).toMatchObject({ category: "manga", subtype: "manhwa", tier: "mainstream", title: "Solo Leveling" });
+    expect(w.posterUrl).toMatch(/^https:\/\/uploads\.mangadex\.org\/covers\//);
+    expect(mapMangadex(d.data[0], 2000)!.tier).toBe("obscure");
+  });
+  it("AniList manga mapping", async () => {
+    const { mapMedia } = await import("../src/sources/anilist");
+    const m = JSON.parse(readFileSync(join(__dirname, "fixtures", "anilist-page.json"), "utf8")).data.Page.media[0];
+    const x = mapMedia({ ...m, countryOfOrigin: "KR", format: "MANGA" }, "MANGA");
+    expect(x.work).toMatchObject({ id: `anilist-manga:${m.id}`, category: "manga", subtype: "manhwa" });
+  });
+});

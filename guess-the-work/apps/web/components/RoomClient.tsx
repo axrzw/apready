@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { MODES } from "@gtw/core/questions";
@@ -84,9 +85,9 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
           {view.tag?.startsWith("daily:") && <span className="label text-accent">DAILY</span>}
           <span className="flex items-center gap-2 text-sm text-muted">
             {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "camera" ? "Video" : kind === "drawer" ? "Pen" : "LayoutGrid"} size={16} className="text-accent" />}
-            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "camera" ? "اشرح بالكاميرا" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
+            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "camera" ? "اشرح بالكاميرا" : kind === "social" ? "اجتماعي" : kind === "pack" ? "باقة" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
           </span>
-          {view.total > 0 && kind === "guess" && (
+          {view.total > 0 && ["guess", "social", "pack"].includes(kind) && (
             <span className="num ms-auto text-sm text-faint">
               <span className="text-text">{String(view.index + 1).padStart(2, "0")}</span> / {String(view.total).padStart(2, "0")}
             </span>
@@ -239,6 +240,12 @@ function Finished({ view, act, lang, isHost }: { view: View; act: Act; lang: Lan
           ) : null,
         )}
       </div>
+      {view.revenge?.players.includes(view.me) && (
+        <Link href={`/room/${view.revenge.code}`} className="btn-primary mx-auto flex w-fit">
+          <Icon name="Swords" size={16} /> بدأ الثأر: ادخل
+        </Link>
+      )}
+      {isHost && !view.revenge && view.players.length > 1 && ["guess", "social", "pack"].includes(view.settings.kind) && <Revenge view={view} act={act} />}
       <div className="flex justify-center gap-2">
         {isHost && view.tag !== "solo" && !view.tag?.startsWith("daily:") && (
           <button className="btn-primary" onClick={() => act({ type: "lobby" })}>
@@ -256,6 +263,36 @@ function Finished({ view, act, lang, isHost }: { view: View; act: Act; lang: Lan
           الرئيسية
         </Link>
       </div>
+    </div>
+  );
+}
+
+/** «ثأر»: the same questions in another order, between the players the host picks. */
+function Revenge({ view, act }: { view: View; act: Act }) {
+  const [picked, setPicked] = useState<string[]>([]);
+  const router = useRouter();
+  return (
+    <div className="mx-auto max-w-md space-y-3 rounded-md border border-line p-4">
+      <div className="label">REMATCH · ثأر</div>
+      <div className="flex flex-wrap justify-center gap-2">
+        {view.players
+          .filter((p) => p.id !== view.me)
+          .map((p) => (
+            <button key={p.id} className={`toggle ${picked.includes(p.id) ? "toggle-on" : ""}`} onClick={() => setPicked((x) => (x.includes(p.id) ? x.filter((y) => y !== p.id) : [...x, p.id]))}>
+              {p.name}
+            </button>
+          ))}
+      </div>
+      <button
+        className="btn-ghost w-full"
+        disabled={!picked.length}
+        onClick={async () => {
+          const r = (await act({ type: "revenge", players: picked })) as { code?: string } | null;
+          if (r?.code) router.push(`/room/${r.code}`);
+        }}
+      >
+        <Icon name="Swords" size={16} /> نفس الأسئلة بترتيب ثاني
+      </button>
     </div>
   );
 }

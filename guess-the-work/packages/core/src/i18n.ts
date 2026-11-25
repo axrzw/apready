@@ -1,7 +1,9 @@
 import type { Category, Tier } from "./types";
 
-export const CATEGORY_AR: Record<Category, string> = { anime: "أنمي", game: "لعبة", movie: "فيلم", series: "مسلسل", vn: "فجوال نوفل" };
-export const CATEGORY_EN: Record<Category, string> = { anime: "Anime", game: "Game", movie: "Movie", series: "Series", vn: "Visual novel" };
+export const CATEGORY_AR: Record<Category, string> = { anime: "أنمي", game: "لعبة", movie: "فيلم", series: "مسلسل", vn: "فجوال نوفل", manga: "مانغا ومانهوا" };
+export const CATEGORY_EN: Record<Category, string> = { anime: "Anime", game: "Game", movie: "Movie", series: "Series", vn: "Visual novel", manga: "Manga & manhwa" };
+export const SECTION_AR: Record<import("./types").Section, string> = { anime: "أنمي", donghua: "دونغوا", series: "مسلسلات غربية", asian_drama: "دراما آسيوية", movie: "أفلام", game: "ألعاب", manga: "مانهوا ومانغا", vn: "فجوال نوفل" };
+export const SECTION_EN: Record<import("./types").Section, string> = { anime: "Anime", donghua: "Donghua", series: "Western series", asian_drama: "Asian drama", movie: "Movies", game: "Games", manga: "Manhwa & manga", vn: "Visual novels" };
 export const TIER_AR: Record<Tier, string> = { mainstream: "مشهور", mid: "متوسط", hidden_gem: "مظلوم", obscure: "مغمور" };
 
 export const GENRE_AR: Record<string, string> = {

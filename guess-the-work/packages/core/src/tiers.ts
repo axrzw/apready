@@ -19,6 +19,7 @@ export const TIER_RULES: Record<Category, TierRule> = {
   movie: { mainstream: 8_000, mid: 1_500, gemScore: 72 },
   series: { mainstream: 4_000, mid: 800, gemScore: 76 },
   vn: { mainstream: 3_000, mid: 600, gemScore: 75 },
+  manga: { mainstream: 120_000, mid: 25_000, gemScore: 76 },
 };
 
 export function computeTier(

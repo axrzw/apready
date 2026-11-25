@@ -1,5 +1,14 @@
-export type Category = "anime" | "game" | "movie" | "series" | "vn";
-export const CATEGORIES: Category[] = ["anime", "game", "movie", "series", "vn"];
+export type Category = "anime" | "game" | "movie" | "series" | "vn" | "manga";
+export const CATEGORIES: Category[] = ["anime", "game", "movie", "series", "vn", "manga"];
+
+/** Room sections (SPEC 9): finer than categories, from category + sub-type. */
+export type Section = "anime" | "donghua" | "series" | "asian_drama" | "movie" | "game" | "manga" | "vn";
+export const SECTIONS: Section[] = ["anime", "donghua", "series", "asian_drama", "movie", "game", "manga", "vn"];
+export function sectionOf(w: { category: Category; subtype?: string }): Section {
+  if (w.category === "anime") return w.subtype === "donghua" ? "donghua" : "anime";
+  if (w.category === "series") return ["kdrama", "cdrama", "jdrama", "thai"].includes(w.subtype ?? "") ? "asian_drama" : "series";
+  return w.category;
+}
 
 export type Tier = "mainstream" | "mid" | "hidden_gem" | "obscure";
 export const TIERS: Tier[] = ["mainstream", "mid", "hidden_gem", "obscure"];
@@ -102,7 +111,8 @@ export type ModeId =
   | "higher_lower"
   | "timeline"
   | "odd_one"
-  | "song";
+  | "song"
+  | "season";
 
 export type PartyModeId = "describer" | "drawer";
 

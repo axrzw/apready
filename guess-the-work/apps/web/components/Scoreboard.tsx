@@ -18,6 +18,7 @@ export default function Scoreboard({ view, act }: { view: View; act?: (a: Record
               {p.name}
               {p.id === view.hostId && <Icon name="Crown" size={12} className="ms-1.5 inline text-accent" />}
               {p.spectator && <span className="ms-1.5 text-[11px] text-faint">يتفرج</span>}
+              {view.titles?.[p.id]?.[0] && <span className="block text-[11px] leading-tight text-accent/80">{view.titles[p.id][0]}</span>}
             </span>
             {p.streak >= 3 && (
               <span className="num flex items-center gap-0.5 text-xs text-accent" title="سلسلة">

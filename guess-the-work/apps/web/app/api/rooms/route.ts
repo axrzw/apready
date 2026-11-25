@@ -11,6 +11,8 @@ function clamp(n: unknown, lo: number, hi: number, d: number) {
 
 function sanitize(s: Partial<RoomSettings>): Partial<RoomSettings> {
   const out: Partial<RoomSettings> = { ...s };
+  // scoring numbers come from the admin settings only
+  delete out.scoring;
   if (s.count !== undefined) out.count = clamp(s.count, 1, 50, 10);
   if (s.timeLimitSec !== undefined) out.timeLimitSec = clamp(s.timeLimitSec, 5, 180, 30);
   if (s.mix) out.mix = { mainstream: clamp(s.mix.mainstream, 0, 100, 25), mid: clamp(s.mix.mid, 0, 100, 30), hidden_gem: clamp(s.mix.hidden_gem, 0, 100, 30), obscure: clamp(s.mix.obscure, 0, 100, 15) };

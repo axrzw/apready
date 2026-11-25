@@ -1,4 +1,5 @@
 import type { Category, Character, ModeId, Theme, Tier, Work } from "./types";
+import { sectionOf } from "./types";
 import type { LibraryIndex } from "./library";
 import { characterNames, personNames, workNames } from "./library";
 import type { Candidate } from "./select";
@@ -24,7 +25,7 @@ export interface Choice {
   image?: string;
 }
 
-export type AnswerType = "text" | "pick" | "order";
+export type AnswerType = "text" | "pick" | "order" | "multi" | "number";
 
 export interface Question {
   id: string;
@@ -55,6 +56,12 @@ export interface Question {
   choices?: Choice[];
   correctChoice?: string;
   correctOrder?: string[];
+  /** «مين شافه؟»: every right choice */
+  correctPicks?: string[];
+  /** «خمّن تقييمه» */
+  correctNumber?: number;
+  /** players who may not answer this one (they saw it / they rated it) */
+  excluded?: string[];
   hints: Hint[];
   timeLimitMs: number;
   modeMultiplier?: number;
@@ -89,12 +96,13 @@ export const MODES: { id: ModeId; ar: string; en: string; icon: string }[] = [
   { id: "timeline", ar: "الترتيب الزمني", en: "Timeline", icon: "CalendarRange" },
   { id: "odd_one", ar: "الدخيل", en: "Odd one out", icon: "Shuffle" },
   { id: "song", ar: "اسم الأغنية أو الفنان", en: "Song or artist", icon: "Mic2" },
+  { id: "season", ar: "الموسم الحالي", en: "This season", icon: "Radio" },
 ];
 
 const WORK_Q = { ar: "وش هذا العمل؟", en: "Which work is this?" };
 
 function cand(key: string, w: Work): Candidate {
-  return { key, workId: w.id, tier: w.tier, category: w.category, year: w.year, genres: w.genres, studios: w.studios };
+  return { key, workId: w.id, tier: w.tier, category: w.category, section: sectionOf(w), year: w.year, genres: w.genres, studios: w.studios };
 }
 
 function mainChar(lib: LibraryIndex, w: Work): Character | undefined {
@@ -147,6 +155,8 @@ function computeCandidates(mode: ModeId, lib: LibraryIndex): Candidate[] {
     }
     case "poster":
       return lib.works.filter((w) => w.posterUrl).map((w) => cand(`poster:${w.id}`, w));
+    case "season":
+      return lib.works.filter((w) => w.airing && w.posterUrl).map((w) => cand(`season:${w.id}`, w));
     case "image":
     case "shadow":
     case "eyes":
@@ -331,6 +341,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
       const ans = workAnswer(lib, w, rng);
       return { ...base(mode, c.key, w, o), promptAr: "من أي عمل هذا المشهد؟", promptEn: "Which work is this scene from?", assets, answerType: "text", ...ans, hints: hintsFor(lib, w, ans.names) };
     }
+    case "season":
     case "poster": {
       if (!w?.posterUrl) return null;
       const allowed = (o.effects?.length ? o.effects : POSTER_EFFECTS).filter((e) => EFFECTS[e]?.poster);
@@ -338,8 +349,8 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
       const ans = workAnswer(lib, w, rng);
       return {
         ...base(mode, c.key, w, o),
-        promptAr: `${WORK_Q.ar} (${EFFECTS[effect].ar})`,
-        promptEn: `${WORK_Q.en} (${EFFECTS[effect].en})`,
+        promptAr: mode === "season" ? `يعرض الحين: ${WORK_Q.ar} (${EFFECTS[effect].ar})` : `${WORK_Q.ar} (${EFFECTS[effect].ar})`,
+        promptEn: mode === "season" ? `Airing now: ${WORK_Q.en}` : `${WORK_Q.en} (${EFFECTS[effect].en})`,
         assets: [{ type: "image", src: w.posterUrl, effect, steps: EFFECTS[effect].steps, seed: seed(rng), mask: w.posterBoxes }],
         answerType: "text",
         ...ans,
@@ -542,7 +553,19 @@ export interface Check {
 }
 
 /** Checks an answer on the server. */
-export function checkAnswer(q: Question, a: { text?: string; choice?: string; order?: string[]; entityId?: string }): Check {
+export function checkAnswer(q: Question, a: { text?: string; choice?: string; order?: string[]; entityId?: string; picks?: string[]; number?: number }): Check {
+  if (q.answerType === "multi") {
+    // accuracy = |right picks| / |right picks or wrong picks| (Jaccard)
+    const want = new Set(q.correctPicks ?? []);
+    const got = new Set(a.picks ?? []);
+    const hit = [...got].filter((x) => want.has(x)).length;
+    const union = new Set([...want, ...got]).size || 1;
+    return { correct: hit === want.size && got.size === want.size, factor: hit / union };
+  }
+  if (q.answerType === "number") {
+    const d = Math.abs((a.number ?? -99) - (q.correctNumber ?? 0));
+    return { correct: d === 0, factor: Math.max(0, 1 - d / 9) };
+  }
   if (q.answerType === "order") {
     const got = a.order ?? [];
     const right = q.correctOrder!.filter((id, i) => got[i] === id).length;
@@ -578,6 +601,8 @@ export interface PublicQuestion {
   revealItems?: boolean;
   answerType: AnswerType;
   choices?: { id: string; label: string; labelAr?: string; image?: string }[];
+  /** players who sit this one out */
+  excluded?: string[];
   hintCount: number;
   timeLimitMs: number;
 }
@@ -598,6 +623,7 @@ export function publicQuestion(q: Question, assetUrl: (a: Asset, i: number) => s
     answerType: q.answerType,
     choices:
       q.answerType !== "text" || withChoices ? q.choices?.map((c) => ({ id: c.id, label: c.label, labelAr: c.labelAr, image: c.image ? imageUrl(c.image) : undefined })) : undefined,
+    excluded: q.excluded,
     hintCount: q.hints.length,
     timeLimitMs: q.timeLimitMs,
   };

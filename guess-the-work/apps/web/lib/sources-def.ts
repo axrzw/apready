@@ -7,6 +7,7 @@ import { mapVndb, vndbPage } from "@gtw/ingest/sources/vndb";
 import { mapTmdb, tmdbDetails, tmdbDiscover } from "@gtw/ingest/sources/tmdb";
 import { igdbGames, igdbToken, mapIgdb } from "@gtw/ingest/sources/igdb";
 import { animeThemes } from "@gtw/ingest/sources/animethemes";
+import { mangadexPage } from "@gtw/ingest/sources/mangadex";
 import { arabicNames, WD_PROPS } from "@gtw/ingest/sources/wikidata";
 import type { Repo } from "@gtw/db";
 
@@ -80,7 +81,32 @@ export const SOURCES: Source[] = [
       const { bi, page } = plan[cursor];
       const b = ANI_BANDS[bi];
       const pg = await fetchPage(http, { page, sort: b.sort, popGreater: b.popGreater, popLesser: b.popLesser, scoreGreater: b.scoreGreater });
-      return { bundles: pg.media.filter((m) => !m.isAdult).map(mapMedia), next: cursor + 1, total: plan.length };
+      return { bundles: pg.media.filter((m) => !m.isAdult).map((m) => mapMedia(m)), next: cursor + 1, total: plan.length };
+    },
+  },
+  {
+    id: "anilist_manga",
+    label: "AniList: مانغا ومانهوا وروايات خفيفة",
+    env: [],
+    total: () => aniPlan(1).length,
+    async run(http, cursor, seed) {
+      const plan = aniPlan(seed);
+      const { bi, page } = plan[cursor];
+      const b = ANI_BANDS[bi];
+      // manga popularity is about half of anime's: same bands, halved
+      const half = (n?: number) => (n ? Math.round(n / 2) : undefined);
+      const pg = await fetchPage(http, { type: "MANGA", page, sort: b.sort, popGreater: half(b.popGreater), popLesser: half(b.popLesser), scoreGreater: b.scoreGreater });
+      return { bundles: pg.media.filter((m) => !m.isAdult).map((m) => mapMedia(m, "MANGA")), next: cursor + 1, total: plan.length };
+    },
+  },
+  {
+    id: "mangadex",
+    label: "MangaDex: مانهوا ومانغا (توسيع)",
+    env: [],
+    total: () => 30,
+    async run(http, cursor) {
+      const works = await mangadexPage(http, cursor * 100);
+      return { bundles: works.map((work) => ({ work, characters: [], people: [] })), next: works.length ? cursor + 1 : 30, total: 30 };
     },
   },
   {

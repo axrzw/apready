@@ -5,13 +5,16 @@ import { POSTER_EFFECTS } from "./effects";
 import { checkAnswer, type Question } from "./questions";
 import { DEFAULT_SCORING, scoreAnswer, type ScoreBreakdown, type ScoreMethod, type ScoringConfig } from "./scoring";
 
-export type RoomKind = "guess" | "describer" | "drawer" | "camera";
+export type RoomKind = "guess" | "describer" | "drawer" | "camera" | "social" | "pack";
+/** kinds that play a list of questions with the guessing engine */
+export const QUESTION_KINDS: RoomKind[] = ["guess", "social", "pack"];
 
 export interface RoomSettings {
   kind: RoomKind;
   modes: ModeId[]; // one mode or several (Mix)
   count: number; // questions (guess) or rounds (party)
-  categories: Category[];
+  /** categories or sections (anime, donghua, asian_drama...) */
+  categories: string[];
   mix: TierMix;
   timeLimitSec: number;
   /** how players answer: typing (ar/en), 4 choices (fewer points) or both */
@@ -25,6 +28,20 @@ export interface RoomSettings {
   describe: { via: "voice" | "chat"; choose: boolean; turnSec: number; penalty: number };
   /** "اشرح بالكاميرا": seconds to switch the camera on, and mime (no words) or talking without forbidden words */
   camera: { setupSec: number; style: "mime" | "talk" };
+  /** where questions come from: anything, works someone in the room saw, works everyone saw */
+  source: "any" | "someone" | "everyone";
+  /** «استثنِ اللي شافه السائل» */
+  excludeOwnOnly: boolean;
+  /** «بدون حرق» */
+  noSpoilers: boolean;
+  years: [number | null, number | null];
+  /** group tiers (watch log) and how much they count against the global tiers (0-100) */
+  groupMix: { group_common: number; group_niche: number; group_unknown: number };
+  groupWeight: number;
+  /** social modes in a "social" room */
+  socialModes: ("who_watched" | "guess_rating")[];
+  /** the pack a "pack" room plays */
+  packId?: string;
   /** only the first correct answer scores */
   firstOnly: boolean;
   /** suggestions while typing: on, off (challenge), or on with fewer points */
@@ -50,6 +67,13 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   describe: { via: "voice", choose: true, turnSec: 75, penalty: 150 },
   draw: { drawSec: 90, guessSec: 30, voteSec: 40, choose: true },
   camera: { setupSec: 30, style: "talk" },
+  source: "any",
+  excludeOwnOnly: false,
+  noSpoilers: true,
+  years: [null, null],
+  groupMix: { group_common: 34, group_niche: 33, group_unknown: 33 },
+  groupWeight: 0,
+  socialModes: ["who_watched", "guess_rating"],
   firstOnly: false,
   autocomplete: "on",
   scoring: DEFAULT_SCORING,
@@ -130,6 +154,8 @@ export interface RoomState {
   paused?: boolean;
   pausedAt?: number;
   pausedLeft?: number;
+  /** «ثأر»: the rematch room some players were sent to */
+  revenge?: { code: string; players: string[] };
 }
 
 /** A question waits for everyone's media at most this long. */
@@ -165,6 +191,7 @@ export function mergeSettings(base: RoomSettings, patch: Partial<RoomSettings>):
     camera: { ...base.camera, ...patch.camera },
     mix: { ...base.mix, ...patch.mix },
     scoring: { ...base.scoring, ...patch.scoring },
+    groupMix: { ...base.groupMix, ...patch.groupMix },
   };
 }
 
@@ -347,13 +374,17 @@ export interface Submission {
   order?: string[];
   /** picked from the autocomplete list: the id of a work / character / song */
   entityId?: string;
+  /** «مين شافه؟» */
+  picks?: string[];
+  /** «خمّن تقييمه» */
+  number?: number;
 }
 
 export function submitAnswer(s: RoomState, playerId: string, sub: Submission, now = Date.now()): AnswerResult {
   const q = currentQuestion(s);
   if (!q || s.phase !== "question" || s.paused || now > s.phaseEndsAt || now < s.phaseStartedAt) return { correct: false, factor: 0, points: 0, closed: true };
   const player = s.players.find((p) => p.id === playerId);
-  if (!player || player.spectator) return { correct: false, factor: 0, points: 0, closed: true };
+  if (!player || player.spectator || q.excluded?.includes(playerId)) return { correct: false, factor: 0, points: 0, closed: true };
   const prev = s.answers[playerId];
   if (prev?.correct) return { ...prev, already: true };
   const usingChoice = sub.choice !== undefined && q.answerType === "text";
@@ -397,18 +428,19 @@ export function submitAnswer(s: RoomState, playerId: string, sub: Submission, no
 function allDone(s: RoomState) {
   const q = currentQuestion(s);
   if (!q) return false;
-  return s.players.filter((p) => !p.spectator).every((p) => {
+  return s.players.filter((p) => !p.spectator && !q.excluded?.includes(p.id)).every((p) => {
     const a = s.answers[p.id];
     return a && (a.correct || a.method === "choice" || q.answerType !== "text");
   });
 }
 
-/** Host skips the current question. */
+/** Host skips the current question: its time ends now; the next tick closes it (and stores the answers). */
 export function skip(s: RoomState, by: string, now = Date.now()) {
   if (by !== s.hostId) throw new Error("only the host");
-  if (s.phase === "question") s.phaseEndsAt = now;
-  else if (s.phase === "reveal") s.phaseEndsAt = now;
-  return tick(s, now);
+  if (s.phase === "question" || s.phase === "reveal") {
+    s.phaseEndsAt = now;
+    if (s.phase === "question" && s.phaseStartedAt > now) s.phaseStartedAt = now;
+  }
 }
 
 export interface TickEvents {
@@ -420,7 +452,7 @@ export interface TickEvents {
 /** Moves the game on by the clock. Call it on every request / every second: no player can freeze the room. */
 export function tick(s: RoomState, now = Date.now()): TickEvents {
   const ev: TickEvents = {};
-  if (s.settings.kind !== "guess" || now < s.phaseEndsAt) return ev;
+  if (!QUESTION_KINDS.includes(s.settings.kind) || now < s.phaseEndsAt) return ev;
   if (s.phase === "question") {
     const q = s.questions[s.index];
     for (const p of s.players) {
@@ -530,13 +562,16 @@ export interface PublicRoom<Q> {
   hints?: { ar: string; en: string; cost: number }[];
   hintsLeft?: number;
   myAnswer?: AnswerState;
-  reveal?: { title: string; titleAr?: string; sub?: string; image?: string; results: { id: string; points: number; correct: boolean; factor: number; breakdown?: ScoreBreakdown }[]; correctChoice?: string; correctOrder?: string[] };
+  reveal?: { title: string; titleAr?: string; sub?: string; image?: string; workId?: string; results: { id: string; points: number; correct: boolean; factor: number; breakdown?: ScoreBreakdown }[]; correctChoice?: string; correctOrder?: string[] };
   chat: ChatMessage[];
   party?: unknown;
   tag?: string;
   paused: boolean;
   /** how many players loaded the current question */
   loaded: number;
+  revenge?: { code: string; players: string[] };
+  /** automatic titles next to the names */
+  titles?: Record<string, string[]>;
   aliasVote?: { by: string; text: string; yes: number; no: number; myVote?: boolean; status: AliasVote["status"] };
 }
 
@@ -562,6 +597,7 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
     })),
     paused: !!s.paused,
     loaded: s.loaded?.length ?? 0,
+    revenge: s.revenge,
     phase: s.phase,
     phaseStartedAt: s.phaseStartedAt,
     phaseEndsAt: Number.isFinite(s.phaseEndsAt) ? s.phaseEndsAt : null,
@@ -585,6 +621,7 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
   if (q && reveal) {
     view.reveal = {
       ...q.display,
+      workId: q.workId.startsWith("link:") ? undefined : q.workId,
       image: q.display.image ? imageUrl(q.display.image) : undefined,
       results: s.players.map((p) => ({ id: p.id, points: s.answers[p.id]?.points ?? 0, correct: !!s.answers[p.id]?.correct, factor: s.answers[p.id]?.factor ?? 0, breakdown: s.answers[p.id]?.breakdown })),
       correctChoice: q.correctChoice,

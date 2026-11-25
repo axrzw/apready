@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { DEFAULT_SETTINGS, type RoomSettings } from "@gtw/core/room";
 import { MODES } from "@gtw/core/questions";
 import { EFFECTS, POSTER_EFFECTS } from "@gtw/core/effects";
-import { CATEGORIES, TIERS, type Category, type ModeId } from "@gtw/core/types";
-import { CATEGORY_AR, CATEGORY_EN, TIER_AR } from "@gtw/core/i18n";
+import { SECTIONS, TIERS, type ModeId } from "@gtw/core/types";
+import { SECTION_AR, SECTION_EN, TIER_AR } from "@gtw/core/i18n";
 import type { Lang } from "@/lib/i18n";
 import { Icon } from "@/lib/icons";
 import { Segmented, Skeleton } from "./ui";
@@ -63,11 +63,13 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
   }, [initial?.mix]);
   const set = <K extends keyof RoomSettings>(k: K, v: RoomSettings[K]) => setS((x) => ({ ...x, [k]: v }));
   const toggleMode = (m: ModeId) => set("modes", s.modes.includes(m) ? s.modes.filter((x) => x !== m) : [...s.modes, m]);
-  const toggleCat = (c: Category) => set("categories", s.categories.includes(c) ? s.categories.filter((x) => x !== c) : [...s.categories, c]);
+  const toggleCat = (c: string) => set("categories", s.categories.includes(c) ? s.categories.filter((x) => x !== c) : [...s.categories, c]);
   const mixTotal = TIERS.reduce((a, t) => a + s.mix[t], 0) || 1;
   let n = 0;
 
   return (
+    <>
+    <Templates current={s} onLoad={(t) => setS({ ...DEFAULT_SETTINGS, ...t })} />
     <form
       className="panel space-y-5 p-4 sm:p-6"
       onSubmit={async (e) => {
@@ -89,6 +91,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
               { value: "guess", label: "أطوار التخمين", icon: "LayoutGrid" },
               { value: "describer", label: "الواصف", icon: "Mic" },
               { value: "camera", label: "اشرح بالكاميرا", icon: "Video" },
+              { value: "social", label: "اجتماعي", icon: "Users" },
               { value: "drawer", label: "الرسّام", icon: "Pen" },
             ]}
           />
@@ -137,18 +140,48 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
 
       <Section n={++n} title="الأقسام">
         <div className="flex flex-wrap gap-2">
-          {CATEGORIES.map((c) => (
+          {SECTIONS.map((c) => (
             <button type="button" key={c} className={`toggle ${s.categories.includes(c) ? "toggle-on" : ""}`} onClick={() => toggleCat(c)}>
-              {lang === "ar" ? CATEGORY_AR[c] : CATEGORY_EN[c]}
+              {lang === "ar" ? SECTION_AR[c] : SECTION_EN[c]}
             </button>
           ))}
           {!s.categories.length && <span className="self-center text-xs text-faint">بدون اختيار = الكل</span>}
         </div>
       </Section>
 
+      <Section n={++n} title="مصدر الأسئلة">
+        <Segmented
+          value={s.source}
+          onChange={(v) => set("source", v)}
+          options={[
+            { value: "any", label: "أي شي من المكتبة" },
+            { value: "someone", label: "اللي شافه واحد منا" },
+            { value: "everyone", label: "اللي شافه كل اللي بالغرفة" },
+          ]}
+        />
+        <div className="flex flex-wrap gap-x-6 gap-y-3">
+          <Check checked={s.excludeOwnOnly} onChange={(b) => set("excludeOwnOnly", b)}>
+            استثنِ اللي شافه السائل
+          </Check>
+          <Check checked={s.noSpoilers} onChange={(b) => set("noSpoilers", b)}>
+            بدون حرق
+          </Check>
+        </div>
+        <div className="grid max-w-sm grid-cols-2 gap-3">
+          <label className="block space-y-1.5">
+            <span className="label">من سنة</span>
+            <input type="number" className="field num" placeholder="1960" value={s.years?.[0] ?? ""} onChange={(e) => set("years", [e.target.value ? Number(e.target.value) : null, s.years?.[1] ?? null])} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="label">إلى سنة</span>
+            <input type="number" className="field num" placeholder="2026" value={s.years?.[1] ?? ""} onChange={(e) => set("years", [s.years?.[0] ?? null, e.target.value ? Number(e.target.value) : null])} />
+          </label>
+        </div>
+      </Section>
+
       <Section n={++n} title="الإيقاع">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Num label={s.kind === "guess" ? "عدد الأسئلة" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />
+          <Num label={s.kind === "guess" || s.kind === "social" ? "عدد الأسئلة" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />
           {s.kind === "guess" && <Num label="ثواني لكل سؤال" value={s.timeLimitSec} min={5} max={180} onChange={(v) => set("timeLimitSec", v)} />}
           {(s.kind === "describer" || s.kind === "camera") && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
           {s.kind === "camera" && <Num label="ثواني تجهيز الكاميرا" value={s.camera.setupSec} min={10} max={120} onChange={(v) => set("camera", { ...s.camera, setupSec: v })} />}
@@ -204,6 +237,20 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
             </Check>
           </div>
         )}
+        {s.kind === "social" && (
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["who_watched", "مين شافه؟"],
+                ["guess_rating", "خمّن تقييمه"],
+              ] as const
+            ).map(([k, label]) => (
+              <button type="button" key={k} className={`toggle ${s.socialModes.includes(k) ? "toggle-on" : ""}`} onClick={() => set("socialModes", s.socialModes.includes(k) ? s.socialModes.filter((x) => x !== k) : [...s.socialModes, k])}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
         {s.kind === "camera" && (
           <Segmented
             value={s.camera.style}
@@ -230,6 +277,28 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
               <span className="num text-end text-muted">{Math.round((s.mix[t] / mixTotal) * 100)}%</span>
             </label>
           ))}
+        </div>
+        <div className="space-y-3 border-t border-line pt-4">
+          <div className="label">طبقات القروب (من سجلات المشاهدة)</div>
+          {(
+            [
+              ["group_common", "أغلبنا شافه"],
+              ["group_niche", "واحد أو اثنين"],
+              ["group_unknown", "محد شافه"],
+            ] as const
+          ).map(([k, label]) => (
+            <label key={k} className="grid grid-cols-[96px_1fr_44px] items-center gap-3 text-sm">
+              <span>{label}</span>
+              <input type="range" min={0} max={100} value={s.groupMix[k]} onChange={(e) => set("groupMix", { ...s.groupMix, [k]: Number(e.target.value) })} className="w-full accent-[var(--accent)]" />
+              <span className="num text-end text-muted">{s.groupMix[k]}</span>
+            </label>
+          ))}
+          <label className="grid grid-cols-[96px_1fr_44px] items-center gap-3 text-sm">
+            <span>وزن القروب</span>
+            <input type="range" min={0} max={100} value={s.groupWeight} onChange={(e) => set("groupWeight", Number(e.target.value))} className="w-full accent-[var(--accent)]" />
+            <span className="num text-end text-muted">{s.groupWeight}%</span>
+          </label>
+          <p className="text-xs text-faint">٠٪ = الطبقات العالمية بس، ١٠٠٪ = طبقات القروب بس.</p>
         </div>
         <Check checked={s.adaptive} onChange={(b) => set("adaptive", b)}>
           الصعوبة تتعدّل حسب نسبة إجاباتنا الصحيحة
@@ -296,5 +365,35 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         {busy ? "لحظة" : submitLabel}
       </button>
     </form>
+    </>
+  );
+}
+
+/** Saved settings with a name («سهرة خفيفة», «تحدي المغمور»), shared by the group. */
+function Templates({ current, onLoad }: { current: RoomSettings; onLoad: (s: RoomSettings) => void }) {
+  const [list, setList] = useState<{ id: string; name: string; settings: RoomSettings }[]>([]);
+  const load = () => fetch("/api/templates").then((r) => r.json()).then(setList, () => {});
+  useEffect(() => void load(), []);
+  return (
+    <div className="mb-4 flex flex-wrap items-center gap-2">
+      <span className="label">القوالب</span>
+      {list.map((t) => (
+        <button type="button" key={t.id} className="toggle h-8" onClick={() => onLoad(t.settings)}>
+          {t.name}
+        </button>
+      ))}
+      <button
+        type="button"
+        className="btn-quiet h-8 border border-line"
+        onClick={async () => {
+          const name = prompt("اسم القالب؟ (مثلاً: سهرة خفيفة)");
+          if (!name) return;
+          await fetch("/api/templates", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, settings: current }) });
+          void load();
+        }}
+      >
+        <Icon name="Plus" size={14} /> احفظ الإعدادات كقالب
+      </button>
+    </div>
   );
 }
