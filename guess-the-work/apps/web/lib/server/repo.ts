@@ -5,7 +5,11 @@ import { DATA_DIR } from "./env";
 
 const g = globalThis as unknown as { __gtwRepo?: Repo; __gtwOpen?: Promise<Repo> };
 
+/** On Vercel the database must be Neon (the file system is read-only and not shared). */
+export const dbMissing = () => !!process.env.VERCEL && !process.env.DATABASE_URL && !process.env.POSTGRES_URL;
+
 function open(): Promise<Repo> {
+  if (dbMissing()) return Promise.reject(new Error("DATABASE_URL is missing: add Neon from the Vercel Marketplace"));
   // Neon in production (DATABASE_URL), PGlite folder locally. Migrations run at build (db:setup) and here once.
   g.__gtwOpen ??= openDb({ pgliteDir: process.env.GTW_PGLITE_DIR || join(DATA_DIR, "pglite"), migrationsDir: resolve(process.cwd(), "..", "..", "packages", "db", "migrations") }).then(async (o) => {
     if (o.kind === "pglite") await o.migrate();

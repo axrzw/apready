@@ -88,6 +88,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
             options={[
               { value: "guess", label: "أطوار التخمين", icon: "LayoutGrid" },
               { value: "describer", label: "الواصف", icon: "Mic" },
+              { value: "camera", label: "اشرح بالكاميرا", icon: "Video" },
               { value: "drawer", label: "الرسّام", icon: "Pen" },
             ]}
           />
@@ -149,7 +150,8 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         <div className="grid gap-3 sm:grid-cols-3">
           <Num label={s.kind === "guess" ? "عدد الأسئلة" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />
           {s.kind === "guess" && <Num label="ثواني لكل سؤال" value={s.timeLimitSec} min={5} max={180} onChange={(v) => set("timeLimitSec", v)} />}
-          {s.kind === "describer" && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
+          {(s.kind === "describer" || s.kind === "camera") && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
+          {s.kind === "camera" && <Num label="ثواني تجهيز الكاميرا" value={s.camera.setupSec} min={10} max={120} onChange={(v) => set("camera", { ...s.camera, setupSec: v })} />}
           {s.kind === "drawer" && <Num label="ثواني الرسم" value={s.draw.drawSec} min={30} max={300} onChange={(v) => set("draw", { ...s.draw, drawSec: v })} />}
           {s.kind === "drawer" && <Num label="ثواني التخمين لكل رسمة" value={s.draw.guessSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, guessSec: v })} />}
           {s.kind === "drawer" && <Num label="ثواني التصويت" value={s.draw.voteSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, voteSec: v })} />}
@@ -201,6 +203,16 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
               يختار من عنصرين
             </Check>
           </div>
+        )}
+        {s.kind === "camera" && (
+          <Segmented
+            value={s.camera.style}
+            onChange={(v) => set("camera", { ...s.camera, style: v })}
+            options={[
+              { value: "talk", label: "مسموح الكلام بدون الكلمات الممنوعة", icon: "Mic" },
+              { value: "mime", label: "تمثيل صامت (المايك مقفل)", icon: "Hand" },
+            ]}
+          />
         )}
         {s.kind === "drawer" && (
           <Check checked={s.draw.choose} onChange={(b) => set("draw", { ...s.draw, choose: b })}>

@@ -1,5 +1,6 @@
 import { GROUP_PASSWORD } from "@/lib/server/env";
 import { getSession } from "@/lib/server/session";
+import { dbMissing } from "@/lib/server/repo";
 import LoginForm from "@/components/LoginForm";
 
 const ERR: Record<string, string> = {
@@ -10,7 +11,7 @@ const ERR: Record<string, string> = {
 
 export default async function Login({ searchParams }: { searchParams: Promise<{ e?: string; next?: string }> }) {
   const { e, next } = await searchParams;
-  const s = await getSession();
+  const s = dbMissing() ? null : await getSession().catch(() => null);
   return (
     <div className="mx-auto max-w-md pt-6 sm:pt-12">
       <div className="mb-8 space-y-3 text-center">
@@ -20,7 +21,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
         </h1>
         <p className="text-sm text-muted">عرض خاص للشلة. كلمة سر القروب واسمك، وبس.</p>
       </div>
-      <LoginForm error={e ? ERR[e] ?? e : !GROUP_PASSWORD ? ERR.nopass : undefined} next={next ?? "/"} name={s?.name} color={s?.color} avatar={s?.avatar} />
+      <LoginForm error={dbMissing() ? "قاعدة البيانات مو موصولة. في Vercel: Storage ثم Neon ثم Connect." : e ? (ERR[e] ?? e) : !GROUP_PASSWORD ? ERR.nopass : undefined} next={next ?? "/"} name={s?.name} color={s?.color} avatar={s?.avatar} />
     </div>
   );
 }

@@ -11,7 +11,9 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   if (!secret || url.searchParams.get("secret") !== secret) return new Response("not found", { status: 404 });
   const s = await roomForMedia(String(url.searchParams.get("code")).toUpperCase());
+  const party = s?.party as { item?: { names: string[]; display: { title: string } } } | undefined;
+  if (s && party?.item) return Response.json({ phase: s.phase, names: party.item.names, title: party.item.display.title });
   const q = s?.questions[s.index];
-  if (!q) return Response.json({ error: "no question" }, { status: 404 });
+  if (!q) return Response.json({ error: "no question", phase: s?.phase }, { status: 404 });
   return Response.json({ id: q.id, mode: q.mode, names: q.names, entity: q.entity, titleAr: q.display.titleAr, title: q.display.title });
 }

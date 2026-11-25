@@ -68,7 +68,7 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
   const solo = view.tag === "solo";
   const kind = view.settings.kind;
   const mode = view.question ? MODES.find((m) => m.id === view.question!.mode) : undefined;
-  const stage = kind === "describer" ? "stage" : "";
+  const stage = kind === "describer" || kind === "camera" ? "stage" : "";
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
@@ -83,8 +83,8 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
           )}
           {view.tag?.startsWith("daily:") && <span className="label text-accent">DAILY</span>}
           <span className="flex items-center gap-2 text-sm text-muted">
-            {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "drawer" ? "Pen" : "LayoutGrid"} size={16} className="text-accent" />}
-            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
+            {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "camera" ? "Video" : kind === "drawer" ? "Pen" : "LayoutGrid"} size={16} className="text-accent" />}
+            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "camera" ? "اشرح بالكاميرا" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
           </span>
           {view.total > 0 && kind === "guess" && (
             <span className="num ms-auto text-sm text-faint">
@@ -119,7 +119,7 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
 
         {view.phase === "lobby" && <Lobby view={view} act={act} lang={lang} isHost={isHost} />}
         {(view.phase === "question" || view.phase === "reveal") && view.question && <QuestionView view={view} act={act} now={now} lang={lang} />}
-        {kind === "describer" && view.phase.startsWith("describe") && <DescriberView view={view} act={act} lang={lang} />}
+        {(kind === "describer" || kind === "camera") && (view.phase.startsWith("describe") || view.phase.startsWith("camera")) && <DescriberView view={view} act={act} lang={lang} />}
         {kind === "drawer" && (view.phase.startsWith("draw") || view.phase === "finished") && <DrawerView view={view} act={act} lang={lang} />}
         {view.phase === "finished" && <Finished view={view} act={act} lang={lang} isHost={isHost} />}
 

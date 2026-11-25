@@ -84,3 +84,10 @@ describe("rejoin and spectators", () => {
     expect(publicRoom(s, "c", t0, (q) => q.id).players.find((p) => p.id === "c")!.spectator).toBe(false);
   });
 });
+
+describe("settings merge", () => {
+  it("a partial nested setting keeps the other fields", () => {
+    const s = createRoom("M", { id: "a", name: "A" }, { describe: { turnSec: 25 } as never });
+    expect(s.settings.describe).toMatchObject({ turnSec: 25, choose: true, via: "voice" });
+  });
+});

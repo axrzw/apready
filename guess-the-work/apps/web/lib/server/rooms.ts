@@ -81,7 +81,7 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
       const hints = { ...s.hintsUsed };
       const ev = tick(s, now);
       if (ev.closed && q) await saveAnswers(s, q, answers, hints, fx);
-    } else if (s.settings.kind === "describer") {
+    } else if (s.settings.kind === "describer" || s.settings.kind === "camera") {
       const ev = describer.tickDescriber(s, now);
       if (ev.needItems) {
         const lib = await getLibrary();
@@ -213,7 +213,7 @@ export async function viewRoom(code: string, uid: string) {
   const image = (src: string) => assetUrl({ a: { type: "plain", src }, e: exp });
   const view = publicRoom(s, uid, Date.now(), (q) => present(s, q), image);
   const priv = (r: describer.TokenReq) => assetUrl({ a: r.asset, u: r.users, e: exp });
-  if (s.settings.kind === "describer") view.party = describer.describerView(s, uid, priv, image);
+  if (s.settings.kind === "describer" || s.settings.kind === "camera") view.party = describer.describerView(s, uid, priv, image);
   if (s.settings.kind === "drawer") view.party = drawer.drawerView(s, uid, priv, image);
   return view;
 }
@@ -251,7 +251,7 @@ async function start(s: RoomState, uid: string, now: number) {
     });
     if (!qs.length) throw new Error("ما فيه أسئلة لهذا الطور في المكتبة الحين. جرّب طور ثاني.");
     startGuess(s, uid, qs, now);
-  } else if (s.settings.kind === "describer") {
+  } else if (s.settings.kind === "describer" || s.settings.kind === "camera") {
     describer.startDescriber(s, uid, now);
   } else {
     const items = drawer.pickDrawItems(lib, s.players.length * (s.settings.draw.choose ? 2 : 1), { mix, rng, seen, categories: s.settings.categories });
@@ -285,7 +285,12 @@ export type RoomAction =
   | { type: "transfer"; playerId: string }
   | { type: "pause" }
   | { type: "resume" }
-  | { type: "play" };
+  | { type: "play" }
+  | { type: "camera_ready" }
+  | { type: "camera_none" }
+  | { type: "camera_choice"; choice: "talk" | "skip" | "back" }
+  | { type: "report_violation" }
+  | { type: "approve_report"; id: number; approve: boolean };
 
 export async function act(code: string, user: Session, a: RoomAction): Promise<unknown> {
   // the PNG is stored before the room write (it may retry)
@@ -296,7 +301,7 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
     switch (a.type) {
       case "answer":
         if (s.settings.kind === "guess") return submitAnswer(s, user.uid, a.submission, now);
-        if (s.settings.kind === "describer") return describer.guess(s, user.uid, a.submission.text ?? "", now);
+        if (s.settings.kind === "describer" || s.settings.kind === "camera") return describer.guess(s, user.uid, a.submission.text ?? "", now);
         return drawer.guess(s, user.uid, a.submission.text ?? "", now);
       case "hint":
         return { open: requestHint(s, user.uid, now) };
@@ -318,6 +323,20 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
       case "play":
         becomePlayer(s, user.uid);
         return { ok: true };
+      case "camera_ready":
+        describer.cameraReady(s, user.uid, now);
+        return { ok: true };
+      case "camera_none":
+        describer.noCamera(s, user.uid, now);
+        return { ok: true };
+      case "camera_choice":
+        describer.cameraChoice(s, user.uid, a.choice, now);
+        return { ok: true };
+      case "report_violation":
+        return { id: describer.reportViolation(s, user.uid, now) };
+      case "approve_report":
+        describer.approveReport(s, user.uid, a.id, a.approve);
+        return { ok: true };
       case "skip":
         skip(s, user.uid, now);
         return { ok: true };
@@ -333,7 +352,7 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
       case "chat": {
         const text = a.text.slice(0, 300).trim();
         if (!text) return { ok: true };
-        if (s.settings.kind === "describer") return describer.chat(s, user.uid, text, now);
+        if (s.settings.kind === "describer" || s.settings.kind === "camera") return describer.chat(s, user.uid, text, now);
         if (s.settings.kind === "drawer" && s.phase === "draw_guess") return drawer.guess(s, user.uid, text, now);
         s.chat.push({ id: (s.chat.at(-1)?.id ?? 0) + 1, at: now, playerId: user.uid, text, kind: "chat" });
         if (s.chat.length > 300) s.chat.splice(0, s.chat.length - 300);

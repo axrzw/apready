@@ -5,7 +5,7 @@ import { POSTER_EFFECTS } from "./effects";
 import { checkAnswer, type Question } from "./questions";
 import { DEFAULT_SCORING, scoreAnswer, type ScoreBreakdown, type ScoreMethod, type ScoringConfig } from "./scoring";
 
-export type RoomKind = "guess" | "describer" | "drawer";
+export type RoomKind = "guess" | "describer" | "drawer" | "camera";
 
 export interface RoomSettings {
   kind: RoomKind;
@@ -23,6 +23,8 @@ export interface RoomSettings {
   repeatAfterDays: number;
   adaptive: boolean;
   describe: { via: "voice" | "chat"; choose: boolean; turnSec: number; penalty: number };
+  /** "اشرح بالكاميرا": seconds to switch the camera on, and mime (no words) or talking without forbidden words */
+  camera: { setupSec: number; style: "mime" | "talk" };
   /** only the first correct answer scores */
   firstOnly: boolean;
   /** suggestions while typing: on, off (challenge), or on with fewer points */
@@ -47,6 +49,7 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   adaptive: true,
   describe: { via: "voice", choose: true, turnSec: 75, penalty: 150 },
   draw: { drawSec: 90, guessSec: 30, voteSec: 40, choose: true },
+  camera: { setupSec: 30, style: "talk" },
   firstOnly: false,
   autocomplete: "on",
   scoring: DEFAULT_SCORING,
@@ -93,6 +96,8 @@ export type Phase =
   | "reveal"
   | "finished"
   | "describe_choose"
+  | "camera_setup"
+  | "camera_confirm"
   | "describe_turn"
   | "describe_reveal"
   | "draw"
@@ -149,11 +154,25 @@ export interface AnswerResult {
   closed?: boolean;
 }
 
+/** Nested settings (hints, describe, draw, camera, scoring) are merged, not replaced. */
+export function mergeSettings(base: RoomSettings, patch: Partial<RoomSettings>): RoomSettings {
+  return {
+    ...base,
+    ...patch,
+    hints: { ...base.hints, ...patch.hints },
+    describe: { ...base.describe, ...patch.describe },
+    draw: { ...base.draw, ...patch.draw },
+    camera: { ...base.camera, ...patch.camera },
+    mix: { ...base.mix, ...patch.mix },
+    scoring: { ...base.scoring, ...patch.scoring },
+  };
+}
+
 export function createRoom(code: string, host: { id: string; name: string; avatar?: string; color?: string }, settings: Partial<RoomSettings> = {}, now = Date.now()): RoomState {
   return {
     code,
     hostId: host.id,
-    settings: { ...DEFAULT_SETTINGS, ...settings },
+    settings: mergeSettings(DEFAULT_SETTINGS, settings),
     players: [{ ...host, score: 0, streak: 0, lastSeen: now }],
     phase: "lobby",
     phaseStartedAt: now,
@@ -194,7 +213,7 @@ export function leave(s: RoomState, playerId: string, now = Date.now()): RoomSta
 
 export function updateSettings(s: RoomState, by: string, patch: Partial<RoomSettings>): RoomState {
   if (by !== s.hostId || s.phase !== "lobby") throw new Error("only the host, in the lobby");
-  s.settings = { ...s.settings, ...patch, hints: { ...s.settings.hints, ...patch.hints }, describe: { ...s.settings.describe, ...patch.describe }, draw: { ...s.settings.draw, ...patch.draw } };
+  s.settings = mergeSettings(s.settings, patch);
   return s;
 }
 

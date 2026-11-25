@@ -18,7 +18,16 @@ export interface DescriberState {
   skipsLeft: number;
   guessed: Record<string, { points: number; at: number; factor: number }>;
   penalty: number;
+  /** "اشرح بالكاميرا": how this turn is explained (camera, or talking like the describer) */
+  turnMode?: "camera" | "talk";
+  /** setup time left when the explainer opened the "no camera" confirm (for "back") */
+  setupLeft?: number;
+  /** "talk" style: reported forbidden words, approved by the host */
+  reports?: { id: number; by: string; at: number; status: "open" | "approved" | "rejected" }[];
 }
+
+const CONFIRM_SEC = 10;
+const isCamera = (s: RoomState) => s.settings.kind === "camera";
 
 const CHOOSE_SEC = 15;
 const REVEAL_SEC = 7;
@@ -69,9 +78,79 @@ export function choose(s: RoomState, uid: string, index: number, now: number) {
   d.item = d.offered[index];
   d.guessed = {};
   d.penalty = 0;
+  d.reports = [];
+  if (isCamera(s)) {
+    // time to switch the camera on in Discord
+    d.turnMode = undefined;
+    setPhase(s, "camera_setup", now, s.settings.camera.setupSec);
+    return;
+  }
+  d.turnMode = "talk";
+  startTurn(s, uid, now);
+}
+
+function startTurn(s: RoomState, uid: string, now: number) {
   setPhase(s, "describe_turn", now, s.settings.describe.turnSec);
   const p = s.players.find((x) => x.id === uid);
-  systemMsg(s, `${p?.name} يوصف الحين`, now);
+  const d = st(s);
+  systemMsg(s, d.turnMode === "camera" ? `شغّلوا بث ${p?.name} في الديسكورد` : `${p?.name} يوصف الحين`, now);
+}
+
+/** «الكاميرا جاهزة»: the turn starts at once. */
+export function cameraReady(s: RoomState, uid: string, now: number) {
+  if (uid !== describerId(s) || (s.phase !== "camera_setup" && s.phase !== "camera_confirm")) return;
+  st(s).turnMode = "camera";
+  startTurn(s, uid, now);
+}
+
+/** «ما عندي كاميرا»: shows the confirm (talk / skip my turn / back). */
+export function noCamera(s: RoomState, uid: string, now: number) {
+  if (uid !== describerId(s) || s.phase !== "camera_setup") return;
+  st(s).setupLeft = Math.max(0, s.phaseEndsAt - now);
+  setPhase(s, "camera_confirm", now, Math.max(CONFIRM_SEC, Math.ceil(st(s).setupLeft! / 1000)));
+}
+
+export function cameraChoice(s: RoomState, uid: string, choice: "talk" | "skip" | "back", now: number) {
+  if (uid !== describerId(s) || s.phase !== "camera_confirm") return;
+  const d = st(s);
+  if (choice === "back") {
+    setPhase(s, "camera_setup", now, Math.max(5, Math.ceil((d.setupLeft ?? CONFIRM_SEC * 1000) / 1000)));
+    return;
+  }
+  if (choice === "talk") {
+    d.turnMode = "talk";
+    startTurn(s, uid, now);
+    return;
+  }
+  skipTurn(s, now);
+}
+
+/** The turn passes to the next player: no points, no penalty. */
+function skipTurn(s: RoomState, now: number) {
+  const d = st(s);
+  const p = s.players.find((x) => x.id === describerId(s));
+  systemMsg(s, `${p?.name ?? ""} تخطى دوره`, now);
+  nextTurn(s, now);
+  d.requested = false;
+}
+
+/** «مخالفة»: a guesser reports a forbidden word (camera, talking style). The host approves it. */
+export function reportViolation(s: RoomState, uid: string, now: number): number | null {
+  const d = st(s);
+  if (!isCamera(s) || s.settings.camera.style !== "talk" || d.turnMode !== "camera" || s.phase !== "describe_turn" || uid === describerId(s)) return null;
+  const id = (d.reports?.at(-1)?.id ?? 0) + 1;
+  d.reports = [...(d.reports ?? []), { id, by: uid, at: now, status: "open" }];
+  systemMsg(s, `${s.players.find((p) => p.id === uid)?.name ?? ""} بلّغ عن كلمة ممنوعة`, now);
+  return id;
+}
+
+export function approveReport(s: RoomState, by: string, id: number, approve = true) {
+  if (by !== s.hostId) throw new Error("only the host");
+  const d = st(s);
+  const r = d.reports?.find((x) => x.id === id);
+  if (!r || r.status !== "open") return;
+  r.status = approve ? "approved" : "rejected";
+  if (approve) d.penalty += s.settings.describe.penalty;
 }
 
 export function skipItem(s: RoomState, uid: string): boolean {
@@ -159,6 +238,16 @@ export function tickDescriber(s: RoomState, now: number): TickResult {
     }
     return {};
   }
+  if (s.phase === "camera_setup" && now >= s.phaseEndsAt) {
+    // nobody pressed anything: ask "no camera?"; no answer in 10 s skips the turn
+    st(s).setupLeft = 0;
+    setPhase(s, "camera_confirm", now, CONFIRM_SEC);
+    return { changed: true };
+  }
+  if (s.phase === "camera_confirm" && now >= s.phaseEndsAt) {
+    skipTurn(s, now);
+    return { changed: true, needItems: true };
+  }
   if (s.phase === "describe_turn" && now >= s.phaseEndsAt) {
     const descr = describerId(s)!;
     const scored: ScoredRow[] = [];
@@ -178,25 +267,31 @@ export function tickDescriber(s: RoomState, now: number): TickResult {
     s.phaseEndsAt = now + REVEAL_SEC * 1000;
     return { changed: true, scored };
   }
-  if (s.phase === "describe_reveal" && now >= s.phaseEndsAt) {
-    d.turn++;
-    d.item = undefined;
-    d.offered = [];
-    d.requested = false;
-    d.skipsLeft = 1;
-    d.guessed = {};
-    if (d.turn >= d.totalTurns) {
-      s.phase = "finished";
-      s.phaseStartedAt = now;
-      s.phaseEndsAt = Number.POSITIVE_INFINITY;
-      return { changed: true, finished: true };
-    }
-    s.phase = "describe_choose";
-    s.phaseStartedAt = now;
-    s.phaseEndsAt = now + CHOOSE_SEC * 1000;
-    return { changed: true, needItems: (d.requested = true) };
-  }
+  if (s.phase === "describe_reveal" && now >= s.phaseEndsAt) return nextTurn(s, now);
   return {};
+}
+
+/** Next player's turn (or the end). Items are asked for on the next tick. */
+function nextTurn(s: RoomState, now: number): TickResult {
+  const d = st(s);
+  d.turn++;
+  d.item = undefined;
+  d.offered = [];
+  d.requested = false;
+  d.skipsLeft = 1;
+  d.guessed = {};
+  d.turnMode = undefined;
+  d.reports = [];
+  if (d.turn >= d.totalTurns) {
+    s.phase = "finished";
+    s.phaseStartedAt = now;
+    s.phaseEndsAt = Number.POSITIVE_INFINITY;
+    return { changed: true, finished: true };
+  }
+  s.phase = "describe_choose";
+  s.phaseStartedAt = now;
+  s.phaseEndsAt = now + CHOOSE_SEC * 1000;
+  return { changed: true, needItems: (d.requested = true) };
 }
 
 function row(item: PartyItem, userId: string, points: number, correct: boolean, role: "describer" | "guesser"): ScoredRow {
@@ -221,12 +316,17 @@ export function describerView(s: RoomState, uid: string, token: (r: TokenReq) =>
     skipsLeft: mine ? d.skipsLeft : undefined,
     offered: mine && s.phase === "describe_choose" ? d.offered.map((it) => ({ title: it.display.title, titleAr: it.display.titleAr, sub: it.display.sub, image: priv(it.image) })) : undefined,
     item:
-      mine && d.item && s.phase === "describe_turn"
+      mine && d.item && ["describe_turn", "camera_setup", "camera_confirm"].includes(s.phase)
         ? { title: d.item.display.title, titleAr: d.item.display.titleAr, sub: d.item.display.sub, image: priv(d.item.image), forbidden: [...new Set(d.item.forbidden)].slice(0, 30) }
         : undefined,
     reveal: s.phase === "describe_reveal" && d.item ? { ...d.item.display, image: image(d.item.image) } : undefined,
     guessed: Object.fromEntries(Object.entries(d.guessed).map(([k, v]) => [k, v.factor])),
     penalty: d.penalty,
     via: s.settings.describe.via,
+    camera: s.settings.kind === "camera",
+    cameraStyle: s.settings.camera.style,
+    cameraOn: d.turnMode === "camera",
+    turnMode: d.turnMode,
+    reports: (d.reports ?? []).map((r) => ({ id: r.id, by: r.by, status: r.status })),
   };
 }
