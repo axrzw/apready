@@ -297,3 +297,5 @@ See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, 
 A separate private web game for the owner's friends (Next.js + TypeScript monorepo, its own pnpm workspace). Nothing in it
 touches My Ready AP. Start with `guess-the-work/README.md` and `guess-the-work/docs/` (PLAN, DECISIONS, QUESTIONS,
 BLOCKERS, MORNING_REPORT). Commands run inside `guess-the-work/`: `pnpm test`, `pnpm typecheck`, `pnpm build`.
+It deploys on Vercel from THIS repo's root: `/vercel.json` + `/package.json` (owner's choice: Root Directory = root). Those two
+files are for «خمّن العمل» only; My Ready AP (Python) ignores them. `npx vercel build` from a clean clone passes.

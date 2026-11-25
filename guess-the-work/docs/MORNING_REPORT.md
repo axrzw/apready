@@ -10,15 +10,13 @@
 
 ## الخطوات المطلوبة منك (من الجوال، تقريباً 5 دقائق)
 1. **vercel.com** ← **Add New** ← **Project** ← اختر **`axrzw/apready`** ← **Import**.
-2. **Root Directory** ← **Edit** ← اختر **`guess-the-work/apps/web`** ← **Continue**. لا تغيّر أوامر البناء (مكتوبة في `vercel.json`).
+2. **Root Directory:** خلّه على الجذر (root). لا تغيّر أي إعداد، كله في `vercel.json` بجذر المستودع.
 3. **Environment Variables**، أضف:
    - `GROUP_PASSWORD` = `lD23gstg8VlUUzqR`
    - `ADMIN_PASSWORD` = `rEXcm05j9MSQc9uT`
    - `CRON_SECRET` = `5744e5e5f22a23cab06113ac5740460420eba31891e7cae4`
-   - `ENABLE_EXPERIMENTAL_COREPACK` = `1`
 4. اضغط **Deploy**. أول نشر يطلع برسالة «قاعدة البيانات مو موصولة»، وهذا طبيعي.
 5. **Storage** ← **Create Database** ← **Neon** ← Create ← **Connect** (كل البيئات). وبعدها **Storage** ← **Create Database** ← **Blob** ← Create ← **Connect**.
-6. **Settings** ← **Environments** ← **Production** ← **Branch Tracking**، واكتب `claude/relaxed-carson-dvd3d8` واحفظ. (أو من GitHub سوّ Pull Request للفرع وادمجه في `main`.)
 7. **Deployments** ← آخر نشر ← **⋯** ← **Redeploy**. البناء يشغّل الـ migrations ويستورد المكتبة (5,189 عمل) لحاله.
 8. افتح الرابط وادخل بكلمة سر الأدمن، وبعدها من **الأدمن** ← **المصادر** ← **AnimeThemes** ← «اسحب الحين» عشان الأوبننقات والإندنقات.
 

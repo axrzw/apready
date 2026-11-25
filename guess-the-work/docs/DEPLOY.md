@@ -15,7 +15,7 @@
 4. في صفحة الإعداد:
    - **Project Name:** `khammin` (أو أي اسم).
    - **Framework Preset:** Next.js (يطلع لحاله).
-   - **Root Directory:** اضغط **Edit** واختر **`guess-the-work/apps/web`** ثم **Continue**.
+   - **Root Directory:** خلّه على الجذر (`apready`، root). `vercel.json` اللي في جذر المستودع يبني «خمّن العمل» من مجلد `guess-the-work/`.
    - **Build and Output Settings:** لا تغيّر شي. الأوامر مكتوبة في `vercel.json`.
 5. افتح **Environment Variables** وأضف هذي (Name ثم Value ثم Add):
 
@@ -24,7 +24,6 @@
 | `GROUP_PASSWORD` | `lD23gstg8VlUUzqR` | كلمة سر القروب (غيّرها إذا تبي) |
 | `ADMIN_PASSWORD` | `rEXcm05j9MSQc9uT` | الدخول بها يعطيك صلاحية الأدمن |
 | `CRON_SECRET` | `5744e5e5f22a23cab06113ac5740460420eba31891e7cae4` | يحمي المهمة الأسبوعية |
-| `ENABLE_EXPERIMENTAL_COREPACK` | `1` | يخلي Vercel يستخدم نفس نسخة pnpm |
 
 6. **لا تضغط Deploy للحين.** اضغط **Deploy** بعد الخطوة 2 تحت. (إذا ضغطته بالغلط، عادي: أول بناء يفشل أو يطلع الموقع برسالة «قاعدة البيانات مو موصولة»، وتعيد النشر بعد الخطوة 2.)
 
@@ -33,10 +32,8 @@
 2. اضغط **Create Database** واختر **Neon (Serverless Postgres)**، ثم **Continue**، ثم اختر الخطة المجانية والمنطقة الأقرب (مثلاً Frankfurt)، ثم **Create**، ثم **Connect** للمشروع (كل البيئات: Production وPreview وDevelopment). هذا يضيف `DATABASE_URL` لحاله.
 3. ارجع لـ **Storage** واضغط **Create Database** مرة ثانية واختر **Blob**، ثم **Create**، ثم **Connect**. هذا يضيف `BLOB_READ_WRITE_TOKEN` لحاله.
 
-### 3) خلّ فرعنا هو الإنتاج
-الشغل على الفرع `claude/relaxed-carson-dvd3d8`. اختر واحد من الطريقتين:
-- **الأسهل:** في Vercel افتح **Settings** ثم **Environments**، ثم **Production**، ثم **Branch Tracking**، واكتب `claude/relaxed-carson-dvd3d8` واحفظ.
-- **أو** من تطبيق GitHub: افتح المستودع ثم **Pull requests**، ثم **New**، واختر `claude/relaxed-carson-dvd3d8` إلى `main`، ثم **Merge**.
+### 3) الفرع
+كل شي على `main`، فما تحتاج تغيّر أي شي.
 
 ### 4) انشر
 1. افتح تبويب **Deployments** ثم آخر نشر، ثم **⋯** ثم **Redeploy**. (أو اضغط **Deploy** إذا ما نشرت قبل.)
