@@ -42,16 +42,16 @@ interface TV {
 const spring = { type: "spring", stiffness: 380, damping: 30 } as const;
 
 /** A tile: poster / character / song (with a private play button). */
-export function Tile({ it, size = "sm", ring, onClick, selected }: { it: TierItemView; size?: "sm" | "lg"; ring?: string; onClick?: () => void; selected?: boolean }) {
+export function Tile({ it, size = "sm", ring, onClick, selected, shared }: { it: TierItemView; size?: "sm" | "lg"; ring?: string; onClick?: () => void; selected?: boolean; shared?: boolean }) {
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const big = size === "lg";
   return (
     <motion.div
       layout
-      layoutId={big ? undefined : `tile-${it.id}`}
+      layoutId={shared && !big ? `tile-${it.id}` : undefined}
       transition={spring}
-      className={`group relative shrink-0 overflow-hidden rounded-sm border bg-surface2 ${big ? "w-44 sm:w-56" : "w-12 sm:w-14"} ${selected ? "border-accent ring-2 ring-accent" : "border-line"}`}
+      className={`group relative shrink-0 overflow-hidden rounded-sm border bg-surface2 ${big ? "w-36 sm:w-56" : "w-12 sm:w-14"} ${selected ? "border-accent ring-2 ring-accent" : "border-line"}`}
       style={ring ? { boxShadow: `0 0 0 2px ${ring}` } : undefined}
       title={label(it)}
       draggable={!!onClick}
@@ -87,7 +87,7 @@ export function Tile({ it, size = "sm", ring, onClick, selected }: { it: TierIte
 }
 
 /** Rows S..F with the items in them. Optional: tap a row (put the selected item there), rings per item. */
-export function Board({ items, board, onRow, rings, compact }: { items: TierItemView[]; board: Record<string, Placement>; onRow?: (t: Placement) => void; rings?: Record<string, string>; compact?: boolean }) {
+export function Board({ items, board, onRow, rings, compact, shared }: { items: TierItemView[]; board: Record<string, Placement>; onRow?: (t: Placement) => void; rings?: Record<string, string>; compact?: boolean; shared?: boolean }) {
   const [over, setOver] = useState<string | null>(null);
   const rows: Placement[] = [...TIER_ROWS];
   if (onRow) rows.push("unseen");
@@ -116,7 +116,7 @@ export function Board({ items, board, onRow, rings, compact }: { items: TierItem
             </div>
             <div className="flex flex-1 flex-wrap content-start gap-1 bg-surface/60 p-1">
               {mine.map((it) => (
-                <Tile key={it.id} it={it} ring={rings?.[it.id]} />
+                <Tile key={it.id} it={it} ring={rings?.[it.id]} shared={shared} />
               ))}
             </div>
           </div>
@@ -249,7 +249,7 @@ export default function TierListView({ view, act }: { view: View; act: Act }) {
           {locked.length > 0 && (
             <div className="space-y-2 pt-2">
               <div className="label">اللوحة</div>
-              <Board items={locked} board={t.board} />
+              <Board items={locked} board={t.board} shared />
             </div>
           )}
         </LayoutGroup>
@@ -305,7 +305,7 @@ function MyBoard({ view, t, act, name }: { view: View; t: TV; act: Act; name: (i
         <LayoutGroup>
           <div className="flex flex-wrap justify-center gap-1.5 rounded-sm border border-dashed border-lineStrong p-2">
             {tray.map((it) => (
-              <Tile key={it.id} it={it} selected={sel === it.id} onClick={() => setSel(sel === it.id ? null : it.id)} />
+              <Tile key={it.id} it={it} selected={sel === it.id} shared onClick={() => setSel(sel === it.id ? null : it.id)} />
             ))}
           </div>
         </LayoutGroup>
@@ -314,6 +314,7 @@ function MyBoard({ view, t, act, name }: { view: View; t: TV; act: Act; name: (i
       <Board
         items={items}
         board={board}
+        shared
         onRow={
           done
             ? undefined
