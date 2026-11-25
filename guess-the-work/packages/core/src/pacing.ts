@@ -2,6 +2,7 @@ import type { RoomKind, RoomSettings, RoomState } from "./room";
 import { ENDING_SEC, OPEN_BATCH, QUESTION_KINDS, finishGame, leave, mergeSettings, systemMsg } from "./room";
 import * as describer from "./describer";
 import * as drawer from "./drawer";
+import type * as tierlist from "./tierlist";
 
 export { ENDING_SEC, OPEN_BATCH };
 
@@ -20,6 +21,7 @@ export interface PacePatch {
   describe?: Partial<RoomSettings["describe"]>;
   draw?: Partial<RoomSettings["draw"]>;
   camera?: Partial<RoomSettings["camera"]>;
+  tier?: Partial<RoomSettings["tier"]>;
 }
 
 export const PRESETS: Record<RoomKind, Record<PresetId, PacePatch>> = {
@@ -37,6 +39,11 @@ export const PRESETS: Record<RoomKind, Record<PresetId, PacePatch>> = {
     normal: { count: 1, draw: { drawSec: 90, guessSec: 30, voteSec: 40 } },
     long: { count: 2, draw: { drawSec: 150, guessSec: 40, voteSec: 60 } },
   },
+  tierlist: {
+    quick: { count: 8, tier: { itemSec: 20, boardSec: 90 } },
+    normal: { count: 12, tier: { itemSec: 30, boardSec: 150 } },
+    long: { count: 20, tier: { itemSec: 40, boardSec: 240 } },
+  },
 };
 
 export function presetSettings(kind: RoomKind, preset: PresetId): PacePatch {
@@ -51,7 +58,7 @@ export function applyPreset(s: RoomSettings, preset: PresetId): RoomSettings {
 function matches(s: RoomSettings, p: PacePatch): boolean {
   if (p.count !== undefined && s.count !== p.count) return false;
   if (p.timeLimitSec !== undefined && s.timeLimitSec !== p.timeLimitSec) return false;
-  for (const k of ["describe", "draw", "camera"] as const) {
+  for (const k of ["describe", "draw", "camera", "tier"] as const) {
     const sub = p[k] as Record<string, unknown> | undefined;
     if (sub && Object.entries(sub).some(([f, v]) => (s[k] as Record<string, unknown>)[f] !== v)) return false;
   }
@@ -64,16 +71,20 @@ export function detectPreset(s: RoomSettings): PresetChoice {
 }
 
 /** What is remembered per host and mode: length, time and pace, nothing else. */
-export function rememberable(s: RoomSettings): Pick<RoomSettings, "count" | "timeLimitSec" | "describe" | "draw" | "camera" | "pace"> {
-  return { count: s.count, timeLimitSec: s.timeLimitSec, describe: s.describe, draw: s.draw, camera: s.camera, pace: s.pace };
+export function rememberable(s: RoomSettings): Pick<RoomSettings, "count" | "timeLimitSec" | "describe" | "draw" | "camera" | "pace"> & { tier?: Partial<RoomSettings["tier"]> } {
+  const r = { count: s.count, timeLimitSec: s.timeLimitSec, describe: s.describe, draw: s.draw, camera: s.camera, pace: s.pace };
+  // the tier list: its times only (not the topic or the manual items)
+  return s.kind === "tierlist" ? { ...r, tier: { itemSec: s.tier.itemSec, boardSec: s.tier.boardSec } } : r;
 }
 
 const isQuestions = (s: RoomState) => QUESTION_KINDS.includes(s.settings.kind);
 const isDescriber = (s: RoomState) => s.settings.kind === "describer" || s.settings.kind === "camera";
+const isTier = (s: RoomState) => s.settings.kind === "tierlist";
+const tierCollective = (s: RoomState) => s.settings.tier.style === "vote" || s.settings.tier.style === "discuss";
 
 /** «زد» amounts: questions for guessing rooms, rounds for party modes. */
 export function stepsFor(kind: RoomKind): [number, number] {
-  return kind === "guess" || kind === "social" || kind === "pack" ? [5, 10] : [1, 2];
+  return kind === "guess" || kind === "social" || kind === "pack" || kind === "tierlist" ? [5, 10] : [1, 2];
 }
 
 const MAX_EXTEND = 50;
@@ -95,7 +106,7 @@ export function extendGame(s: RoomState, by: string | null, n: number, now = Dat
   if (!Number.isFinite(n) || n < 1) throw new Error("كم تبي تزيد؟");
   n = Math.min(MAX_EXTEND, Math.round(n));
   const atEnd = s.phase === "ending";
-  if (isQuestions(s)) {
+  if (isQuestions(s) || isTier(s)) {
     s.noMore = false;
     s.want = Math.min(MAX_EXTEND, (s.want ?? 0) + n);
     if (atEnd) {
@@ -111,7 +122,7 @@ export function extendGame(s: RoomState, by: string | null, n: number, now = Dat
     d.rounds = drawer.roundsOf(s) + n;
     if (atEnd) drawer.nextRound(s, now);
   }
-  systemMsg(s, isQuestions(s) ? `زدنا ${n} أسئلة` : `زدنا ${n === 1 ? "جولة" : `${n} جولات`}`, now);
+  systemMsg(s, isTier(s) ? `زدنا ${n} عناصر على نفس اللوحة` : isQuestions(s) ? `زدنا ${n} أسئلة` : `زدنا ${n === 1 ? "جولة" : `${n} جولات`}`, now);
 }
 
 /** «جولة جديدة بنفس الإعدادات» is offered on the ending screen and the summary. */
@@ -124,7 +135,7 @@ export function endGame(s: RoomState, by: string, now = Date.now()) {
   hostOnly(s, by);
   if (s.phase === "lobby") throw new Error("اللعبة ما بدت");
   if (s.phase === "finished") return;
-  const closeFirst = (isQuestions(s) && (s.phase === "question" || s.phase === "reveal")) || (isDescriber(s) && (s.phase === "describe_turn" || s.phase === "describe_reveal")) || s.phase === "draw_vote";
+  const closeFirst = (isQuestions(s) && (s.phase === "question" || s.phase === "reveal")) || (isDescriber(s) && (s.phase === "describe_turn" || s.phase === "describe_reveal")) || s.phase === "draw_vote" || (isTier(s) && ["tier_item", "tier_tiebreak", "tier_board"].includes(s.phase));
   if (!closeFirst) {
     finishGame(s, now);
     systemMsg(s, "خلصت اللعبة", now);
@@ -152,6 +163,10 @@ export function adjustGame(s: RoomState, by: string, patch: { sec?: number; rema
     } else if (isDescriber(s)) {
       s.settings.describe.turnSec = sec;
       stretch("describe_turn");
+    } else if (isTier(s)) {
+      if (tierCollective(s)) s.settings.tier.itemSec = sec;
+      else s.settings.tier.boardSec = sec;
+      stretch(tierCollective(s) ? "tier_item" : "tier_board");
     } else {
       s.settings.draw.drawSec = sec;
       stretch("draw");
@@ -169,6 +184,13 @@ export function adjustGame(s: RoomState, by: string, patch: { sec?: number; rema
         s.want = total - s.questions.length;
         s.noMore = false;
       }
+    } else if (isTier(s)) {
+      const t = s.party as tierlist.TierState;
+      if (tierCollective(s)) {
+        const total = t.index + 1 + r;
+        if (total <= t.items.length) t.items = t.items.slice(0, total);
+        else s.want = total - t.items.length;
+      } else if (r > 0) s.want = r; // more items: a second board after the reveal
     } else if (isDescriber(s)) {
       const d = s.party as describer.DescriberState;
       d.totalTurns = d.turn + 1 + r;
@@ -222,6 +244,14 @@ export function leaveGame(s: RoomState, uid: string, now = Date.now()) {
   const playing = s.players.filter((p) => !p.spectator);
   if (!playing.length) {
     finishGame(s, now);
+    return;
+  }
+  if (isTier(s)) {
+    const t = s.party as tierlist.TierState | undefined;
+    if (t?.target === uid) {
+      systemMsg(s, "طلع صاحب اللوحة، خلصت اللعبة", now);
+      finishGame(s, now);
+    } else if (playing.length === 1 && before > 1) systemMsg(s, "صارت اللعبة فردية", now);
     return;
   }
   if (!isQuestions(s) && playing.length < 2) {

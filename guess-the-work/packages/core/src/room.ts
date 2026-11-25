@@ -2,10 +2,11 @@ import type { Category, ModeId, TierMix } from "./types";
 import { DEFAULT_TIER_MIX } from "./types";
 import type { ImageEffectId } from "./effects";
 import { POSTER_EFFECTS } from "./effects";
+import { DEFAULT_TIER_SETTINGS, type TierSettings } from "./tier-settings";
 import { checkAnswer, type Question } from "./questions";
 import { DEFAULT_SCORING, scoreAnswer, type ScoreBreakdown, type ScoreMethod, type ScoringConfig } from "./scoring";
 
-export type RoomKind = "guess" | "describer" | "drawer" | "camera" | "social" | "pack";
+export type RoomKind = "guess" | "describer" | "drawer" | "camera" | "social" | "pack" | "tierlist";
 /** kinds that play a list of questions with the guessing engine */
 export const QUESTION_KINDS: RoomKind[] = ["guess", "social", "pack"];
 
@@ -50,6 +51,8 @@ export interface RoomSettings {
   draw: { drawSec: number; guessSec: number; voteSec: number; choose: boolean };
   /** «مفتوح»: no fixed length, the host ends it; «تصويت على التمديد»: the majority decides at the end */
   pace: { open: boolean; extendVote: boolean };
+  /** «تير ليست» */
+  tier: TierSettings;
 }
 
 export const DEFAULT_SETTINGS: RoomSettings = {
@@ -80,6 +83,7 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   autocomplete: "on",
   scoring: DEFAULT_SCORING,
   pace: { open: false, extendVote: false },
+  tier: DEFAULT_TIER_SETTINGS,
 };
 
 export interface Player {
@@ -131,7 +135,12 @@ export type Phase =
   | "draw_guess"
   | "draw_vote"
   /** the host decides: «زد» / new round / «خلاص» (or the players vote) */
-  | "ending";
+  | "ending"
+  | "tier_item"
+  | "tier_tiebreak"
+  | "tier_result"
+  | "tier_board"
+  | "tier_reveal";
 
 export interface RoomState {
   code: string;
@@ -206,6 +215,7 @@ export function mergeSettings(base: RoomSettings, patch: Partial<RoomSettings>):
     scoring: { ...base.scoring, ...patch.scoring },
     groupMix: { ...base.groupMix, ...patch.groupMix },
     pace: { ...base.pace, ...patch.pace },
+    tier: { ...base.tier, ...patch.tier, topic: { ...base.tier.topic, ...patch.tier?.topic } },
   };
 }
 
