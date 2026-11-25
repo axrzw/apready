@@ -7,10 +7,14 @@ import type { SessionSummary } from "@gtw/core/summary";
 
 export default async function Sessions() {
   await requireUser();
-  const list = await getRepo().listSessions(60);
+  // tier lists have their own archive («تير ليستاتنا»)
+  const list = (await getRepo().listSessions(80)).filter((x) => (x.summary as { kind?: string }).kind !== "tierlist").slice(0, 60);
   return (
     <div>
       <PageTitle kicker="ARCHIVE" title="أرشيف السهرات">
+        <Link href="/tierlists" className="toggle h-8">
+          <Icon name="Rows3" size={14} /> تير ليستاتنا
+        </Link>
         <Link href="/h2h" className="toggle h-8">
           <Icon name="Swords" size={14} /> المواجهات
         </Link>

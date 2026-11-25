@@ -39,6 +39,7 @@ import { seeded } from "@gtw/core/rng";
 import type { WatchStatus } from "@gtw/core/group";
 import * as describer from "@gtw/core/describer";
 import * as drawer from "@gtw/core/drawer";
+import * as tierlist from "@gtw/core/tierlist";
 import { adjustGame, endGame, extendGame, leaveGame, newRoundReady, rememberable, tickPace, voteExtend } from "@gtw/core/pacing";
 import { getLibrary, invalidateLibrary } from "./library";
 import { getRepo } from "./repo";
@@ -97,6 +98,12 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
         appendQuestions(s, await makeQuestions(s, s.want, seeded(randomBytes(8).toString("hex"))), now);
         changed = true;
       }
+    } else if (s.settings.kind === "tierlist") {
+      tierlist.tickTier(s, now);
+      if (s.want && s.phase !== "finished" && s.phase !== "lobby") {
+        tierlist.appendTierItems(s, await makeTierItems(s, s.want, false), now);
+        changed = true;
+      }
     } else if (s.settings.kind === "describer" || s.settings.kind === "camera") {
       const ev = describer.tickDescriber(s, now);
       if (ev.needItems) {
@@ -140,6 +147,21 @@ function finalize(s: RoomState, fx: Effects) {
   const players = s.players.filter((p) => !p.spectator).map((p) => ({ id: p.id, name: p.name, score: p.score, color: p.color, avatar: p.avatar }));
   const id = `${s.code}-${s.phaseStartedAt}`;
   const kind = s.settings.kind;
+  if (kind === "tierlist" && s.party) {
+    const archive = tierlist.tierArchive(s);
+    const ratings = tierlist.personalRatings(s);
+    fx.push(async () => {
+      const repo = getRepo();
+      if (archive.items.length) await repo.saveSession({ id, roomCode: s.code, summary: { kind, tier: archive, players: archive.players.map((p) => ({ ...p, score: s.players.find((x) => x.id === p.id)?.score ?? 0 })) } as never, at: Date.now() });
+      // each player's own tiers become ratings in their watch log (taste similarity, recommendations)
+      const existing = new Map((await repo.watchAll()).map((e) => [`${e.userId}|${e.workId}`, e]));
+      for (const r of ratings) {
+        const e = existing.get(`${r.userId}|${r.workId}`);
+        await repo.setWatch({ userId: r.userId, workId: r.workId, status: e && e.status !== "not_seen" ? e.status : "seen", rating: tierlist.TIER_RATING[r.tier], at: Date.now() });
+      }
+    });
+    return;
+  }
   fx.push(async () => {
     const repo = getRepo();
     const ids = new Set(players.map((p) => p.id));
@@ -274,6 +296,7 @@ export async function viewRoom(code: string, uid: string) {
   const priv = (r: describer.TokenReq) => assetUrl({ a: r.asset, u: r.users, e: exp });
   if (s.settings.kind === "describer" || s.settings.kind === "camera") view.party = describer.describerView(s, uid, priv, image);
   if (s.settings.kind === "drawer") view.party = drawer.drawerView(s, uid, priv, image);
+  if (s.settings.kind === "tierlist") view.party = tierlist.tierView(s, uid, image, (src) => assetUrl({ a: { type: "audio", src, effect: "normal", start: 0, duration: 30 }, e: exp }));
   return view;
 }
 
@@ -335,6 +358,23 @@ async function makeQuestions(s: RoomState, count: number, rng: () => number): Pr
   });
 }
 
+/** Tier list items: the manual picks first (start), else the topic with its filters, never what is already on the board. */
+async function makeTierItems(s: RoomState, count: number, first: boolean): Promise<tierlist.TierItem[]> {
+  const lib = await getLibrary();
+  const cfg = s.settings.tier;
+  const onBoard = new Set(((s.party as tierlist.TierState | undefined)?.items ?? []).map((x) => x.id));
+  if (first && cfg.source === "manual" && cfg.manual.length) {
+    return cfg.manual.map((id) => tierlist.itemById(lib, id)).filter((x): x is tierlist.TierItem => !!x && !onBoard.has(x.id)).slice(0, 60);
+  }
+  const watch = new Map<string, Map<string, WatchStatus>>();
+  for (const e of await getRepo().watchAll()) {
+    let m = watch.get(e.workId);
+    if (!m) watch.set(e.workId, (m = new Map()));
+    m.set(e.userId, e.status);
+  }
+  return tierlist.tierItems(lib, cfg.topic, { count, rng: seeded(randomBytes(8).toString("hex")), exclude: first ? new Set() : onBoard, watch, players: s.players.filter((p) => !p.spectator).map((p) => p.id), source: cfg.source });
+}
+
 async function drawItems(s: RoomState) {
   const lib = await getLibrary();
   const ids = s.players.filter((p) => !p.spectator).map((p) => p.id);
@@ -371,6 +411,8 @@ async function start(s: RoomState, uid: string, now: number, fx?: Effects) {
     const qs = await makeQuestions(s, st.pace?.open ? OPEN_BATCH * 2 : st.count, rng);
     if (!qs.length) throw new Error("ما فيه أسئلة لهذا الطور في المكتبة الحين. جرّب طور ثاني.");
     startGuess(s, uid, qs, now);
+  } else if (st.kind === "tierlist") {
+    tierlist.startTierlist(s, uid, await makeTierItems(s, Math.max(1, st.count), true), now);
   } else if (st.kind === "describer" || st.kind === "camera") {
     describer.startDescriber(s, uid, now);
   } else {
@@ -416,7 +458,14 @@ export type RoomAction =
   | { type: "adjust"; sec?: number; remaining?: number }
   | { type: "vote_extend"; yes: boolean }
   | { type: "leave" }
-  | { type: "new_round" };
+  | { type: "new_round" }
+  | { type: "tier_vote"; tier: tierlist.TierRow }
+  | { type: "tier_move"; tier: tierlist.TierRow }
+  | { type: "tier_agree" }
+  | { type: "tier_pin"; tier?: tierlist.TierRow }
+  | { type: "tier_place"; itemId: string; place: tierlist.Placement | null }
+  | { type: "tier_submit" }
+  | { type: "tier_continue" };
 
 export async function act(code: string, user: Session, a: RoomAction): Promise<unknown> {
   // the PNG is stored before the room write (it may retry)
@@ -497,6 +546,27 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
         return { ok: true };
       case "leave":
         leaveGame(s, user.uid, now);
+        return { ok: true };
+      case "tier_vote":
+        tierlist.voteTier(s, user.uid, a.tier, now);
+        return { ok: true };
+      case "tier_move":
+        tierlist.moveTier(s, user.uid, a.tier, now);
+        return { ok: true };
+      case "tier_agree":
+        tierlist.agreeTier(s, user.uid, now);
+        return { ok: true };
+      case "tier_pin":
+        tierlist.pinTier(s, user.uid, a.tier, now);
+        return { ok: true };
+      case "tier_place":
+        tierlist.placeBoard(s, user.uid, a.itemId, a.place);
+        return { ok: true };
+      case "tier_submit":
+        tierlist.submitBoard(s, user.uid, now);
+        return { ok: true };
+      case "tier_continue":
+        tierlist.continueTier(s, user.uid, now);
         return { ok: true };
       case "new_round": {
         // «جولة جديدة بنفس الإعدادات»: tonight's summary keeps this round, then a fresh one

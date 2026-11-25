@@ -9,6 +9,7 @@ import { SECTION_AR, SECTION_EN, TIER_AR } from "@gtw/core/i18n";
 import type { Lang } from "@/lib/i18n";
 import { Icon } from "@/lib/icons";
 import { Segmented, Skeleton } from "./ui";
+import TierSetup from "./TierSetup";
 
 function Section({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
   return (
@@ -50,7 +51,7 @@ function Check({ checked, onChange, children }: { checked: boolean; onChange: (b
   );
 }
 
-export default function SettingsForm({ initial, onSubmit, submitLabel, lang, allowParty = true }: { initial?: Partial<RoomSettings>; onSubmit: (s: RoomSettings) => void | Promise<void>; submitLabel: string; lang: Lang; allowParty?: boolean }) {
+export default function SettingsForm({ initial, onSubmit, submitLabel, lang, allowParty = true, players }: { initial?: Partial<RoomSettings>; onSubmit: (s: RoomSettings) => void | Promise<void>; submitLabel: string; lang: Lang; allowParty?: boolean; players?: { id: string; name: string }[] }) {
   const [s, setS] = useState<RoomSettings>({ ...DEFAULT_SETTINGS, ...initial });
   const [counts, setCounts] = useState<Record<string, number> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -118,6 +119,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
               { value: "camera", label: "اشرح بالكاميرا", icon: "Video" },
               { value: "social", label: "اجتماعي", icon: "Users" },
               { value: "drawer", label: "الرسّام", icon: "Pen" },
+              { value: "tierlist", label: "تير ليست", icon: "Rows3" },
             ]}
           />
         </Section>
@@ -177,12 +179,14 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         <p className="num text-sm text-muted">{summary}</p>
         {(preset === "custom" || custom) && (
         <div className="grid gap-3 sm:grid-cols-3">
-            {s.kind !== "pack" && !s.pace.open && <Num label={s.kind === "guess" || s.kind === "social" ? "عدد الأسئلة" : s.kind === "drawer" ? "الجولات" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />}
+            {s.kind !== "pack" && !s.pace.open && <Num label={s.kind === "tierlist" ? "عدد العناصر" : s.kind === "guess" || s.kind === "social" ? "عدد الأسئلة" : s.kind === "drawer" ? "الجولات" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />}
             {(s.kind === "guess" || s.kind === "social" || s.kind === "pack") && <Num label="ثواني لكل سؤال" value={s.timeLimitSec} min={5} max={180} onChange={(v) => set("timeLimitSec", v)} />}
             {(s.kind === "describer" || s.kind === "camera") && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
             {s.kind === "camera" && <Num label="ثواني تجهيز الكاميرا" value={s.camera.setupSec} min={10} max={120} onChange={(v) => set("camera", { ...s.camera, setupSec: v })} />}
             {s.kind === "drawer" && <Num label="ثواني الرسم" value={s.draw.drawSec} min={30} max={300} onChange={(v) => set("draw", { ...s.draw, drawSec: v })} />}
             {s.kind === "drawer" && <Num label="ثواني التخمين لكل رسمة" value={s.draw.guessSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, guessSec: v })} />}
+            {s.kind === "tierlist" && (s.tier.style === "vote" || s.tier.style === "discuss") && <Num label="ثواني لكل عنصر" value={s.tier.itemSec} min={5} max={180} onChange={(v) => set("tier", { ...s.tier, itemSec: v })} />}
+            {s.kind === "tierlist" && (s.tier.style === "solo" || s.tier.style === "guess_friend") && <Num label="ثواني اللوحة" value={s.tier.boardSec} min={30} max={600} onChange={(v) => set("tier", { ...s.tier, boardSec: v })} />}
             {s.kind === "drawer" && <Num label="ثواني التصويت" value={s.draw.voteSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, voteSec: v })} />}
           </div>
         )}
@@ -196,6 +200,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
             تصويت على التمديد في النهاية
           </Check>
         </div>
+        {s.kind === "tierlist" && <TierSetup s={s} set={set} players={players} />}
         {s.kind === "describer" && (
           <div className="flex flex-wrap gap-4">
             <Segmented
@@ -434,7 +439,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
 
 /** Only the length / time / pace fields (so a late answer never overwrites other choices). */
 function pick(x: RoomSettings) {
-  return { count: x.count, timeLimitSec: x.timeLimitSec, describe: x.describe, draw: x.draw, camera: x.camera, pace: x.pace };
+  return { count: x.count, timeLimitSec: x.timeLimitSec, describe: x.describe, draw: x.draw, camera: x.camera, pace: x.pace, tier: x.tier };
 }
 
 /** «10 أسئلة · 30 ثانية لكل سؤال» */
@@ -443,11 +448,17 @@ function paceSummary(s: RoomSettings): string {
     ? "مفتوح"
     : s.kind === "pack"
       ? "أسئلة الباقة"
-      : s.kind === "guess" || s.kind === "social"
+      : s.kind === "tierlist"
+        ? `${s.count} ${s.count <= 10 && s.count > 2 ? "عناصر" : "عنصر"}`
+        : s.kind === "guess" || s.kind === "social"
         ? `${s.count} ${s.count <= 10 && s.count > 2 ? "أسئلة" : "سؤال"}`
         : `${s.count} ${s.count === 1 ? "جولة" : s.count <= 10 ? "جولات" : "جولة"}`;
   const time =
-    s.kind === "drawer"
+    s.kind === "tierlist"
+      ? s.tier.style === "vote" || s.tier.style === "discuss"
+        ? `${s.tier.itemSec} ثانية لكل عنصر`
+        : `${s.tier.boardSec} ثانية للوحة`
+      : s.kind === "drawer"
       ? `${s.draw.drawSec} ثانية رسم، ${s.draw.guessSec} تخمين، ${s.draw.voteSec} تصويت`
       : s.kind === "describer" || s.kind === "camera"
         ? `${s.describe.turnSec} ثانية للدور${s.kind === "camera" ? `، ${s.camera.setupSec} للتجهيز` : ""}`

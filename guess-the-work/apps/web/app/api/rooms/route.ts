@@ -16,6 +16,15 @@ function sanitize(s: Partial<RoomSettings>): Partial<RoomSettings> {
   if (s.count !== undefined) out.count = clamp(s.count, 1, 50, 10);
   if (s.timeLimitSec !== undefined) out.timeLimitSec = clamp(s.timeLimitSec, 5, 180, 30);
   if (s.mix) out.mix = { mainstream: clamp(s.mix.mainstream, 0, 100, 25), mid: clamp(s.mix.mid, 0, 100, 30), hidden_gem: clamp(s.mix.hidden_gem, 0, 100, 30), obscure: clamp(s.mix.obscure, 0, 100, 15) };
+  if (s.tier) {
+    const t = s.tier;
+    out.tier = {
+      ...t,
+      itemSec: clamp(t.itemSec, 5, 180, 30),
+      boardSec: clamp(t.boardSec, 30, 600, 150),
+      manual: Array.isArray(t.manual) ? t.manual.filter((x) => typeof x === "string" && /^[wct]:/.test(x)).slice(0, 60) : [],
+    } as RoomSettings["tier"];
+  }
   return out;
 }
 

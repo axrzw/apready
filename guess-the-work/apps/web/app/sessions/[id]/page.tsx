@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { requireUser } from "@/lib/server/session";
 import { getRepo } from "@/lib/server/repo";
 import { getLibrary } from "@/lib/server/library";
@@ -15,6 +15,7 @@ export default async function Session({ params }: { params: Promise<{ id: string
   const repo = getRepo();
   const row = await repo.getSession(decodeURIComponent(id));
   if (!row) notFound();
+  if ((row.summary as { kind?: string }).kind === "tierlist") redirect(`/tierlists/${encodeURIComponent(row.id)}`);
   const s = row.summary as SessionSummary;
   const lib = await getLibrary();
   const name = (uid?: string) => s.ranking.find((r) => r.userId === uid)?.name ?? "؟";

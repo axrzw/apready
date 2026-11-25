@@ -9,7 +9,8 @@ import { Icon } from "@/lib/icons";
 type Act = (a: Record<string, unknown>) => Promise<unknown>;
 
 const isQuestions = (v: View) => ["guess", "social", "pack"].includes(v.settings.kind);
-const unit = (v: View, n: number) => (isQuestions(v) ? (n === 1 ? "سؤال" : n <= 10 ? "أسئلة" : "سؤال") : n === 1 ? "جولة" : n <= 10 ? "جولات" : "جولة");
+const isTier = (v: View) => v.settings.kind === "tierlist";
+const unit = (v: View, n: number) => (isTier(v) ? (n === 1 ? "عنصر" : n <= 10 ? "عناصر" : "عنصر") : isQuestions(v) ? (n === 1 ? "سؤال" : n <= 10 ? "أسئلة" : "سؤال") : n === 1 ? "جولة" : n <= 10 ? "جولات" : "جولة");
 
 /** «زد +5» «زد +10» and a custom amount. */
 function ExtendButtons({ view, act, big }: { view: View; act: Act; big?: boolean }) {
@@ -92,9 +93,9 @@ export function HostBar({ view, act, nextLabel, skipLabel }: { view: View; act: 
                 if (Number(sec) > 0) void act({ type: "adjust", sec: Number(sec) }).then(() => setSec(""));
               }}
             >
-              <span className="label">{q ? "ثواني السؤال" : view.settings.kind === "drawer" ? "ثواني الرسم" : "ثواني الدور"}</span>
+              <span className="label">{isTier(view) ? (["vote", "discuss"].includes(view.settings.tier.style) ? "ثواني العنصر" : "ثواني اللوحة") : q ? "ثواني السؤال" : view.settings.kind === "drawer" ? "ثواني الرسم" : "ثواني الدور"}</span>
               <div className="flex gap-2">
-                <input className="field num h-9" inputMode="numeric" placeholder={String(q ? view.settings.timeLimitSec : view.settings.kind === "drawer" ? view.settings.draw.drawSec : view.settings.describe.turnSec)} value={sec} onChange={(e) => setSec(e.target.value.replace(/\D/g, "").slice(0, 3))} />
+                <input className="field num h-9" inputMode="numeric" placeholder={String(isTier(view) ? (["vote", "discuss"].includes(view.settings.tier.style) ? view.settings.tier.itemSec : view.settings.tier.boardSec) : q ? view.settings.timeLimitSec : view.settings.kind === "drawer" ? view.settings.draw.drawSec : view.settings.describe.turnSec)} value={sec} onChange={(e) => setSec(e.target.value.replace(/\D/g, "").slice(0, 3))} />
                 <button className="btn-quiet border border-line" disabled={!sec}>
                   غيّر
                 </button>
@@ -107,7 +108,7 @@ export function HostBar({ view, act, nextLabel, skipLabel }: { view: View; act: 
                 if (left !== "") void act({ type: "adjust", remaining: Number(left) }).then(() => setLeft(""));
               }}
             >
-              <span className="label">{q ? "الأسئلة الباقية" : view.settings.kind === "drawer" ? "الجولات الباقية" : "الأدوار الباقية"}</span>
+              <span className="label">{isTier(view) ? "العناصر الباقية" : q ? "الأسئلة الباقية" : view.settings.kind === "drawer" ? "الجولات الباقية" : "الأدوار الباقية"}</span>
               <div className="flex gap-2">
                 <input className="field num h-9" inputMode="numeric" placeholder={remaining !== undefined ? String(remaining) : ""} value={left} onChange={(e) => setLeft(e.target.value.replace(/\D/g, "").slice(0, 2))} />
                 <button className="btn-quiet border border-line" disabled={left === ""}>

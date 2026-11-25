@@ -17,6 +17,7 @@ import SettingsForm from "./SettingsForm";
 import DescriberView from "./DescriberView";
 import DrawerView from "./DrawerView";
 import { EndingScreen, HostBar, LeaveButton } from "./PaceControls";
+import TierListView from "./TierListView";
 import { Avatar, CountUp, ErrorNote, Skeleton } from "./ui";
 
 type Act = (a: Record<string, unknown>) => Promise<unknown>;
@@ -86,8 +87,8 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
           )}
           {view.tag?.startsWith("daily:") && <span className="label text-accent">DAILY</span>}
           <span className="flex items-center gap-2 text-sm text-muted">
-            {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "camera" ? "Video" : kind === "drawer" ? "Pen" : "LayoutGrid"} size={16} className="text-accent" />}
-            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "camera" ? "اشرح بالكاميرا" : kind === "social" ? "اجتماعي" : kind === "pack" ? "باقة" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
+            {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "camera" ? "Video" : kind === "drawer" ? "Pen" : kind === "tierlist" ? "Rows3" : "LayoutGrid"} size={16} className="text-accent" />}
+            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "camera" ? "اشرح بالكاميرا" : kind === "social" ? "اجتماعي" : kind === "pack" ? "باقة" : kind === "drawer" ? "الرسّام" : kind === "tierlist" ? "تير ليست" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
           </span>
           {view.total > 0 && ["guess", "social", "pack"].includes(kind) && (
             <span className="num ms-auto text-sm text-faint">
@@ -127,7 +128,9 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
         {kind === "drawer" && (view.phase.startsWith("draw") || view.phase === "finished") && <DrawerView view={view} act={act} lang={lang} />}
         {view.phase === "finished" && <Finished view={view} act={act} lang={lang} isHost={isHost} />}
 
+        {kind === "tierlist" && view.phase !== "lobby" && view.phase !== "ending" && <TierListView view={view} act={act} />}
         {view.phase === "ending" && <EndingScreen view={view} act={act} isHost={isHost} />}
+        {kind === "tierlist" && view.phase === "ending" && <TierListView view={view} act={act} />}
 
         {isHost && running && <HostBar view={view} act={act} nextLabel={t(lang, "next")} skipLabel={t(lang, "skip")} />}
         {!solo && view.phase !== "lobby" && view.phase !== "finished" && (
@@ -202,6 +205,7 @@ function Lobby({ view, act, lang, isHost }: { view: View; act: Act; lang: Lang; 
         <SettingsForm
           initial={view.settings}
           submitLabel={t(lang, "start")}
+          players={view.players.filter((p) => !p.spectator).map((p) => ({ id: p.id, name: p.name }))}
           onSubmit={async (settings) => {
             await act({ type: "settings", settings });
             await act({ type: "start" });

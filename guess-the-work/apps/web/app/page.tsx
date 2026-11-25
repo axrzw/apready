@@ -27,6 +27,7 @@ export default async function Home() {
     { href: "/discover", icon: "Sparkles", title: "اكتشف", text: "توصيات من أقرب صاحب لذوقك" },
     { href: "/sessions", icon: "Clapperboard", title: "أرشيف السهرات", text: "ملخص كل جلسة وبطاقة المشاركة" },
     { href: "/gallery", icon: "Palette", title: t(lang, "gallery"), text: "رسمات طور الرسّام" },
+    { href: "/tierlists", icon: "Rows3", title: "تير ليستاتنا", text: "كل لوحاتنا، والمقارنات، و«عيدها»" },
     ...(s.admin ? [{ href: "/admin", icon: "Wrench", title: t(lang, "admin"), text: "المكتبة، التغطية، البلاغات، المصادر" }] : []),
   ];
   return (
