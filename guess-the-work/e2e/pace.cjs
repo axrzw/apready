@@ -45,6 +45,13 @@ const newRoom = (p, settings) => p.evaluate(async (s) => (await (await fetch("/a
   // 1. the setup screen: presets, custom, open, vote, advanced
   const code = await newRoom(A, { kind: "guess", modes: ["poster"] });
   for (const p of [A, B, C]) await enter(p, code);
+  // the host's last choice may have «مفتوح» on (from an earlier run): start from a fixed length
+  await A.locator("form button:has-text('سريعة')").waitFor();
+  await sleep(800);
+  const openSwitch = A.locator("button[role=switch]:has-text('مفتوح')");
+  if ((await openSwitch.getAttribute("aria-checked")) === "true") await openSwitch.click();
+  const voteSwitch = A.locator("button[role=switch]:has-text('تصويت على التمديد')");
+  if ((await voteSwitch.getAttribute("aria-checked")) === "true") await voteSwitch.click();
   await A.click("form button:has-text('سريعة')");
   ok((await A.locator("text=5 أسئلة · 15 ثانية لكل سؤال").count()) > 0, "«سريعة» = 5 questions, 15 s");
   await A.click("form button:has-text('طويلة')");
@@ -82,7 +89,7 @@ const newRoom = (p, settings) => p.evaluate(async (s) => (await (await fetch("/a
   await waitPhase(A, code, ["ending"]);
   await A.locator("text=نكمّل ولا خلاص؟").waitFor({ timeout: 5000 });
   ok(true, "after the last question the host sees «نكمّل ولا خلاص؟»");
-  ok((await B.locator("text=المضيف يقرر").count()) > 0, "players see that the host decides");
+  ok(await B.locator("text=المضيف يقرر").first().waitFor({ timeout: 6000 }).then(() => true, () => false), "players see that the host decides");
 
   // 5. «زد 5»: five more questions, points carry on
   const before = (await view(A, code)).players.map((p) => p.score).join(",");

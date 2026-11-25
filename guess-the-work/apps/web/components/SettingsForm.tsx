@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DEFAULT_SETTINGS, mergeSettings, type RoomSettings } from "@gtw/core/room";
 import { applyPreset, detectPreset } from "@gtw/core/pacing";
 import { MODES } from "@gtw/core/questions";
@@ -63,7 +63,12 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         if (j.defaultMix && !initial?.mix) setS((x) => ({ ...x, mix: j.defaultMix }));
       });
   }, [initial?.mix]);
-  const set = <K extends keyof RoomSettings>(k: K, v: RoomSettings[K]) => setS((x) => ({ ...x, [k]: v }));
+  // once the host touched the form, a late "last choice" answer from the server never overwrites it
+  const touched = useRef(false);
+  const set = <K extends keyof RoomSettings>(k: K, v: RoomSettings[K]) => {
+    touched.current = true;
+    setS((x) => ({ ...x, [k]: v }));
+  };
   const toggleMode = (m: ModeId) => set("modes", s.modes.includes(m) ? s.modes.filter((x) => x !== m) : [...s.modes, m]);
   const toggleCat = (c: string) => set("categories", s.categories.includes(c) ? s.categories.filter((x) => x !== c) : [...s.categories, c]);
   const mixTotal = TIERS.reduce((a, t) => a + s.mix[t], 0) || 1;
@@ -82,12 +87,13 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
   const switchKind = (k: RoomSettings["kind"]) => {
     setCustom(false);
     setS((x) => ({ ...x, kind: k }));
-    void remembered(k, { ...s, kind: k }).then((next) => setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
+    touched.current = false;
+    void remembered(k, { ...s, kind: k }).then((next) => !touched.current && setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
   };
   useEffect(() => {
     if (initial?.count !== undefined && initial.count !== DEFAULT_SETTINGS.count) return; // a template or a running room's choice
     const k = s.kind;
-    void remembered(k, s).then((next) => setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
+    void remembered(k, s).then((next) => !touched.current && setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const summary = paceSummary(s);
@@ -168,7 +174,14 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
       <Section n={++n} title="الطول والوقت">
         <Segmented
           value={preset}
-          onChange={(v) => (v === "custom" ? setCustom(true) : (setCustom(false), setS((x) => applyPreset(x, v))))}
+          onChange={(v) => {
+            touched.current = true;
+            if (v === "custom") setCustom(true);
+            else {
+              setCustom(false);
+              setS((x) => applyPreset(x, v));
+            }
+          }}
           options={[
             { value: "quick", label: "سريعة", icon: "Zap" },
             { value: "normal", label: "عادية", icon: "Timer" },
