@@ -58,7 +58,7 @@ describe("room", () => {
     tick(s, t0 + 30_001);
     expect(s.phase).toBe("reveal");
     for (let i = 0; i < 10; i++) tick(s, s.phaseEndsAt);
-    expect(s.phase).toBe("finished");
+    expect(s.phase).toBe("ending");
   });
   it("hints cost points and choices give fewer points", () => {
     const t0 = 1_000_000;

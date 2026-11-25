@@ -48,6 +48,8 @@ export interface RoomSettings {
   autocomplete: "on" | "off" | "reduced";
   scoring: ScoringConfig;
   draw: { drawSec: number; guessSec: number; voteSec: number; choose: boolean };
+  /** «مفتوح»: no fixed length, the host ends it; «تصويت على التمديد»: the majority decides at the end */
+  pace: { open: boolean; extendVote: boolean };
 }
 
 export const DEFAULT_SETTINGS: RoomSettings = {
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   firstOnly: false,
   autocomplete: "on",
   scoring: DEFAULT_SCORING,
+  pace: { open: false, extendVote: false },
 };
 
 export interface Player {
@@ -126,7 +129,9 @@ export type Phase =
   | "describe_reveal"
   | "draw"
   | "draw_guess"
-  | "draw_vote";
+  | "draw_vote"
+  /** the host decides: «زد» / new round / «خلاص» (or the players vote) */
+  | "ending";
 
 export interface RoomState {
   code: string;
@@ -156,6 +161,14 @@ export interface RoomState {
   pausedLeft?: number;
   /** «ثأر»: the rematch room some players were sent to */
   revenge?: { code: string; players: string[] };
+  /** questions the server should generate and append («زد», «مفتوح», more remaining) */
+  want?: number;
+  /** the library had nothing more: open mode stops asking */
+  noMore?: boolean;
+  /** «خلاص» pressed mid-question: close it (points count), then the summary */
+  stopping?: boolean;
+  /** the ending screen: extend votes; `extending` while new questions are coming */
+  ending?: { votes: Record<string, boolean>; extending?: boolean };
 }
 
 /** A question waits for everyone's media at most this long. */
@@ -192,6 +205,7 @@ export function mergeSettings(base: RoomSettings, patch: Partial<RoomSettings>):
     mix: { ...base.mix, ...patch.mix },
     scoring: { ...base.scoring, ...patch.scoring },
     groupMix: { ...base.groupMix, ...patch.groupMix },
+    pace: { ...base.pace, ...patch.pace },
   };
 }
 
@@ -261,6 +275,10 @@ export function startGuess(s: RoomState, by: string, questions: Question[], now 
   if (!questions.length) throw new Error("no questions");
   s.questions = questions;
   s.index = 0;
+  s.want = 0;
+  s.noMore = false;
+  s.stopping = false;
+  s.ending = undefined;
   for (const p of s.players) {
     p.score = 0;
     p.streak = 0;
@@ -280,6 +298,53 @@ function openQuestion(s: RoomState, now: number) {
   s.phase = "question";
   s.phaseStartedAt = now + PRELOAD_MAX_MS;
   s.phaseEndsAt = s.phaseStartedAt + limit;
+  // «مفتوح»: ask for the next batch a few questions before running out
+  if (s.settings.pace?.open && !s.noMore && !s.want && s.questions.length - s.index <= OPEN_AHEAD) s.want = OPEN_BATCH;
+}
+
+/** Questions asked for in open mode at a time, and how early. */
+export const OPEN_BATCH = 5;
+const OPEN_AHEAD = 3;
+/** The ending screen («زد» / new round / «خلاص») waits this long, then goes to the summary. */
+export const ENDING_SEC = 30;
+
+export function finishGame(s: RoomState, now: number) {
+  s.ending = undefined;
+  s.stopping = false;
+  s.want = 0;
+  setPhase(s, "finished", now, Number.POSITIVE_INFINITY);
+}
+
+/**
+ * The planned length is over. «مفتوح» returns "open" (the caller keeps going);
+ * otherwise the ending screen opens (or the summary, after «خلاص»).
+ */
+export function reachEnd(s: RoomState, now: number): "open" | "end" {
+  if (s.stopping) {
+    finishGame(s, now);
+    return "end";
+  }
+  if (s.settings.pace?.open && !s.noMore && s.settings.kind !== "pack") return "open";
+  s.ending = { votes: {} };
+  setPhase(s, "ending", now, ENDING_SEC);
+  return "end";
+}
+
+/** New questions arrived (from «زد», open mode or a longer remaining count). */
+export function appendQuestions(s: RoomState, qs: Question[], now = Date.now()) {
+  s.want = 0;
+  if (!qs.length) {
+    s.noMore = true;
+    systemMsg(s, "خلصت الأسئلة المناسبة في المكتبة", now);
+    if (s.phase === "ending") finishGame(s, now);
+    return;
+  }
+  s.questions.push(...qs);
+  if (s.phase === "ending") {
+    s.ending = undefined;
+    s.index++;
+    openQuestion(s, now);
+  }
 }
 
 function activePlayers(s: RoomState, now: number) {
@@ -461,17 +526,19 @@ export function tick(s: RoomState, now = Date.now()): TickEvents {
       if (!a?.correct) p.streak = 0;
     }
     ev.closed = { question: q, answers: { ...s.answers } };
-    setPhase(s, "reveal", now, s.settings.revealSec);
+    setPhase(s, "reveal", now, s.stopping ? 0 : s.settings.revealSec);
     return ev;
   }
   if (s.phase === "reveal") {
-    if (s.index + 1 < s.questions.length) {
+    if (s.index + 1 < s.questions.length && !s.stopping) {
       s.index++;
       openQuestion(s, now);
-    } else {
-      setPhase(s, "finished", now, Number.POSITIVE_INFINITY);
-      ev.finished = true;
-    }
+    } else if (s.want && !s.stopping) {
+      s.phaseEndsAt = now + 1000; // more questions are coming
+    } else if (reachEnd(s, now) === "open") {
+      s.want = OPEN_BATCH;
+      s.phaseEndsAt = now + 1000;
+    } else if ((s.phase as Phase) === "finished") ev.finished = true;
   }
   return ev;
 }
@@ -518,6 +585,10 @@ export function backToLobby(s: RoomState, by: string, now = Date.now()) {
   s.index = 0;
   s.answers = {};
   s.party = undefined;
+  s.want = 0;
+  s.noMore = false;
+  s.stopping = false;
+  s.ending = undefined;
   return s;
 }
 
@@ -573,11 +644,15 @@ export interface PublicRoom<Q> {
   /** automatic titles next to the names */
   titles?: Record<string, string[]>;
   aliasVote?: { by: string; text: string; yes: number; no: number; myVote?: boolean; status: AliasVote["status"] };
+  /** the ending screen: extend votes so far, mine, and whether more is on the way */
+  ending?: { yes: number; no: number; voters: number; myVote?: boolean; extending: boolean };
+  /** «مفتوح» / more questions are being prepared */
+  preparing?: boolean;
 }
 
 export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q: Question) => Q, imageUrl: (src: string) => string = (x) => x): PublicRoom<Q> {
   const q = currentQuestion(s);
-  const reveal = s.phase === "reveal" || s.phase === "finished";
+  const reveal = s.phase === "reveal" || s.phase === "finished" || s.phase === "ending";
   const view: PublicRoom<Q> = {
     code: s.code,
     hostId: s.hostId,
@@ -607,6 +682,11 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
     chat: s.chat.slice(-60),
     tag: s.tag,
   };
+  if (s.phase === "ending" && s.ending) {
+    const v = Object.values(s.ending.votes);
+    view.ending = { yes: v.filter(Boolean).length, no: v.filter((x) => !x).length, voters: s.players.filter((p) => !p.spectator).length, myVote: s.ending.votes[me], extending: !!s.ending.extending };
+  }
+  if (s.want) view.preparing = true;
   if (s.aliasVote && s.phase === "reveal") {
     const v = s.aliasVote;
     view.aliasVote = { by: v.by, text: v.text, yes: v.yes.length, no: v.no.length, myVote: v.yes.includes(me) ? true : v.no.includes(me) ? false : undefined, status: v.status };

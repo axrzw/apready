@@ -27,7 +27,7 @@ export default async function Session({ params }: { params: Promise<{ id: string
   if (s.weirdest) highlights.push({ label: "أغرب عمل محد عرفه", value: work(s.weirdest.workId)?.titleAr ?? work(s.weirdest.workId)?.title ?? "؟", sub: TIER_AR[s.weirdest.tier] });
   if (s.mostHints) highlights.push({ label: "أكثر واحد استخدم تلميحات", value: name(s.mostHints.userId), sub: `${s.mostHints.count} تلميح` });
   if (s.bestDrawing) highlights.push({ label: "أفضل رسمة", value: name(s.bestDrawing.userId), sub: `${s.bestDrawing.votes} صوت` });
-  if (s.funniestDrawing) highlights.push({ label: "أضحك رسمة", value: name(s.funniestDrawing.userId), sub: `${s.funniestDrawing.votes} صوت` });
+  if (s.funniestDrawing) highlights.push({ label: "أغبى رسمة", value: name(s.funniestDrawing.userId), sub: `${s.funniestDrawing.votes} صوت` });
   const card: CardData = {
     date: new Date(row.at).toLocaleDateString("en-GB"),
     ranking: s.ranking.map((r) => ({ name: r.name, score: r.score, color: r.color ?? "#9c978e" })),

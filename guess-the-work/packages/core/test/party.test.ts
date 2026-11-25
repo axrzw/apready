@@ -60,7 +60,7 @@ describe("describer", () => {
       const ev = D.tickDescriber(s, (t += 100_000));
       if (ev.needItems) D.giveItems(s, D.pickItems(lib, 2, opts()), t);
     }
-    expect(s.phase).toBe("finished");
+    expect(s.phase).toBe("ending"); // the host decides: «زد» / new round / «خلاص»
     expect((s.party as D.DescriberState).turn).toBe(3);
   });
 });
@@ -93,7 +93,7 @@ describe("drawer", () => {
     R.vote(s, "a", "d-b", "best");
     R.vote(s, "a", "d-a", "funny"); // own: ignored
     R.tickDrawer(s, s.phaseEndsAt);
-    expect(s.phase).toBe("finished");
+    expect(s.phase).toBe("ending");
     expect(d.drawings.find((x) => x.id === "d-b")!.votesBest).toBe(1);
     expect(d.drawings.find((x) => x.id === "d-a")!.votesFunny).toBe(0);
     expect(R.drawerView(s, "b", tok, (x) => x)!.gallery!.length).toBe(3);

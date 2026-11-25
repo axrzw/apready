@@ -2,6 +2,7 @@ import "server-only";
 import { randomBytes } from "node:crypto";
 import {
   backToLobby,
+  finishGame as finishGameNow,
   becomePlayer,
   createRoom,
   kick,
@@ -21,6 +22,8 @@ import {
   updateSettings,
   voteAlias,
   QUESTION_KINDS,
+  OPEN_BATCH,
+  appendQuestions,
   type RoomSettings,
   type RoomState,
   type Submission,
@@ -36,6 +39,7 @@ import { seeded } from "@gtw/core/rng";
 import type { WatchStatus } from "@gtw/core/group";
 import * as describer from "@gtw/core/describer";
 import * as drawer from "@gtw/core/drawer";
+import { adjustGame, endGame, extendGame, leaveGame, newRoundReady, rememberable, tickPace, voteExtend } from "@gtw/core/pacing";
 import { getLibrary, invalidateLibrary } from "./library";
 import { getRepo } from "./repo";
 import { assetUrl } from "./media";
@@ -81,12 +85,18 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
   let changed = false;
   for (let i = 0; i < 60; i++) {
     const before = `${s.phase}|${s.index}|${s.phaseEndsAt}`;
+    tickPace(s, now);
     if (QUESTION_KINDS.includes(s.settings.kind)) {
       const q = s.questions[s.index];
       const answers = { ...s.answers };
       const hints = { ...s.hintsUsed };
       const ev = tick(s, now);
       if (ev.closed && q) await saveAnswers(s, q, answers, hints, fx);
+      // «زد» / «مفتوح» / a longer remaining count: generate and append
+      if (s.want && s.phase !== "finished" && s.phase !== "lobby") {
+        appendQuestions(s, await makeQuestions(s, s.want, seeded(randomBytes(8).toString("hex"))), now);
+        changed = true;
+      }
     } else if (s.settings.kind === "describer" || s.settings.kind === "camera") {
       const ev = describer.tickDescriber(s, now);
       if (ev.needItems) {
@@ -98,8 +108,12 @@ async function advance(s: RoomState, now: number, fx: Effects): Promise<boolean>
     } else {
       const ev = drawer.tickDrawer(s, now);
       if (ev.scored) saveParty(s, ev.scored, fx);
-      if (ev.finished) {
-        const drawings = drawer.drawingsOf(s).map((d) => ({ ...d }));
+      if (ev.needItems) {
+        drawer.giveRound(s, await drawItems(s), now);
+        changed = true;
+      }
+      if (ev.voted) {
+        const drawings = ev.voted;
         fx.push(async () => {
           const repo = getRepo();
           for (const d of drawings) {
@@ -274,19 +288,28 @@ export async function roomForMedia(code: string): Promise<RoomState | null> {
   return (await getRepo().getRoom<RoomState>(code))?.state ?? null;
 }
 
-async function start(s: RoomState, uid: string, now: number) {
-  if (uid !== s.hostId) throw new Error("only the host");
+/** Questions for this room (start, «زد», «مفتوح»): the room's filters, minus what was already asked tonight. */
+async function makeQuestions(s: RoomState, count: number, rng: () => number): Promise<Question[]> {
   const repo = getRepo();
   const lib = await getLibrary();
   const ids = s.players.map((p) => p.id);
-  let mix = s.settings.mix;
-  if (s.settings.adaptive) {
+  const st = s.settings;
+  if (st.kind === "social") {
+    const log = await repo.watchAll();
+    const asked = new Set(s.questions.map((q) => q.key));
+    return buildSocialQuestions(lib, { modes: st.socialModes?.length ? st.socialModes : ["who_watched", "guess_rating"], count: count + asked.size, players: s.players.map((p) => ({ id: p.id, name: p.name })), log, rng })
+      .filter((q) => !asked.has(q.key))
+      .slice(0, count);
+  }
+  let mix = st.mix;
+  if (st.adaptive) {
     const acc = await repo.accuracy(ids);
     if (acc !== null) mix = adaptMix(mix, acc);
   }
   const daily = s.tag?.startsWith("daily:");
   const seen = daily ? undefined : await repo.seen(ids);
-  const rng = daily ? seeded(s.tag!) : seeded(randomBytes(8).toString("hex"));
+  // tonight's questions never come back in the same game
+  for (const q of s.questions) seen?.set(q.key, Date.now());
   // the watch log: question source, group tiers, own-only, spoilers
   const users = await repo.listUsers();
   const watch = new Map<string, Map<string, WatchStatus>>();
@@ -295,48 +318,69 @@ async function start(s: RoomState, uid: string, now: number) {
     if (!m) watch.set(e.workId, (m = new Map()));
     m.set(e.userId, e.status);
   }
-  const st = s.settings;
   const group = { watch, roomPlayers: ids, groupPlayers: users.filter((u) => !u.kicked).map((u) => u.id), source: st.source ?? "any", excludeOwnOnly: !!st.excludeOwnOnly, noSpoilers: st.noSpoilers !== false, mix: st.groupMix, weight: st.groupWeight ?? 0 };
-  if (s.settings.kind === "social") {
-    const log = await repo.watchAll();
-    const qs = buildSocialQuestions(lib, { modes: st.socialModes?.length ? st.socialModes : ["who_watched", "guess_rating"], count: st.count, players: s.players.map((p) => ({ id: p.id, name: p.name })), log, rng });
+  return generateQuestions(lib, {
+    group,
+    years: [st.years?.[0] ?? undefined, st.years?.[1] ?? undefined],
+    modes: st.modes,
+    count,
+    mix,
+    rng,
+    categories: st.categories,
+    seen,
+    repeatAfterDays: st.repeatAfterDays,
+    effects: st.effects,
+    sceneLevel: st.sceneLevel,
+    timeLimitMs: st.timeLimitSec * 1000,
+  });
+}
+
+async function drawItems(s: RoomState) {
+  const lib = await getLibrary();
+  const ids = s.players.filter((p) => !p.spectator).map((p) => p.id);
+  const seen = await getRepo().seen(ids);
+  return drawer.pickDrawItems(lib, ids.length * (s.settings.draw.choose ? 2 : 1), { mix: s.settings.mix, rng: seeded(randomBytes(8).toString("hex")), seen, categories: s.settings.categories });
+}
+
+async function start(s: RoomState, uid: string, now: number, fx?: Effects) {
+  if (uid !== s.hostId) throw new Error("only the host");
+  const repo = getRepo();
+  const st = s.settings;
+  const daily = s.tag?.startsWith("daily:");
+  const rng = daily ? seeded(s.tag!) : seeded(randomBytes(8).toString("hex"));
+  s.questions = [];
+  // the host's last length / time choice for this mode
+  if (!s.tag) {
+    const key = `pace:${uid}:${st.kind}`;
+    const remembered = rememberable(st);
+    fx?.push(() => repo.setSetting(key, remembered));
+  }
+  if (st.kind === "social") {
+    const qs = await makeQuestions(s, st.count, rng);
     if (!qs.length) throw new Error("ما فيه أسئلة اجتماعية: سجّلوا أعمال وقيّموها في «سجلّي» أول");
     startGuess(s, uid, qs, now);
-  } else if (s.settings.kind === "pack") {
+  } else if (st.kind === "pack") {
+    const lib = await getLibrary();
     const pack = st.packId ? await repo.getPack(st.packId) : undefined;
     if (!pack) throw new Error("الباقة مو موجودة");
     const qs = buildPackQuestions(lib, pack.data as PackData, rng);
     if (!qs.length) throw new Error("الباقة فاضية");
     s.tag = `pack:${pack.id}`;
     startGuess(s, uid, qs, now);
-  } else if (s.settings.kind === "guess") {
-    const qs = generateQuestions(lib, {
-      group,
-      years: [st.years?.[0] ?? undefined, st.years?.[1] ?? undefined],
-      modes: s.settings.modes,
-      count: s.settings.count,
-      mix,
-      rng,
-      categories: s.settings.categories,
-      seen,
-      repeatAfterDays: s.settings.repeatAfterDays,
-      effects: s.settings.effects,
-      sceneLevel: s.settings.sceneLevel,
-      timeLimitMs: s.settings.timeLimitSec * 1000,
-    });
+  } else if (st.kind === "guess") {
+    const qs = await makeQuestions(s, st.pace?.open ? OPEN_BATCH * 2 : st.count, rng);
     if (!qs.length) throw new Error("ما فيه أسئلة لهذا الطور في المكتبة الحين. جرّب طور ثاني.");
     startGuess(s, uid, qs, now);
-  } else if (s.settings.kind === "describer" || s.settings.kind === "camera") {
+  } else if (st.kind === "describer" || st.kind === "camera") {
     describer.startDescriber(s, uid, now);
   } else {
-    const items = drawer.pickDrawItems(lib, s.players.length * (s.settings.draw.choose ? 2 : 1), { mix, rng, seen, categories: s.settings.categories });
-    drawer.startDrawer(s, uid, items, now);
+    drawer.startDrawer(s, uid, await drawItems(s), now);
   }
 }
 
 export async function createAndStart(user: Session, settings: Partial<RoomSettings>, tag?: string, code?: string) {
   const s = await newRoom(user, settings, tag, code);
-  if (s.phase === "lobby") await mutate(s.code, (x, _fx, now) => start(x, user.uid, now));
+  if (s.phase === "lobby") await mutate(s.code, (x, fx, now) => start(x, user.uid, now, fx));
   return s;
 }
 
@@ -366,7 +410,13 @@ export type RoomAction =
   | { type: "camera_choice"; choice: "talk" | "skip" | "back" }
   | { type: "report_violation" }
   | { type: "approve_report"; id: number; approve: boolean }
-  | { type: "revenge"; players: string[] };
+  | { type: "revenge"; players: string[] }
+  | { type: "extend"; n: number }
+  | { type: "end" }
+  | { type: "adjust"; sec?: number; remaining?: number }
+  | { type: "vote_extend"; yes: boolean }
+  | { type: "leave" }
+  | { type: "new_round" };
 
 export async function act(code: string, user: Session, a: RoomAction): Promise<unknown> {
   // the PNG is stored before the room write (it may retry)
@@ -431,8 +481,36 @@ export async function act(code: string, user: Session, a: RoomAction): Promise<u
         skip(s, user.uid, now);
         return { ok: true };
       case "start":
-        await start(s, user.uid, now);
+        await start(s, user.uid, now, fx);
         return { ok: true };
+      case "extend":
+        extendGame(s, user.uid, a.n, now);
+        return { ok: true };
+      case "end":
+        endGame(s, user.uid, now);
+        return { ok: true };
+      case "adjust":
+        adjustGame(s, user.uid, { sec: a.sec, remaining: a.remaining }, now);
+        return { ok: true };
+      case "vote_extend":
+        voteExtend(s, user.uid, a.yes, now);
+        return { ok: true };
+      case "leave":
+        leaveGame(s, user.uid, now);
+        return { ok: true };
+      case "new_round": {
+        // «جولة جديدة بنفس الإعدادات»: tonight's summary keeps this round, then a fresh one
+        if (!newRoundReady(s, user.uid)) throw new Error("only the host, at the end");
+        if (s.settings.kind === "pack") throw new Error("الباقة أسئلتها ثابتة");
+        if (s.phase !== "finished") {
+          finishGameNow(s, now);
+          finalize(s, fx);
+        }
+        backToLobby(s, user.uid, now);
+        for (const p of s.players) p.spectator = undefined;
+        await start(s, user.uid, now + 1, fx);
+        return { ok: true };
+      }
       case "lobby":
         backToLobby(s, user.uid, now);
         return { ok: true };

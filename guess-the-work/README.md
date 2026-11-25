@@ -39,7 +39,7 @@ pnpm weekly                                             # المهمة الأس�
 ### الاختبارات
 
 ```bash
-pnpm test          # 192 اختبار: المطابقة، الإكمال، النقاط، الغرف، الأطوار، خط الصوت (ffprobe)، المصادر، منع الإيموجي
+pnpm test          # 226 اختبار: المطابقة، الإكمال، النقاط، الغرف، الطول والتمديد، الأطوار، خط الصوت (ffprobe)، المصادر، منع الإيموجي
 pnpm lint && pnpm typecheck && pnpm build
 # E2E بـ 3 متصفحات (السيرفر شغّال مع E2E_SECRET في .env.local):
 E2E_SECRET=... ADMIN_PASSWORD=... pnpm e2e

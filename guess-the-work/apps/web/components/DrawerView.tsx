@@ -19,6 +19,8 @@ interface DV {
   current?: { id: string; by: string; png: string; index: number; total: number; kind: "work" | "character"; mine?: { work: boolean; specific: boolean } };
   gallery?: { id: string; by: string; png: string; original: string; title: string; titleAr?: string; sub?: string; votesBest: number; votesFunny: number }[];
   myVotes?: { best?: string; funny?: string };
+  round?: number;
+  rounds?: number | null;
 }
 
 export default function DrawerView({ view, act, lang }: { view: View; act: (a: Record<string, unknown>) => Promise<unknown>; lang: Lang }) {
@@ -43,6 +45,17 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
   if (view.phase === "draw")
     return (
       <div className="space-y-3">
+        {(d.rounds ?? 2) > 1 && (
+          <p className="num text-center text-sm text-muted">
+            الجولة {d.round}
+            {d.rounds ? ` من ${d.rounds}` : ""}
+          </p>
+        )}
+        {!d.myOffers && !d.myItem && (
+          <p className="flex items-center justify-center gap-2 py-10 text-muted">
+            <Icon name="Timer" size={18} /> نجهّز رسومات الجولة
+          </p>
+        )}
         {d.myOffers && (
           <div>
             <p className="mb-3 text-center font-display text-xl">اختر وش بترسم. تشوفه أنت بس.</p>
@@ -106,7 +119,7 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
   if ((view.phase === "draw_vote" || view.phase === "finished") && d.gallery)
     return (
       <div className="space-y-3">
-        <p className="text-center font-display text-2xl">{view.phase === "draw_vote" ? "صوّتوا: أفضل رسمة، وأضحك رسمة" : "المعرض"}</p>
+        <p className="text-center font-display text-2xl">{view.phase === "draw_vote" ? "صوّتوا: أفضل رسمة، وأغبى رسمة" : "المعرض"}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {d.gallery.map((g) => (
             <div key={g.id} className="space-y-3 rounded-md border border-line bg-surface p-3">
@@ -128,7 +141,7 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
                     <Icon name="Trophy" size={14} /> أفضل رسمة
                   </button>
                   <button className={`toggle ${d.myVotes?.funny === g.id ? "toggle-on" : ""}`} onClick={() => act({ type: "draw_vote", drawingId: g.id, kind: "funny" })}>
-                    <Icon name="Sparkles" size={14} /> أضحك رسمة
+                    <Icon name="Sparkles" size={14} /> أغبى رسمة
                   </button>
                 </div>
               ) : (

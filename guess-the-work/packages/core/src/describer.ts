@@ -1,5 +1,5 @@
 import type { RoomState } from "./room";
-import { systemMsg } from "./room";
+import { systemMsg, reachEnd } from "./room";
 import { findNames, matchAnswer, redactNames } from "./match";
 import { scoreAnswer, helperPoints } from "./scoring";
 import { pickPartyItems, type PartyItem, type PickOptions } from "./party";
@@ -24,6 +24,8 @@ export interface DescriberState {
   setupLeft?: number;
   /** "talk" style: reported forbidden words, approved by the host */
   reports?: { id: number; by: string; at: number; status: "open" | "approved" | "rejected" }[];
+  /** whose turn it is (pinned, so somebody leaving does not hand the turn to another player) */
+  current?: string;
 }
 
 const CONFIRM_SEC = 10;
@@ -39,6 +41,7 @@ function st(s: RoomState): DescriberState {
 export function describerId(s: RoomState): string | undefined {
   const d = st(s);
   if (!d) return undefined;
+  if (d.current && s.players.some((p) => p.id === d.current)) return d.current;
   const alive = d.order.filter((id) => s.players.some((p) => p.id === id));
   return alive[d.turn % Math.max(1, alive.length)];
 }
@@ -54,7 +57,9 @@ export function startDescriber(s: RoomState, by: string, now: number) {
   if (s.players.length < 2) throw new Error("يبي لاعبين على الأقل");
   for (const p of s.players) (p.score = 0), (p.streak = 0);
   const order = s.players.map((p) => p.id);
-  s.party = { order, turn: 0, totalTurns: Math.max(1, s.settings.count) * order.length, offered: [], requested: false, skipsLeft: 1, guessed: {}, penalty: 0 } satisfies DescriberState;
+  s.party = { order, turn: 0, totalTurns: Math.max(1, s.settings.count) * order.length, offered: [], requested: false, skipsLeft: 1, guessed: {}, penalty: 0, current: order[0] } satisfies DescriberState;
+  s.stopping = false;
+  s.ending = undefined;
   s.questions = [];
   setPhase(s, "describe_choose", now, CHOOSE_SEC);
 }
@@ -123,6 +128,14 @@ export function cameraChoice(s: RoomState, uid: string, choice: "talk" | "skip" 
     return;
   }
   skipTurn(s, now);
+}
+
+/** The describer left mid-turn: nobody scores, the next player goes. */
+export function abortTurn(s: RoomState, now: number) {
+  const d = st(s);
+  d.guessed = {};
+  d.penalty = 0;
+  nextTurn(s, now);
 }
 
 /** The turn passes to the next player: no points, no penalty. */
@@ -264,7 +277,7 @@ export function tickDescriber(s: RoomState, now: number): TickResult {
     scored.push(row(d.item!, descr, describerPts, Object.keys(d.guessed).length > 0, "describer"));
     s.phase = "describe_reveal";
     s.phaseStartedAt = now;
-    s.phaseEndsAt = now + REVEAL_SEC * 1000;
+    s.phaseEndsAt = now + (s.stopping ? 0 : REVEAL_SEC * 1000);
     return { changed: true, scored };
   }
   if (s.phase === "describe_reveal" && now >= s.phaseEndsAt) return nextTurn(s, now);
@@ -282,16 +295,35 @@ function nextTurn(s: RoomState, now: number): TickResult {
   d.guessed = {};
   d.turnMode = undefined;
   d.reports = [];
-  if (d.turn >= d.totalTurns) {
-    s.phase = "finished";
-    s.phaseStartedAt = now;
-    s.phaseEndsAt = Number.POSITIVE_INFINITY;
-    return { changed: true, finished: true };
+  d.current = nextAlive(s, d.order, d.current);
+  if (d.turn >= d.totalTurns || s.stopping) {
+    if (reachEnd(s, now) === "end") return { changed: true, finished: s.phase === "finished" };
+    d.totalTurns += s.players.filter((p) => d.order.includes(p.id)).length; // «مفتوح»: another round
   }
+  resumeTurns(s, now);
+  return { changed: true, needItems: (d.requested = true) };
+}
+
+/** The next player in the turn order who is still in the room. */
+function nextAlive(s: RoomState, order: string[], from?: string): string | undefined {
+  const i = from ? order.indexOf(from) : -1;
+  for (let k = 1; k <= order.length; k++) {
+    const id = order[(i + k + order.length) % order.length];
+    if (s.players.some((p) => p.id === id && !p.spectator)) return id;
+  }
+  return undefined;
+}
+
+/** Turns go on (after the next turn, or «زد» on the ending screen). Items are asked for on the next tick. */
+export function resumeTurns(s: RoomState, now: number): TickResult {
+  const d = st(s);
+  s.ending = undefined;
   s.phase = "describe_choose";
   s.phaseStartedAt = now;
   s.phaseEndsAt = now + CHOOSE_SEC * 1000;
-  return { changed: true, needItems: (d.requested = true) };
+  d.offered = [];
+  d.requested = false; // the next tick asks for items
+  return { changed: true };
 }
 
 function row(item: PartyItem, userId: string, points: number, correct: boolean, role: "describer" | "guesser"): ScoredRow {

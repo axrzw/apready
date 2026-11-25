@@ -91,6 +91,7 @@ async function score(p) {
   ok((await A.locator("text=E2E-Chad").count()) > 0, "A sees C in the lobby");
 
   // 2. start: poster, 2 questions, hints on request
+  await A.click("form button:has-text('مخصص')");
   await A.locator("input[type=number]").first().fill("2");
   await A.click("form button.btn-primary:has-text('ابدأ')");
   for (const p of [A, B, C]) await waitLive(p);

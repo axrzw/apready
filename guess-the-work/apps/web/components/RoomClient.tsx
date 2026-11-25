@@ -16,6 +16,7 @@ import Chat from "./Chat";
 import SettingsForm from "./SettingsForm";
 import DescriberView from "./DescriberView";
 import DrawerView from "./DrawerView";
+import { EndingScreen, HostBar, LeaveButton } from "./PaceControls";
 import { Avatar, CountUp, ErrorNote, Skeleton } from "./ui";
 
 type Act = (a: Record<string, unknown>) => Promise<unknown>;
@@ -70,6 +71,7 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
   const kind = view.settings.kind;
   const mode = view.question ? MODES.find((m) => m.id === view.question!.mode) : undefined;
   const stage = kind === "describer" || kind === "camera" ? "stage" : "";
+  const running = view.phase !== "lobby" && view.phase !== "finished" && view.phase !== "ending";
 
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
@@ -89,7 +91,8 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
           </span>
           {view.total > 0 && ["guess", "social", "pack"].includes(kind) && (
             <span className="num ms-auto text-sm text-faint">
-              <span className="text-text">{String(view.index + 1).padStart(2, "0")}</span> / {String(view.total).padStart(2, "0")}
+              <span className="text-text">{String(view.index + 1).padStart(2, "0")}</span>
+              {view.settings.pace?.open ? <span className="ms-2 font-sans">مفتوح</span> : <> / {String(view.total).padStart(2, "0")}</>}
             </span>
           )}
         </div>
@@ -124,17 +127,12 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
         {kind === "drawer" && (view.phase.startsWith("draw") || view.phase === "finished") && <DrawerView view={view} act={act} lang={lang} />}
         {view.phase === "finished" && <Finished view={view} act={act} lang={lang} isHost={isHost} />}
 
-        {isHost && (view.phase === "question" || view.phase === "reveal") && (
-          <div className="flex justify-end gap-2">
-            {!view.paused && (
-              <button className="btn-quiet border border-line" onClick={() => act({ type: "pause" })}>
-                <Icon name="Pause" size={16} /> إيقاف مؤقت
-              </button>
-            )}
-            <button className="btn-quiet border border-line" onClick={() => act({ type: "skip" })}>
-              <Icon name="SkipForward" size={16} className="rtl:-scale-x-100" />
-              {view.phase === "reveal" ? t(lang, "next") : t(lang, "skip")}
-            </button>
+        {view.phase === "ending" && <EndingScreen view={view} act={act} isHost={isHost} />}
+
+        {isHost && running && <HostBar view={view} act={act} nextLabel={t(lang, "next")} skipLabel={t(lang, "skip")} />}
+        {!solo && view.phase !== "lobby" && view.phase !== "finished" && (
+          <div className="flex justify-start">
+            <LeaveButton act={act} />
           </div>
         )}
       </section>
@@ -247,8 +245,13 @@ function Finished({ view, act, lang, isHost }: { view: View; act: Act; lang: Lan
       )}
       {isHost && !view.revenge && view.players.length > 1 && ["guess", "social", "pack"].includes(view.settings.kind) && <Revenge view={view} act={act} />}
       <div className="flex justify-center gap-2">
+        {isHost && view.tag !== "solo" && !view.tag?.startsWith("daily:") && view.settings.kind !== "pack" && (
+          <button className="btn-primary" onClick={() => act({ type: "new_round" })}>
+            <Icon name="RotateCcw" size={16} /> جولة جديدة بنفس الإعدادات
+          </button>
+        )}
         {isHost && view.tag !== "solo" && !view.tag?.startsWith("daily:") && (
-          <button className="btn-primary" onClick={() => act({ type: "lobby" })}>
+          <button className="btn-ghost" onClick={() => act({ type: "lobby" })}>
             <Icon name="RotateCcw" size={16} />
             {t(lang, "playAgain")}
           </button>

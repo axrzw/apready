@@ -111,8 +111,8 @@ async function explainer(pages, code) {
   E = await explainer(pages, code);
   v = await waitPhase(A, code, ["camera_confirm"], 15000);
   ok(v.phase === "camera_confirm", "setup time out shows the «ما عندي كاميرا» confirm");
-  v = await waitPhase(A, code, ["describe_choose", "finished"], 15000);
-  ok(v.party?.describerId !== E.uid || v.phase === "finished", "no choice within 10 s skips the turn");
+  v = await waitPhase(A, code, ["describe_choose", "ending", "finished"], 15000);
+  ok(v.party?.describerId !== E.uid || v.phase !== "describe_choose", "no choice within 10 s skips the turn");
 
   await browser.close();
   console.log(failures ? `\n${failures} FAILED` : "\nALL PASSED");

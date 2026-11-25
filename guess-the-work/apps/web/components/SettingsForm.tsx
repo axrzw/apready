@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import { DEFAULT_SETTINGS, type RoomSettings } from "@gtw/core/room";
+import { DEFAULT_SETTINGS, mergeSettings, type RoomSettings } from "@gtw/core/room";
+import { applyPreset, detectPreset } from "@gtw/core/pacing";
 import { MODES } from "@gtw/core/questions";
 import { EFFECTS, POSTER_EFFECTS } from "@gtw/core/effects";
 import { SECTIONS, TIERS, type ModeId } from "@gtw/core/types";
@@ -65,6 +66,30 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
   const toggleMode = (m: ModeId) => set("modes", s.modes.includes(m) ? s.modes.filter((x) => x !== m) : [...s.modes, m]);
   const toggleCat = (c: string) => set("categories", s.categories.includes(c) ? s.categories.filter((x) => x !== c) : [...s.categories, c]);
   const mixTotal = TIERS.reduce((a, t) => a + s.mix[t], 0) || 1;
+  const [advanced, setAdvanced] = useState(false);
+  const [custom, setCustom] = useState(false);
+  const preset = custom ? "custom" : detectPreset(s);
+  // the host's last length / time choice for this mode, else the «عادية» preset
+  const remembered = async (kind: RoomSettings["kind"], base: RoomSettings) => {
+    try {
+      const r = await fetch(`/api/pace?kind=${kind}`, { cache: "no-store" });
+      const saved = (await r.json()) as Partial<RoomSettings> | null;
+      if (saved) return mergeSettings(base, saved);
+    } catch {}
+    return applyPreset(base, "normal");
+  };
+  const switchKind = (k: RoomSettings["kind"]) => {
+    setCustom(false);
+    setS((x) => ({ ...x, kind: k }));
+    void remembered(k, { ...s, kind: k }).then((next) => setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
+  };
+  useEffect(() => {
+    if (initial?.count !== undefined && initial.count !== DEFAULT_SETTINGS.count) return; // a template or a running room's choice
+    const k = s.kind;
+    void remembered(k, s).then((next) => setS((x) => (x.kind === k ? { ...x, ...pick(next) } : x)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const summary = paceSummary(s);
   let n = 0;
 
   return (
@@ -86,7 +111,7 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         <Section n={++n} title="نوع اللعب">
           <Segmented
             value={s.kind}
-            onChange={(k) => set("kind", k)}
+            onChange={(k) => switchKind(k)}
             options={[
               { value: "guess", label: "أطوار التخمين", icon: "LayoutGrid" },
               { value: "describer", label: "الواصف", icon: "Mic" },
@@ -138,90 +163,39 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         </Section>
       )}
 
-      <Section n={++n} title="الأقسام">
-        <div className="flex flex-wrap gap-2">
-          {SECTIONS.map((c) => (
-            <button type="button" key={c} className={`toggle ${s.categories.includes(c) ? "toggle-on" : ""}`} onClick={() => toggleCat(c)}>
-              {lang === "ar" ? SECTION_AR[c] : SECTION_EN[c]}
-            </button>
-          ))}
-          {!s.categories.length && <span className="self-center text-xs text-faint">بدون اختيار = الكل</span>}
-        </div>
-      </Section>
-
-      <Section n={++n} title="مصدر الأسئلة">
+      <Section n={++n} title="الطول والوقت">
         <Segmented
-          value={s.source}
-          onChange={(v) => set("source", v)}
+          value={preset}
+          onChange={(v) => (v === "custom" ? setCustom(true) : (setCustom(false), setS((x) => applyPreset(x, v))))}
           options={[
-            { value: "any", label: "أي شي من المكتبة" },
-            { value: "someone", label: "اللي شافه واحد منا" },
-            { value: "everyone", label: "اللي شافه كل اللي بالغرفة" },
+            { value: "quick", label: "سريعة", icon: "Zap" },
+            { value: "normal", label: "عادية", icon: "Timer" },
+            { value: "long", label: "طويلة", icon: "Moon" },
+            { value: "custom", label: "مخصص", icon: "SlidersHorizontal" },
           ]}
         />
-        <div className="flex flex-wrap gap-x-6 gap-y-3">
-          <Check checked={s.excludeOwnOnly} onChange={(b) => set("excludeOwnOnly", b)}>
-            استثنِ اللي شافه السائل
-          </Check>
-          <Check checked={s.noSpoilers} onChange={(b) => set("noSpoilers", b)}>
-            بدون حرق
-          </Check>
-        </div>
-        <div className="grid max-w-sm grid-cols-2 gap-3">
-          <label className="block space-y-1.5">
-            <span className="label">من سنة</span>
-            <input type="number" className="field num" placeholder="1960" value={s.years?.[0] ?? ""} onChange={(e) => set("years", [e.target.value ? Number(e.target.value) : null, s.years?.[1] ?? null])} />
-          </label>
-          <label className="block space-y-1.5">
-            <span className="label">إلى سنة</span>
-            <input type="number" className="field num" placeholder="2026" value={s.years?.[1] ?? ""} onChange={(e) => set("years", [s.years?.[0] ?? null, e.target.value ? Number(e.target.value) : null])} />
-          </label>
-        </div>
-      </Section>
-
-      <Section n={++n} title="الإيقاع">
+        <p className="num text-sm text-muted">{summary}</p>
+        {(preset === "custom" || custom) && (
         <div className="grid gap-3 sm:grid-cols-3">
-          <Num label={s.kind === "guess" || s.kind === "social" ? "عدد الأسئلة" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />
-          {s.kind === "guess" && <Num label="ثواني لكل سؤال" value={s.timeLimitSec} min={5} max={180} onChange={(v) => set("timeLimitSec", v)} />}
-          {(s.kind === "describer" || s.kind === "camera") && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
-          {s.kind === "camera" && <Num label="ثواني تجهيز الكاميرا" value={s.camera.setupSec} min={10} max={120} onChange={(v) => set("camera", { ...s.camera, setupSec: v })} />}
-          {s.kind === "drawer" && <Num label="ثواني الرسم" value={s.draw.drawSec} min={30} max={300} onChange={(v) => set("draw", { ...s.draw, drawSec: v })} />}
-          {s.kind === "drawer" && <Num label="ثواني التخمين لكل رسمة" value={s.draw.guessSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, guessSec: v })} />}
-          {s.kind === "drawer" && <Num label="ثواني التصويت" value={s.draw.voteSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, voteSec: v })} />}
-        </div>
-        {s.kind === "guess" && (
-          <div className="space-y-1.5">
-            <span className="label">طريقة الإجابة</span>
-            <Segmented
-              value={s.method}
-              onChange={(v) => set("method", v)}
-              options={[
-                { value: "both", label: "كتابة، ومعها اختيار من ٤" },
-                { value: "text", label: "كتابة فقط" },
-                { value: "choice", label: "اختيار من ٤ فقط" },
-              ]}
-            />
+            {s.kind !== "pack" && !s.pace.open && <Num label={s.kind === "guess" || s.kind === "social" ? "عدد الأسئلة" : s.kind === "drawer" ? "الجولات" : "الجولات (كل لاعب بدوره)"} value={s.count} min={1} max={50} onChange={(v) => set("count", v)} />}
+            {(s.kind === "guess" || s.kind === "social" || s.kind === "pack") && <Num label="ثواني لكل سؤال" value={s.timeLimitSec} min={5} max={180} onChange={(v) => set("timeLimitSec", v)} />}
+            {(s.kind === "describer" || s.kind === "camera") && <Num label="ثواني الدور" value={s.describe.turnSec} min={20} max={240} onChange={(v) => set("describe", { ...s.describe, turnSec: v })} />}
+            {s.kind === "camera" && <Num label="ثواني تجهيز الكاميرا" value={s.camera.setupSec} min={10} max={120} onChange={(v) => set("camera", { ...s.camera, setupSec: v })} />}
+            {s.kind === "drawer" && <Num label="ثواني الرسم" value={s.draw.drawSec} min={30} max={300} onChange={(v) => set("draw", { ...s.draw, drawSec: v })} />}
+            {s.kind === "drawer" && <Num label="ثواني التخمين لكل رسمة" value={s.draw.guessSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, guessSec: v })} />}
+            {s.kind === "drawer" && <Num label="ثواني التصويت" value={s.draw.voteSec} min={10} max={120} onChange={(v) => set("draw", { ...s.draw, voteSec: v })} />}
           </div>
         )}
-        {s.kind === "guess" && (
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="space-y-1.5">
-              <span className="label">الإكمال التلقائي</span>
-              <Segmented
-                value={s.autocomplete}
-                onChange={(v) => set("autocomplete", v)}
-                options={[
-                  { value: "on", label: "مفعّل" },
-                  { value: "reduced", label: "مفعّل بنقاط أقل" },
-                  { value: "off", label: "مطفأ (تحدي)" },
-                ]}
-              />
-            </div>
-            <Check checked={s.firstOnly} onChange={(b) => set("firstOnly", b)}>
-              الأول فقط ياخذ النقاط
+        <div className="flex flex-wrap gap-x-6 gap-y-3">
+          {s.kind !== "pack" && (
+            <Check checked={s.pace.open} onChange={(b) => set("pace", { ...s.pace, open: b })}>
+              مفتوح (يستمر لين أقول خلاص)
             </Check>
-          </div>
-        )}
+          )}
+          <Check checked={s.pace.extendVote} onChange={(b) => set("pace", { ...s.pace, extendVote: b })}>
+            تصويت على التمديد في النهاية
+          </Check>
+        </div>
         {s.kind === "describer" && (
           <div className="flex flex-wrap gap-4">
             <Segmented
@@ -268,6 +242,92 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         )}
       </Section>
 
+      <button type="button" className="flex w-full items-center justify-between border-t border-line pt-5 text-start" onClick={() => setAdvanced((x) => !x)} aria-expanded={advanced}>
+        <span className="flex items-center gap-2 font-display text-lg">
+          <Icon name="Settings2" size={18} className="text-accent" /> إعدادات متقدمة
+        </span>
+        <Icon name={advanced ? "ChevronUp" : "ChevronDown"} size={18} className="text-muted" />
+      </button>
+      {advanced && (
+        <>
+      <Section n={++n} title="الأقسام">
+        <div className="flex flex-wrap gap-2">
+          {SECTIONS.map((c) => (
+            <button type="button" key={c} className={`toggle ${s.categories.includes(c) ? "toggle-on" : ""}`} onClick={() => toggleCat(c)}>
+              {lang === "ar" ? SECTION_AR[c] : SECTION_EN[c]}
+            </button>
+          ))}
+          {!s.categories.length && <span className="self-center text-xs text-faint">بدون اختيار = الكل</span>}
+        </div>
+      </Section>
+
+      <Section n={++n} title="مصدر الأسئلة">
+        <Segmented
+          value={s.source}
+          onChange={(v) => set("source", v)}
+          options={[
+            { value: "any", label: "أي شي من المكتبة" },
+            { value: "someone", label: "اللي شافه واحد منا" },
+            { value: "everyone", label: "اللي شافه كل اللي بالغرفة" },
+          ]}
+        />
+        <div className="flex flex-wrap gap-x-6 gap-y-3">
+          <Check checked={s.excludeOwnOnly} onChange={(b) => set("excludeOwnOnly", b)}>
+            استثنِ اللي شافه السائل
+          </Check>
+          <Check checked={s.noSpoilers} onChange={(b) => set("noSpoilers", b)}>
+            بدون حرق
+          </Check>
+        </div>
+        <div className="grid max-w-sm grid-cols-2 gap-3">
+          <label className="block space-y-1.5">
+            <span className="label">من سنة</span>
+            <input type="number" className="field num" placeholder="1960" value={s.years?.[0] ?? ""} onChange={(e) => set("years", [e.target.value ? Number(e.target.value) : null, s.years?.[1] ?? null])} />
+          </label>
+          <label className="block space-y-1.5">
+            <span className="label">إلى سنة</span>
+            <input type="number" className="field num" placeholder="2026" value={s.years?.[1] ?? ""} onChange={(e) => set("years", [s.years?.[0] ?? null, e.target.value ? Number(e.target.value) : null])} />
+          </label>
+        </div>
+      </Section>
+
+      {s.kind === "guess" && (
+        <Section n={++n} title="الإجابة">
+        {s.kind === "guess" && (
+          <div className="space-y-1.5">
+            <span className="label">طريقة الإجابة</span>
+            <Segmented
+              value={s.method}
+              onChange={(v) => set("method", v)}
+              options={[
+                { value: "both", label: "كتابة، ومعها اختيار من ٤" },
+                { value: "text", label: "كتابة فقط" },
+                { value: "choice", label: "اختيار من ٤ فقط" },
+              ]}
+            />
+          </div>
+        )}
+        {s.kind === "guess" && (
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="space-y-1.5">
+              <span className="label">الإكمال التلقائي</span>
+              <Segmented
+                value={s.autocomplete}
+                onChange={(v) => set("autocomplete", v)}
+                options={[
+                  { value: "on", label: "مفعّل" },
+                  { value: "reduced", label: "مفعّل بنقاط أقل" },
+                  { value: "off", label: "مطفأ (تحدي)" },
+                ]}
+              />
+            </div>
+            <Check checked={s.firstOnly} onChange={(b) => set("firstOnly", b)}>
+              الأول فقط ياخذ النقاط
+            </Check>
+          </div>
+        )}
+        </Section>
+      )}
       <Section n={++n} title="طبقات الشهرة">
         <div className="space-y-3">
           {TIERS.map((t) => (
@@ -361,12 +421,38 @@ export default function SettingsForm({ initial, onSubmit, submitLabel, lang, all
         </Section>
       )}
 
+        </>
+      )}
+
       <button className="btn-primary h-12 w-full text-base" disabled={busy || (s.kind === "guess" && !s.modes.length)}>
         {busy ? "لحظة" : submitLabel}
       </button>
     </form>
     </>
   );
+}
+
+/** Only the length / time / pace fields (so a late answer never overwrites other choices). */
+function pick(x: RoomSettings) {
+  return { count: x.count, timeLimitSec: x.timeLimitSec, describe: x.describe, draw: x.draw, camera: x.camera, pace: x.pace };
+}
+
+/** «10 أسئلة · 30 ثانية لكل سؤال» */
+function paceSummary(s: RoomSettings): string {
+  const len = s.pace.open
+    ? "مفتوح"
+    : s.kind === "pack"
+      ? "أسئلة الباقة"
+      : s.kind === "guess" || s.kind === "social"
+        ? `${s.count} ${s.count <= 10 && s.count > 2 ? "أسئلة" : "سؤال"}`
+        : `${s.count} ${s.count === 1 ? "جولة" : s.count <= 10 ? "جولات" : "جولة"}`;
+  const time =
+    s.kind === "drawer"
+      ? `${s.draw.drawSec} ثانية رسم، ${s.draw.guessSec} تخمين، ${s.draw.voteSec} تصويت`
+      : s.kind === "describer" || s.kind === "camera"
+        ? `${s.describe.turnSec} ثانية للدور${s.kind === "camera" ? `، ${s.camera.setupSec} للتجهيز` : ""}`
+        : `${s.timeLimitSec} ثانية لكل سؤال`;
+  return `${len} · ${time}`;
 }
 
 /** Saved settings with a name («سهرة خفيفة», «تحدي المغمور»), shared by the group. */
