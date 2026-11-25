@@ -1,6 +1,7 @@
 import type { Work } from "./types";
 import { CATEGORY_AR, CATEGORY_EN, SEASON_AR, genreAr } from "./i18n";
 import { leaksAnswer, normalize, redactNames } from "./match";
+import { hintCostAt } from "./scoring";
 
 export type HintKind = "format" | "year" | "genres" | "tags" | "studio" | "stats" | "voice" | "letters";
 
@@ -62,12 +63,13 @@ export function buildHints(w: Work, ctx: HintContext): Hint[] {
       const ar = leaksAnswer(h.ar, ctx.acceptedNames) ? redactNames(h.ar, ctx.acceptedNames, "؟؟") : h.ar;
       const en = leaksAnswer(h.en, ctx.acceptedNames) ? redactNames(h.en, ctx.acceptedNames, "??") : h.en;
       if (/^[\s؟?:،,·]*$/.test(ar.replace(/^[^:]*:/, ""))) continue;
-      out.push({ level: out.length + 1, kind, ar, en, cost: HINT_COST[kind] });
+      out.push({ level: out.length + 1, kind, ar, en, cost: 0 });
     } else {
-      out.push({ level: out.length + 1, kind, ...h, cost: HINT_COST[kind] });
+      out.push({ level: out.length + 1, kind, ...h, cost: 0 });
     }
   }
-  return out;
+  // cost by position (SPEC 11): 1-4 -10%, 5-7 -15%, the last -25%
+  return out.map((h, i) => ({ ...h, cost: hintCostAt(i, out.length) }));
 }
 
 export function letterHint(name: string, lang: "ar" | "en"): string {

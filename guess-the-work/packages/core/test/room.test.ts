@@ -63,8 +63,10 @@ describe("room", () => {
     const plain = submitAnswer(s, "b", { text: q.names[0] }, t0).points;
     expect(withHints).toBeLessThan(plain);
     const s2 = room(t0);
-    const choice = submitAnswer(s2, "b", { choice: s2.questions[0].correctChoice }, t0).points;
-    expect(choice).toBe(Math.round(plain / 2));
+    submitAnswer(s2, "b", { choice: s2.questions[0].correctChoice }, t0);
+    expect(s2.answers.b.breakdown?.method).toBe(0.5);
+    expect(s.answers.a.breakdown?.bonus).toBe(0); // a hint cancels the rank bonus
+    expect(s.answers.b.breakdown?.bonus).toBe(25); // second correct
   });
   it("a wrong choice is final, a wrong typed answer can be retried", () => {
     const t0 = 1_000_000;
@@ -115,5 +117,22 @@ describe("alias vote (اعتمد جوابي)", () => {
     expect(s.questions[0].names).toContain("my weird name");
     expect(s.players.find((p) => p.id === "b")!.score).toBeGreaterThan(before);
     expect(s.questions[0].entity?.kind).toBe("work");
+  });
+});
+
+describe("scoring inside the room", () => {
+  it("rank bonus, first-only and autocomplete picks", async () => {
+    const { updateSettings } = await import("../src/room");
+    const t0 = 1_000_000;
+    const s = createRoom("R2", { id: "a", name: "A" }, {}, t0);
+    join(s, { id: "b", name: "B" }, t0);
+    join(s, { id: "c", name: "C" }, t0);
+    updateSettings(s, "a", { firstOnly: true });
+    startGuess(s, "a", qs(), t0);
+    const q = s.questions[0];
+    expect(submitAnswer(s, "b", { entityId: q.entity!.id }, t0).correct).toBe(true);
+    expect(s.answers.b.breakdown?.bonus).toBe(50);
+    expect(submitAnswer(s, "a", { text: q.names[0] }, t0 + 10).points).toBe(0);
+    expect(submitAnswer(s, "c", { entityId: "anilist:999999" }, t0 + 10).correct).toBe(false);
   });
 });

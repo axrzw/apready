@@ -1,6 +1,6 @@
 import { apiUser } from "@/lib/server/session";
 import { getRepo } from "@/lib/server/repo";
-import { getLive } from "@/lib/server/rooms";
+import { roomForMedia } from "@/lib/server/rooms";
 
 export const runtime = "nodejs";
 
@@ -9,8 +9,8 @@ export async function POST(req: Request) {
   const u = await apiUser();
   if (u instanceof Response) return u;
   const { code, questionId, reason } = (await req.json()) as { code: string; questionId: string; reason: string };
-  const live = getLive(code);
-  const q = live?.state.questions.find((x) => x.id === questionId);
+  const room = code ? await roomForMedia(String(code).toUpperCase()) : null;
+  const q = room?.questions.find((x) => x.id === questionId);
   const rep = await getRepo().addReport({ userId: u.uid, questionKey: q?.key ?? questionId, workId: q?.workId, reason: String(reason ?? "").slice(0, 500) || "-" });
   return Response.json({ ok: true, id: rep.id });
 }

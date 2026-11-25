@@ -5,7 +5,7 @@ import type { PublicQuestion } from "@gtw/core/questions";
 
 export type View = PublicRoom<PublicQuestion>;
 
-/** Live room: SSE for "something changed" + a slow poll as a safety net. Clock synced to the server. */
+/** Live room by polling. Clock synced to the server (offset from the round trip). */
 export function useRoom(code: string) {
   const [view, setView] = useState<View | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,16 +30,21 @@ export function useRoom(code: string) {
     }
   }, [code]);
 
+  // light polling (no websockets on serverless): faster while a question runs
+  const phase = view?.phase;
   useEffect(() => {
     load();
-    const es = new EventSource(`/api/rooms/${code}/stream`);
-    es.addEventListener("update", () => load());
-    const poll = setInterval(load, 4000);
+    const ms = phase === "lobby" || phase === "finished" ? 2000 : phase === "question" || phase?.startsWith("describe_turn") || phase === "draw_guess" ? 700 : 1000;
+    const poll = setInterval(() => {
+      if (document.visibilityState === "visible") void load();
+    }, ms);
+    const onVis = () => document.visibilityState === "visible" && load();
+    document.addEventListener("visibilitychange", onVis);
     return () => {
-      es.close();
       clearInterval(poll);
+      document.removeEventListener("visibilitychange", onVis);
     };
-  }, [code, load]);
+  }, [code, load, phase]);
 
   const act = useCallback(
     async (action: Record<string, unknown>) => {

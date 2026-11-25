@@ -71,3 +71,6 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   .skeleton::after, .shake { animation: none; }
 }
+
+/* titles may be Latin inside RTL pages ("24: Legacy"): each line takes the direction of its own text */
+h1, h2, h3, figcaption, .font-display, [data-bidi] { unicode-bidi: plaintext; }

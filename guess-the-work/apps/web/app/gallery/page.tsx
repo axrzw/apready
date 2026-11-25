@@ -18,7 +18,7 @@ export default async function Gallery() {
       ) : (
         <div className="columns-2 gap-4 sm:columns-3 lg:columns-4">
           {drawings.map((d) => {
-            const url = assetUrl({ asset: { type: "plain", src: d.png } });
+            const url = assetUrl({ a: { type: "plain", src: d.png } });
             return (
               <figure key={d.id} className="mb-4 break-inside-avoid space-y-2">
                 <img src={url} alt="" className="paper w-full rounded-sm p-1" />

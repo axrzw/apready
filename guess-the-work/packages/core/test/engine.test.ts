@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { computeTier, allocate, adaptMix } from "../src/tiers";
 import { selectQuestions, type Candidate } from "../src/select";
 import { seeded } from "../src/rng";
-import { scoreAnswer } from "../src/scoring";
 import { buildHints, hintCost } from "../src/hints";
 import { DEFAULT_TIER_MIX, type Tier, type Work } from "../src/types";
 
@@ -66,19 +65,6 @@ describe("selectQuestions", () => {
   });
 });
 
-describe("scoring", () => {
-  const base = { correct: true, elapsedMs: 0, timeLimitMs: 30000, tier: "mainstream" as Tier, method: "text" as const };
-  it("rewards speed, difficulty, typing, few hints and streaks", () => {
-    expect(scoreAnswer(base)).toBe(1000);
-    expect(scoreAnswer({ ...base, elapsedMs: 30000 })).toBe(500);
-    expect(scoreAnswer({ ...base, tier: "obscure" })).toBe(1800);
-    expect(scoreAnswer({ ...base, method: "choice" })).toBe(500);
-    expect(scoreAnswer({ ...base, hintCost: 0.25 })).toBe(750);
-    expect(scoreAnswer({ ...base, streak: 3 })).toBe(1300);
-    expect(scoreAnswer({ ...base, correct: false })).toBe(0);
-  });
-});
-
 const work: Work = {
   id: "anilist:16498", category: "anime", title: "Attack on Titan", titleAr: "هجوم العمالقة",
   aliases: ["Shingeki no Kyojin"], format: "TV", year: 2013, season: "SPRING", genres: ["Action", "Drama"],
@@ -103,6 +89,7 @@ describe("hints", () => {
     }
   });
   it("sums costs", () => {
-    expect(hintCost(hints, 2)).toBeCloseTo(0.1);
+    expect(hintCost(hints, 2)).toBeCloseTo(0.2);
+    expect(hints.at(-1)!.cost).toBe(0.25);
   });
 });

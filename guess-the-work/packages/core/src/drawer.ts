@@ -93,7 +93,7 @@ export function guess(s: RoomState, uid: string, text: string, now: number) {
   const g = (d.guesses[cur.id] ??= {});
   const mine = (g[uid] ??= { work: false, specific: false, points: 0 });
   const it = cur.item;
-  const base = () => scoreAnswer({ correct: true, elapsedMs: now - s.phaseStartedAt, timeLimitMs: s.phaseEndsAt - s.phaseStartedAt, tier: it.tier, method: "text" });
+  const base = () => scoreAnswer({ correct: true, elapsedMs: now - s.phaseStartedAt, timeLimitMs: s.phaseEndsAt - s.phaseStartedAt, tier: it.tier, method: "text", hintsUsed: 0, streak: 0, rank: 99 }, s.settings.scoring).total;
   const name = s.players.find((p) => p.id === uid)?.name;
   let hit = false;
   if (!mine.work && matchAnswer(text, it.workNames).ok) {
@@ -158,7 +158,7 @@ export function tickDrawer(s: RoomState, now: number): DrawTick {
     for (const [pid, r] of Object.entries(g)) {
       const p = s.players.find((x) => x.id === pid);
       if (p) p.score += r.points;
-      if (r.work) helper += helperPoints(r.points);
+      if (r.work) helper += helperPoints(r.points, s.settings.scoring);
       scored.push(row(cur.item, pid, r.points, r.work, "guesser"));
     }
     const drawer = s.players.find((x) => x.id === cur.playerId);

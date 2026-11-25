@@ -1,100 +1,125 @@
 import "server-only";
-import { createHash, randomBytes } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { join, resolve, sep } from "node:path";
+import { createCipheriv, createDecipheriv, createHash, createHmac } from "node:crypto";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import type { Asset } from "@gtw/core/questions";
 import { renderEffect } from "@gtw/ingest/effects";
 import { clipAudio } from "@gtw/ingest/media";
-import { MEDIA_DIR } from "./env";
+import { SESSION_SECRET } from "./env";
+import { storage } from "./storage";
 
 /**
- * Files reach the browser only through random tokens: /api/m/<token>.
- * The token maps to the real source on the server; effects are rendered here.
+ * Files reach the browser only through /api/m/<token>. The token is the asset description encrypted
+ * (AES-256-GCM) with the server key: stateless (any serverless instance can read it), opaque (nothing about
+ * the work in the URL), and deterministic for the same asset so every player gets the same URL.
  */
-export interface TokenEntry {
-  asset: Asset | { type: "plain"; src: string };
-  /** highest reveal step the viewer may get right now */
-  allowedStep?: () => number;
-  /** only these users may load it (private items in describer/drawer) */
-  users?: string[];
-  expires: number;
+export interface TokenPayload {
+  a: Asset | { type: "plain"; src: string };
+  /** room + question: the reveal step is checked against the room's clock */
+  r?: string;
+  q?: string;
+  /** only these users may load it (private items in describer / drawer) */
+  u?: string[];
+  /** expiry (ms) */
+  e: number;
 }
 
-const g = globalThis as unknown as { __gtwTokens?: Map<string, TokenEntry>; __gtwRender?: Map<string, { buffer: Buffer; type: string }> };
-const tokens = (g.__gtwTokens ??= new Map());
-const renderCache = (g.__gtwRender ??= new Map());
+const KEY = createHash("sha256").update(`gtw-media|${SESSION_SECRET}`).digest();
 
-export function registerToken(e: Omit<TokenEntry, "expires">, ttlMs = 3 * 3600_000): string {
-  if (tokens.size > 20_000) {
-    const now = Date.now();
-    for (const [k, v] of tokens) if (v.expires < now) tokens.delete(k);
+export function makeToken(p: TokenPayload): string {
+  const json = Buffer.from(JSON.stringify(p));
+  const iv = createHmac("sha256", KEY).update(json).digest().subarray(0, 12);
+  const c = createCipheriv("aes-256-gcm", KEY, iv);
+  const enc = Buffer.concat([c.update(json), c.final()]);
+  return Buffer.concat([iv, c.getAuthTag(), enc]).toString("base64url");
+}
+
+export function readToken(t: string): TokenPayload | null {
+  try {
+    const b = Buffer.from(t, "base64url");
+    const d = createDecipheriv("aes-256-gcm", KEY, b.subarray(0, 12));
+    d.setAuthTag(b.subarray(12, 28));
+    const p = JSON.parse(Buffer.concat([d.update(b.subarray(28)), d.final()]).toString()) as TokenPayload;
+    return p.e > Date.now() ? p : null;
+  } catch {
+    return null;
   }
-  const t = randomBytes(18).toString("base64url");
-  tokens.set(t, { ...e, expires: Date.now() + ttlMs });
-  return t;
 }
 
-export function getToken(t: string): TokenEntry | undefined {
-  const e = tokens.get(t);
-  if (!e || e.expires < Date.now()) return undefined;
-  return e;
+/** Expiry rounded to the day so the same asset keeps the same URL during a game. */
+export function dayExpiry(days = 2) {
+  return (Math.floor(Date.now() / 86_400_000) + days) * 86_400_000;
 }
 
-export function assetUrl(e: Omit<TokenEntry, "expires">) {
-  return `/api/m/${registerToken(e)}`;
+export function assetUrl(p: Omit<TokenPayload, "e"> & { e?: number }) {
+  return `/api/m/${makeToken({ ...p, e: p.e ?? dayExpiry() })}`;
 }
 
-function hash(s: string) {
-  return createHash("sha1").update(s).digest("hex");
-}
+const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 
-/** Local media path (inside MEDIA_DIR only) or a downloaded copy of a remote URL. */
+/** A source: remote URL (cached in storage) or a processed file ("themes/x.mp3" -> storage media/...). */
 export async function loadSource(src: string): Promise<Buffer> {
+  const st = storage();
   if (/^https?:\/\//.test(src)) {
-    const dir = join(MEDIA_DIR, "remote");
-    const file = join(dir, hash(src));
-    if (existsSync(file)) return readFileSync(file);
+    const key = `remote/${hash(src)}`;
+    const hit = await st.get(key);
+    if (hit) return hit;
     const res = await fetch(src, { headers: { "user-agent": "guess-the-work/0.1" } });
     if (!res.ok) throw new Error(`fetch ${res.status}`);
     const buf = Buffer.from(await res.arrayBuffer());
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(file, buf);
+    await st.put(key, buf, res.headers.get("content-type") ?? "application/octet-stream");
     return buf;
   }
-  return readFileSync(localPath(src));
+  const buf = await st.get(`media/${src.replace(/^\/+/, "")}`);
+  if (!buf) throw new Error("missing media");
+  return buf;
 }
 
-export function localPath(src: string): string {
-  const root = resolve(MEDIA_DIR);
-  const p = resolve(root, src);
-  if (!p.startsWith(root + sep)) throw new Error("bad path");
-  return p;
-}
+const memo = new Map<string, { buffer: Buffer; type: string }>();
 
-export async function renderImage(e: TokenEntry, requestedStep: number): Promise<{ buffer: Buffer; type: string }> {
-  const a = e.asset;
-  if (a.type === "plain") {
-    const buf = await loadSource(a.src);
-    return { buffer: buf, type: "image/jpeg" };
-  }
+export async function renderImage(a: TokenPayload["a"], step: number): Promise<{ buffer: Buffer; type: string }> {
+  if (a.type === "plain") return { buffer: await loadSource(a.src), type: a.src.endsWith(".png") ? "image/png" : "image/jpeg" };
   if (a.type !== "image") throw new Error("not an image");
-  const allowed = e.allowedStep ? e.allowedStep() : a.steps - 1;
-  const step = Math.max(0, Math.min(requestedStep, allowed, a.steps - 1));
-  const key = `${a.src}|${a.effect}|${step}|${a.steps}|${a.seed}`;
-  const hit = renderCache.get(key);
-  if (hit) return hit;
-  const input = await loadSource(a.src);
-  const out = await renderEffect(input, { effect: a.effect, step, steps: a.steps, seed: a.seed, textBoxes: a.mask });
-  if (renderCache.size > 400) renderCache.delete(renderCache.keys().next().value!);
-  renderCache.set(key, out);
+  const s = Math.max(0, Math.min(step, a.steps - 1));
+  const key = hash(`${a.src}|${a.effect}|${s}|${a.steps}|${a.seed}|${JSON.stringify(a.mask ?? [])}`);
+  const m = memo.get(key);
+  if (m) return m;
+  const st = storage();
+  const cached = await st.get(`fx/${key}`);
+  let out: { buffer: Buffer; type: string };
+  if (cached) out = { buffer: cached, type: a.effect === "ascii" ? "image/png" : "image/jpeg" };
+  else {
+    out = await renderEffect(await loadSource(a.src), { effect: a.effect, step: s, steps: a.steps, seed: a.seed, textBoxes: a.mask });
+    await st.put(`fx/${key}`, out.buffer, out.type);
+  }
+  if (memo.size > 300) memo.delete(memo.keys().next().value!);
+  memo.set(key, out);
   return out;
 }
 
-/** Audio with its effect (sped up, slowed, reversed, first second), cached as mp3. */
-export async function renderAudio(a: Extract<Asset, { type: "audio" }>): Promise<string> {
-  const input = /^https?:\/\//.test(a.src) ? a.src : localPath(a.src);
-  if (a.effect === "normal" && !/^https?:\/\//.test(a.src) && a.src.endsWith(".mp3") && a.start === 0) return input;
-  const out = join(MEDIA_DIR, "cache", `${hash(`${a.src}|${a.effect}|${a.start}|${a.duration}`)}.mp3`);
-  if (!existsSync(out)) await clipAudio({ input, out, start: a.start, duration: a.duration, effect: a.effect });
-  return out;
+/**
+ * Audio only (strict pipeline): cut on the server, no video stream, no subtitles/data, no metadata,
+ * loudness normalised, short fades; cached in storage under a random-looking key.
+ */
+export async function renderAudio(a: Extract<Asset, { type: "audio" }>): Promise<Buffer> {
+  const key = `audio/${hash(`v2|${a.src}|${a.effect}|${a.start}|${a.duration}`)}.m4a`;
+  const st = storage();
+  const hit = await st.get(key);
+  if (hit) return hit;
+  const dir = mkdtempSync(join(tmpdir(), "gtw-a-"));
+  try {
+    let input = a.src;
+    if (!/^https?:\/\//.test(a.src)) {
+      input = join(dir, "in");
+      writeFileSync(input, await loadSource(a.src));
+    }
+    const out = join(dir, "out.m4a");
+    await clipAudio({ input, out, start: a.start, duration: a.duration, effect: a.effect });
+    const buf = readFileSync(out);
+    await st.put(key, buf, "audio/mp4");
+    return buf;
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }

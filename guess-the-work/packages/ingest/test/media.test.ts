@@ -24,7 +24,7 @@ describe("media", () => {
   });
   it("cuts audio clips with effects", async () => {
     for (const effect of ["normal", "fast", "slow", "reverse", "first_second"] as const) {
-      const out = await clipAudio({ input: video, out: join(dir, `a-${effect}.mp3`), start: 10, duration: 8, effect });
+      const out = await clipAudio({ input: video, out: join(dir, `a-${effect}.m4a`), start: 10, duration: 8, effect });
       expect(existsSync(out)).toBe(true);
       const d = await probeDuration(out);
       if (effect === "first_second") expect(d).toBeLessThan(1.3);

@@ -27,7 +27,7 @@ export async function processThemes(o: MediaJobOpts): Promise<{ done: number; fa
     try {
       const audioSrc = t.audioUrl ?? t.videoUrl;
       if (audioSrc) {
-        const rel = join("themes", `${base}.mp3`);
+        const rel = join("themes", `${base}.m4a`);
         await clipAudio({ input: audioSrc, out: join(o.mediaDir, rel), start: 0, duration: 25 });
         t.audioClip = rel;
       }

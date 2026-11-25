@@ -3,8 +3,7 @@ import { DEFAULT_TIER_MIX } from "./types";
 import type { ImageEffectId } from "./effects";
 import { POSTER_EFFECTS } from "./effects";
 import { checkAnswer, type Question } from "./questions";
-import { hintCost } from "./hints";
-import { scoreAnswer } from "./scoring";
+import { DEFAULT_SCORING, scoreAnswer, type ScoreBreakdown, type ScoreMethod, type ScoringConfig } from "./scoring";
 
 export type RoomKind = "guess" | "describer" | "drawer";
 
@@ -24,6 +23,11 @@ export interface RoomSettings {
   repeatAfterDays: number;
   adaptive: boolean;
   describe: { via: "voice" | "chat"; choose: boolean; turnSec: number; penalty: number };
+  /** only the first correct answer scores */
+  firstOnly: boolean;
+  /** suggestions while typing: on, off (challenge), or on with fewer points */
+  autocomplete: "on" | "off" | "reduced";
+  scoring: ScoringConfig;
   draw: { drawSec: number; guessSec: number; voteSec: number; choose: boolean };
 }
 
@@ -43,6 +47,9 @@ export const DEFAULT_SETTINGS: RoomSettings = {
   adaptive: true,
   describe: { via: "voice", choose: true, turnSec: 75, penalty: 150 },
   draw: { drawSec: 90, guessSec: 30, voteSec: 40, choose: true },
+  firstOnly: false,
+  autocomplete: "on",
+  scoring: DEFAULT_SCORING,
 };
 
 export interface Player {
@@ -61,6 +68,9 @@ export interface AnswerState {
   points: number;
   at: number;
   method: "text" | "choice";
+  /** how the points were made (shown on the reveal) */
+  breakdown?: ScoreBreakdown;
+  hints?: number;
   /** wrong attempts typed (shown to the player only) */
   tries: number;
 }
@@ -234,6 +244,8 @@ export interface Submission {
   text?: string;
   choice?: string;
   order?: string[];
+  /** picked from the autocomplete list: the id of a work / character / song */
+  entityId?: string;
 }
 
 export function submitAnswer(s: RoomState, playerId: string, sub: Submission, now = Date.now()): AnswerResult {
@@ -248,28 +260,34 @@ export function submitAnswer(s: RoomState, playerId: string, sub: Submission, no
   if (!usingChoice && q.answerType === "text" && s.settings.method === "choice") return { correct: false, factor: 0, points: 0, closed: true };
   // one shot for choices / order; typed answers can be retried until right
   if (prev && (prev.method === "choice" || q.answerType !== "text")) return { ...prev, already: true };
+  if (sub.entityId !== undefined && s.settings.autocomplete === "off") return { correct: false, factor: 0, points: 0, closed: true };
   const check = checkAnswer(q, sub);
   const method: "text" | "choice" = usingChoice || q.answerType !== "text" ? "choice" : "text";
-  const opened = hintsOpen(s, playerId, now);
-  const pts =
-    check.factor > 0
-      ? Math.round(
-          scoreAnswer({
-            correct: true,
-            elapsedMs: now - s.phaseStartedAt,
-            timeLimitMs: s.phaseEndsAt - s.phaseStartedAt,
-            tier: q.tier,
-            method: q.answerType === "text" ? method : "text",
-            hintCost: s.settings.hints.reveal === "request" ? hintCost(q.hints, opened) : 0,
-            streak: check.correct ? player.streak : 0,
-            modeMultiplier: q.modeMultiplier,
-          }) * check.factor,
-        )
-      : 0;
+  const scoreMethod: ScoreMethod =
+    q.answerType !== "text" ? "text" : usingChoice ? "choice" : sub.entityId !== undefined ? (s.settings.autocomplete === "reduced" ? "autocomplete_reduced" : "autocomplete") : "text";
+  const opened = s.settings.hints.reveal === "request" ? hintsOpen(s, playerId, now) : 0;
+  const rank = check.correct ? Object.values(s.answers).filter((a) => a.correct).length + 1 : 99;
+  const breakdown = scoreAnswer(
+    {
+      correct: check.correct,
+      factor: check.factor,
+      elapsedMs: now - s.phaseStartedAt,
+      timeLimitMs: s.phaseEndsAt - s.phaseStartedAt,
+      tier: q.tier,
+      method: scoreMethod,
+      hintsUsed: opened,
+      hintTotal: q.hints.length,
+      streak: check.correct ? player.streak : 0,
+      rank,
+      firstOnly: s.settings.firstOnly,
+    },
+    s.settings.scoring ?? DEFAULT_SCORING,
+  );
+  const pts = breakdown.total;
   const tries = (prev?.tries ?? 0) + (check.correct ? 0 : 1);
   // a partial answer (the work instead of the character) is kept, but the player may still try for full points
-  const better = !prev || pts > prev.points;
-  s.answers[playerId] = better ? { correct: check.correct, factor: check.factor, points: pts, at: now, method, tries } : { ...prev, tries };
+  const better = !prev || pts > prev.points || (check.correct && !prev.correct);
+  s.answers[playerId] = better ? { correct: check.correct, factor: check.factor, points: pts, at: now, method, tries, breakdown, hints: opened } : { ...prev, tries };
   if (check.correct) player.streak++;
   if (allDone(s)) s.phaseEndsAt = Math.min(s.phaseEndsAt, now + 800);
   return { correct: check.correct, factor: check.factor, points: better ? pts : prev!.points };
@@ -346,7 +364,7 @@ export function voteAlias(s: RoomState, uid: string, yes: boolean, now = Date.no
     const q = s.questions.find((x) => x.id === v.questionId);
     const p = s.players.find((x) => x.id === v.by);
     if (q && p) {
-      const pts = scoreAnswer({ correct: true, elapsedMs: 1, timeLimitMs: 2, tier: q.tier, method: "text" });
+      const pts = scoreAnswer({ correct: true, elapsedMs: 0, timeLimitMs: 1, tier: q.tier, method: "text", hintsUsed: 0, streak: 0, rank: 99 }, s.settings.scoring ?? DEFAULT_SCORING).total;
       p.score += pts;
       q.names.push(v.text);
     }
@@ -410,7 +428,7 @@ export interface PublicRoom<Q> {
   hints?: { ar: string; en: string; cost: number }[];
   hintsLeft?: number;
   myAnswer?: AnswerState;
-  reveal?: { title: string; titleAr?: string; sub?: string; image?: string; results: { id: string; points: number; correct: boolean; factor: number }[]; correctChoice?: string; correctOrder?: string[] };
+  reveal?: { title: string; titleAr?: string; sub?: string; image?: string; results: { id: string; points: number; correct: boolean; factor: number; breakdown?: ScoreBreakdown }[]; correctChoice?: string; correctOrder?: string[] };
   chat: ChatMessage[];
   party?: unknown;
   tag?: string;
@@ -460,7 +478,7 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
     view.reveal = {
       ...q.display,
       image: q.display.image ? imageUrl(q.display.image) : undefined,
-      results: s.players.map((p) => ({ id: p.id, points: s.answers[p.id]?.points ?? 0, correct: !!s.answers[p.id]?.correct, factor: s.answers[p.id]?.factor ?? 0 })),
+      results: s.players.map((p) => ({ id: p.id, points: s.answers[p.id]?.points ?? 0, correct: !!s.answers[p.id]?.correct, factor: s.answers[p.id]?.factor ?? 0, breakdown: s.answers[p.id]?.breakdown })),
       correctChoice: q.correctChoice,
       correctOrder: q.correctOrder,
     };

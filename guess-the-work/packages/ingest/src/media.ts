@@ -5,8 +5,33 @@ import { promisify } from "node:util";
 import sharp from "sharp";
 
 const run = promisify(execFile);
-const FFMPEG = process.env.FFMPEG_PATH || "ffmpeg";
+import { createRequire } from "node:module";
+
+/** FFMPEG_PATH, else the ffmpeg-static binary (Vercel), else ffmpeg on PATH. */
+function ffmpegBin(): string {
+  if (process.env.FFMPEG_PATH) return process.env.FFMPEG_PATH;
+  try {
+    const p = createRequire(import.meta.url)("ffmpeg-static") as string | null;
+    if (p) return p;
+  } catch {}
+  return "ffmpeg";
+}
+const FFMPEG = ffmpegBin();
 const FFPROBE = process.env.FFPROBE_PATH || "ffprobe";
+
+/** Strips everything that could name the work: other streams, metadata, chapters, encoder tag. */
+export const STRIP = ["-sn", "-dn", "-map_metadata", "-1", "-map_chapters", "-1", "-fflags", "+bitexact", "-flags:v", "+bitexact", "-flags:a", "+bitexact"];
+
+export interface ProbeResult {
+  streams: { codec_type: string; tags?: Record<string, string> }[];
+  format: { duration: string; tags?: Record<string, string> };
+  chapters: unknown[];
+}
+
+export async function probe(file: string): Promise<ProbeResult> {
+  const { stdout } = await run(FFPROBE, ["-v", "error", "-show_streams", "-show_format", "-show_chapters", "-of", "json", file], { timeout: 60_000 });
+  return JSON.parse(stdout) as ProbeResult;
+}
 
 export async function probeDuration(input: string): Promise<number> {
   const { stdout } = await run(FFPROBE, ["-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", input], { timeout: 60_000 });
@@ -25,22 +50,30 @@ export const AUDIO_FILTERS: Record<AudioEffect, string | null> = {
 
 export interface AudioClipOpts {
   input: string;
-  out: string; // .mp3
+  /** .m4a (AAC) or .ogg/.opus (Opus) */
+  out: string;
   start: number;
   duration: number;
   effect?: AudioEffect;
 }
 
-/** Cuts an audio clip (mp3) with a fade, optionally sped up, slowed down or reversed. */
+/**
+ * The strict audio pipeline (SPEC 3): audio stream only (-vn), no subtitles/data, no metadata or chapters,
+ * loudness normalised, short fades; sped up / slowed / reversed / first second when asked.
+ * The output length is the asked length (after the speed change).
+ */
 export async function clipAudio(o: AudioClipOpts): Promise<string> {
   mkdirSync(dirname(o.out), { recursive: true });
   const effect = o.effect ?? "normal";
-  const duration = effect === "first_second" ? 1 : o.duration;
-  const filters = [AUDIO_FILTERS[effect], `afade=t=in:d=0.15`].filter(Boolean) as string[];
-  if (effect !== "first_second" && effect !== "reverse") filters.push(`afade=t=out:st=${Math.max(0, (effect === "fast" ? duration / 1.6 : effect === "slow" ? duration / 0.6 : duration) - 0.6)}:d=0.6`);
+  const speed = effect === "fast" ? 1.6 : effect === "slow" ? 0.6 : 1;
+  const srcLen = effect === "first_second" ? 1 : o.duration;
+  const outLen = srcLen / speed;
+  const fade = Math.min(0.4, outLen / 4);
+  const filters = [AUDIO_FILTERS[effect], "loudnorm=I=-16:TP=-1.5:LRA=11", `afade=t=in:d=${fade.toFixed(2)}`, `afade=t=out:st=${Math.max(0, outLen - fade).toFixed(2)}:d=${fade.toFixed(2)}`, "aresample=44100"].filter(Boolean) as string[];
+  const codec = /\.(ogg|opus)$/.test(o.out) ? ["-c:a", "libopus", "-b:a", "96k"] : ["-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart"];
   await run(
     FFMPEG,
-    ["-y", "-v", "error", "-ss", String(o.start), "-t", String(duration), "-i", o.input, "-vn", "-af", filters.join(","), "-ac", "2", "-ar", "44100", "-c:a", "libmp3lame", "-b:a", "128k", o.out],
+    ["-y", "-v", "error", "-ss", String(o.start), "-t", String(srcLen), "-i", o.input, "-map", "0:a:0", "-vn", ...STRIP, "-af", filters.join(","), "-ac", "2", "-t", outLen.toFixed(3), ...codec, o.out],
     { timeout: 120_000 },
   );
   return o.out;
@@ -57,9 +90,9 @@ export interface VideoClipOpts {
 
 export async function clipVideo(o: VideoClipOpts): Promise<string> {
   mkdirSync(dirname(o.out), { recursive: true });
-  const args = ["-y", "-v", "error", "-ss", String(o.start), "-t", String(o.duration), "-i", o.input, "-vf", `scale=${o.width ?? 854}:-2`, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-movflags", "+faststart"];
+  const args = ["-y", "-v", "error", "-ss", String(o.start), "-t", String(o.duration), "-i", o.input, "-map", "0:v:0", ...(o.mute ? [] : ["-map", "0:a:0?"]), ...STRIP, "-vf", `scale=${o.width ?? 854}:-2`, "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-movflags", "+faststart"];
   if (o.mute) args.push("-an");
-  else args.push("-c:a", "aac", "-b:a", "128k");
+  else args.push("-c:a", "aac", "-b:a", "128k", "-af", "loudnorm=I=-16:TP=-1.5:LRA=11");
   args.push(o.out);
   await run(FFMPEG, args, { timeout: 180_000 });
   return o.out;
@@ -67,7 +100,7 @@ export async function clipVideo(o: VideoClipOpts): Promise<string> {
 
 export async function grabFrame(input: string, at: number, out: string, width = 1280): Promise<string> {
   mkdirSync(dirname(out), { recursive: true });
-  await run(FFMPEG, ["-y", "-v", "error", "-ss", String(at), "-i", input, "-frames:v", "1", "-vf", `scale=${width}:-2`, "-q:v", "3", out], { timeout: 60_000 });
+  await run(FFMPEG, ["-y", "-v", "error", "-ss", String(at), "-i", input, "-frames:v", "1", ...STRIP, "-vf", `scale=${width}:-2`, "-q:v", "3", out], { timeout: 60_000 });
   return out;
 }
 

@@ -48,6 +48,8 @@ export interface Question {
   partial?: { names: string[]; factor: number };
   /** the thing the names belong to (an accepted alias vote adds the name to it) */
   entity?: { kind: "work" | "character"; id: string };
+  /** ids an autocomplete pick may carry to be right (default: the entity id) */
+  acceptIds?: string[];
   /** shown after the round */
   display: { title: string; titleAr?: string; sub?: string; image?: string };
   choices?: Choice[];
@@ -298,6 +300,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
         assets: [{ type: "audio", src: t.audioClip ?? t.audioUrl ?? t.videoUrl!, effect: "normal", start: 0, duration: 25 }],
         answerType: "text",
         names,
+        acceptIds: [`song:${t.id}`, ...t.artists.map((a) => `artist:${a}`)],
         choices: shuffle([{ id: correct, label: `${t.song} — ${t.artists.join(", ")}` }, ...others.map((x) => ({ id: randomId(rng, 8), label: `${x.song} — ${x.artists.join(", ")}` }))], rng),
         correctChoice: correct,
         display: { title: t.song, sub: `${t.artists.join("، ")} · ${w.title}`, image: w.posterUrl },
@@ -537,13 +540,20 @@ export interface Check {
 }
 
 /** Checks an answer on the server. */
-export function checkAnswer(q: Question, a: { text?: string; choice?: string; order?: string[] }): Check {
+export function checkAnswer(q: Question, a: { text?: string; choice?: string; order?: string[]; entityId?: string }): Check {
   if (q.answerType === "order") {
     const got = a.order ?? [];
     const right = q.correctOrder!.filter((id, i) => got[i] === id).length;
     return { correct: right === q.correctOrder!.length, factor: right === q.correctOrder!.length ? 1 : right / q.correctOrder!.length / 2 };
   }
   if (a.choice !== undefined) return { correct: a.choice === q.correctChoice, factor: a.choice === q.correctChoice ? 1 : 0 };
+  if (a.entityId !== undefined) {
+    // picked from the autocomplete list: a sure match by id
+    const ok = (q.acceptIds ?? (q.entity ? [q.entity.id] : [])).includes(a.entityId);
+    if (ok) return { correct: true, factor: 1 };
+    if (q.partial && a.entityId === q.workId) return { correct: false, factor: q.partial.factor };
+    return { correct: false, factor: 0 };
+  }
   const m = matchAnswer(a.text ?? "", q.names);
   if (m.ok) return { correct: true, factor: 1, alias: m.alias };
   if (q.partial) {

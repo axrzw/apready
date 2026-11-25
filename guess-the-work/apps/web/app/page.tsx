@@ -15,7 +15,7 @@ export default async function Home() {
   const [counts, lib] = await Promise.all([getRepo().counts(), getLibrary()]);
   // a strip of posters from every tier (decor only; served through tokens like everything else)
   const pick = [...lib.works].filter((w) => w.posterUrl).sort((a, b) => ((a.popularity * 7919) % 1000) - ((b.popularity * 7919) % 1000)).slice(0, 14);
-  const posters = pick.map((w) => assetUrl({ asset: { type: "plain", src: w.posterUrl! } }));
+  const posters = pick.map((w) => assetUrl({ a: { type: "plain", src: w.posterUrl! } }));
   const rows = [
     { href: "/play?room=1", icon: "Users", title: t(lang, "createRoom"), text: "غرفة للشلة: أطوار التخمين، Mix، الواصف، الرسّام" },
     { href: "/play", icon: "Play", title: t(lang, "solo"), text: "تدرّب لحالك على أي طور" },

@@ -26,7 +26,7 @@ export async function POST(req: Request) {
   try {
     if (b.type === "OST" || b.type === "OP" || b.type === "ED") {
       const src = resolveMediaUrl(b.url, true);
-      const rel = join("admin", `${id}.mp3`);
+      const rel = join("admin", `${id}.m4a`);
       await clipAudio({ input: src, out: join(MEDIA_DIR, rel), start, duration: dur });
       await repo.upsertThemes([{ id: `admin:${id}`, workId: work.id, type: b.type, seq: 1, song: b.song?.trim() || "?", artists: (b.artists ?? "").split(",").map((x) => x.trim()).filter(Boolean), audioClip: rel }]);
     } else if (b.type === "scene") {

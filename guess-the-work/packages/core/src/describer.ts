@@ -102,7 +102,8 @@ export function guess(s: RoomState, uid: string, text: string, now: number): Gue
     return { correct: false, points: 0 };
   }
   const factor = full ? 1 : 0.4;
-  const pts = Math.round(scoreAnswer({ correct: true, elapsedMs: now - s.phaseStartedAt, timeLimitMs: s.phaseEndsAt - s.phaseStartedAt, tier: d.item.tier, method: "text" }) * factor);
+  const rank = Object.values(d.guessed).filter((g) => g.factor === 1).length + 1;
+  const pts = scoreAnswer({ correct: full, factor, elapsedMs: now - s.phaseStartedAt, timeLimitMs: s.phaseEndsAt - s.phaseStartedAt, tier: d.item.tier, method: "text", hintsUsed: 0, streak: 0, rank: full ? rank : 99 }, s.settings.scoring).total;
   const prev = d.guessed[uid];
   if (!prev || prev.points < pts) d.guessed[uid] = { points: pts, at: now, factor };
   const name = s.players.find((p) => p.id === uid)?.name;
@@ -165,7 +166,7 @@ export function tickDescriber(s: RoomState, now: number): TickResult {
     for (const [pid, g] of Object.entries(d.guessed)) {
       const p = s.players.find((x) => x.id === pid);
       if (p) p.score += g.points;
-      helper += helperPoints(g.points);
+      helper += helperPoints(g.points, s.settings.scoring);
       scored.push(row(d.item!, pid, g.points, g.factor === 1, "guesser"));
     }
     const dp = s.players.find((x) => x.id === descr);
