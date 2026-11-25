@@ -521,3 +521,40 @@ def test_re3_only_standard_difficulty(all_recipes):
     assert not any(o["key"] == "difficulty" for o in r["options"])
     y = rec.build_yaml(r, "M", {"difficulty": "inferno"}, True)
     assert "difficulty: standard" in y and "inferno" not in y
+
+
+def test_slot_hex_survives_any_letters(monkeypatch, tmp_path):
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    ctx = runner.context({"id": "doom_1993", "steam_appid": None}, _settings(), {"slot": "مشعل 1"})
+    assert bytes.fromhex(ctx["slot_hex"]).decode("utf-8") == "مشعل 1"
+
+
+def test_copy_of_a_missing_game_file_says_so(tmp_path):
+    step = {"type": "copy", "from": str(tmp_path / "base" / "DOOM.WAD"), "to": str(tmp_path / "t" / "DOOM.WAD"),
+            "missing_ar": "ما لقيت DOOM.WAD"}
+    with pytest.raises(RuntimeError, match="DOOM.WAD"):
+        runner.run_step(step, {}, _settings(), {"id": "t", "steam_appid": 1}, _T())
+
+
+def test_run_after_process_waits_for_the_game(monkeypatch):
+    started, seen = [], iter([False, False, True])
+    monkeypatch.setattr(runner, "process_running", lambda name: next(seen))
+    monkeypatch.setattr(runner.subprocess, "Popen", lambda cmd, cwd=None: started.append(cmd))
+    assert runner._start_after("witness64_d3d11.exe", ["tool.exe"], ".", timeout=60, poll=1, sleep=lambda s: None)
+    assert started == [["tool.exe"]]
+    started.clear()
+    monkeypatch.setattr(runner, "process_running", lambda name: False)
+    assert not runner._start_after("x.exe", ["tool.exe"], ".", timeout=3, poll=1, sleep=lambda s: None)
+    assert started == []
+
+
+def test_new_famous_games_death_link():
+    R = rec.load_all()
+    assert R["hollow_knight"]["death_link_key"] == "DeathLink"                     # HK's options are class names
+    y = rec.build_yaml(R["hollow_knight"], "P", {}, True)
+    assert "DeathLink: true" in y and "Goal: any" in y
+    for rid in ("celeste", "the_witness", "a_hat_in_time"):                        # their own amnesty, no relay
+        assert R[rid]["free_deaths_native"] and not any(o["key"] == "free_deaths" for o in R[rid]["options"])
+    assert R["minecraft"]["steam_appid"] is None
+    y = rec.build_yaml(R["a_hat_in_time"], "P", {"EndGoal": "rush_hour"}, True)
+    assert "EnableDLC2: true" in y                                                   # the DLC goal turns its DLC on

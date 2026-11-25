@@ -147,7 +147,9 @@ touches a played slot; sets {save_slot} for the launch hint), `thunderstore` (pa
 from each package's manifest.json into the game the way r2modman does), `json_list_add` (path, items), `json_list_remove` (path, items), `github_file` (repo, path, branch, to, extract,
 check: a raw file the author ships in the repo), `ini_set` (path, section, values, quote: true for
 MelonPreferences TOML, false for BepInEx .cfg), `open_url`, `steam_launch`, `run` (exe may be a glob,
-optional_args only added when the value isn't empty), `apworld_builtin`.
+optional_args only added when the value isn't empty; `after_process` = exe name: start it in the background once
+that game process runs, for tools that attach to the game (The Witness randomizer); `wait`: block until it exits),
+`apworld_builtin`. `copy` takes `missing_ar` (the message when the game's own file, e.g. DOOM.WAD, isn't there).
 Any step can have `skip_if_exists` (path/glob): if it exists the step is skipped (one-time installers).
 Any step can have `when` {option: value}: it runs only if the player's choice matches (Terraria installs
 and enables Calamity only with calamity on; `json_list_remove` turns it off otherwise). Setup uses the
@@ -159,11 +161,13 @@ Clients inside an apworld (Archipelago Launcher components) are opened with
 apworld too, because the setup and play buttons also run the `apworld` phase.
 Placeholders: `{steam} {sourcemods} {game_dir} {ap_dir} {custom_worlds} {tools} {documents} {appdata}
 {locallow} {workshop} (this game's Workshop content folder) {slot} {host} {port} {address} {password}
-{has_password} (1/0) {death_link} (true/false) {death_link_ar}`. `write_file` also takes
+{has_password} (1/0) {death_link} (true/false) {death_link_ar} {slot_hex}` (the name as UTF-8 hex: APDOOM's
+-applayerhex, so any letters survive the command line). `write_file` also takes
 `bools` (keys to write as JSON true/false).
 
 ## Status (Nov 2026)
-31 recipes, all `"verified": false`: nobody has played them on a real PC yet. The Nov 2026
+46 recipes, all `"verified": false`: nobody has played them on a real PC yet. `steam_appid` may be null
+(Minecraft: Java edition, the card says «مو من ستيم»). The Nov 2026
 work (PR #1, branch `claude/claude-md-recipes-review-j78ner`) did:
 - Checked every recipe against its sources and the real release files: repo, asset globs,
   exact `game` string, option keys/values (from Options.py), Death Link key and type.
@@ -232,11 +236,46 @@ Notes kept from the review:
   default 0, so `death_link: true` makes generation fail. Needs a per-recipe value for "on"
   (e.g. 100) in `build_yaml`. Ask the owner first.
 
+### Famous games added (Nov 2026, owner: "famous, longer games, and Minecraft")
+Checked with CI because github.com is closed to this sandbox: `.github/workflows/release-info.yml` lists the
+releases of the repos in `.github/release-repos.txt` and what is inside the files in `.github/release-assets.txt`
+(`FILE:<path>` prints one file, e.g. an apworld's Options.py). `tools/dry_run.py` (+ `dry-run.yml`, ids in
+`.github/dry-run.txt`, empty = all) runs recipes end to end with the real downloads twice and checks every map
+pack's uid/variant against its manifest.json. Options were checked against the core worlds' source (ast).
+- DOOM 1993 / DOOM II (both Steam 2280, base/DOOM.WAD, base/DOOM2.WAD) and Heretic (3286930, base/HERETIC.WAD):
+  Daivuk/apdoom 1.2.0 (`LEGACY-APDOOM-*-Win32.zip`, the core worlds need 1.2.0), WAD copied next to it, started
+  with `-game doom|doom2|heretic -apserver {address} -applayerhex {slot_hex}`: no typing at all.
+- Hollow Knight: what Lumafly does, as github_release steps from hk-modding/modlinks: Modding API into Managed,
+  Vasi, MenuChanger, ItemChanger, Benchwarp, QoL, Archipelago into Managed/Mods/<Name>. Connect writes
+  LocalLow/Team Cherry/Hollow Knight/ArchipelagoMod.GlobalSettings.json (file = mod TYPE name). Its options are
+  class names: `Goal`, `WhitePalace`, Death Link key `DeathLink`.
+- Celeste (Open World): Everest stable `main.zip` + MiniInstaller-win64.exe (both skipped once everest-lib exists),
+  mod zip into Mods/, connect writes Saves/modsettings-Archipelago Open World.celeste (Address/SlotName/Password;
+  file name from Everest's Metadata.Name, not tested in game). Native `death_link_amnesty` (1-30).
+- Subnautica: Berserker66 zip (has BepInEx) into the game; connect writes SNAppData/SavedGames/
+  archipelago_last_connection.json (the mod's "last connection"; path from the mod source, not tested in game).
+- The Witness: randomizer exe in tools, started by `after_process` witness64_d3d11.exe (it attaches at start-up and
+  does not read the address from a file: the player types it). Native `death_link_amnesty` 0-5.
+- A Hat in Time: Steam beta tcplink + workshop 3026842601 + developer console (manual once), "A Hat in Time Client"
+  with --connect. Native `death_link_amnesty`. DLC goals `sets` EnableDLC1/EnableDLC2/EnableDeathWish.
+- Dark Souls III: nex3 client v3.0.x (core world wants static randomizer >=3.0.0-beta.24 <3.1.0; fswap's newer
+  clients are for their own apworld). DS3Randomizer.exe runs with `wait` (once per room), then launchmod bat.
+- Inscryption, Bomb Rush Cyberfunk: Thunderstore packages (deps included). Noita: zip into mods/archipelago, the
+  player allows unsafe mods and types the room in Mod Settings. Blasphemous: BrandenEK modding tools (raw
+  win64.zip) + 9 mods from BlasphemousMods.json deps; Boots of Pleading / Double Jump only `when` their option.
+  Timespinner: TsRandomizer into the game folder, started instead of the game.
+- Minecraft: qixils/NeoForgeAP minecraft.apworld into custom_worlds (host and players); Play opens
+  "Minecraft Client", the player opens their .apmc once per room (it sets up Java + NeoForge server); join
+  localhost from Minecraft Java, /start. One slot per Minecraft world.
+- Map trackers added: DOOM 1993 (Ozone31), The Witness (NewSoupVi), Noita (ScipioWright), A Hat in Time
+  (Mysteryem), DS3 (TVV1GK).
+- Not added: Mafia: The Old Country (no Archipelago support anywhere, Nov 2026); Overcooked! 2 (`deathlink` is a
+  Choice, needs the per-recipe "on" value like Slay the Spire, plus an installer .bat); The Messenger (Courier
+  install via the AP launcher); Raft (RML); Satisfactory (its mod manager); Factorio (separate copy + server).
+
 ### Games from the Archipelago games sheet still to add
 Hades (Polycosmos needs ModImporter + ModUtil + StyxScribe + Python and a file picker every
-run), Dark Souls III (the client ships its own dark_souls_3.apworld that clashes with the core
-one; per-seed static randomizer), Hollow Knight, Risk of Rain 2 / ULTRAKILL (Thunderstore
-packages exist; check them), Supermarket Simulator (BepInEx 6 bleeding-edge build is not on
+run), ULTRAKILL (Thunderstore packages exist; check them), Supermarket Simulator (BepInEx 6 bleeding-edge build is not on
 GitHub releases), Silksong (.rar release), WEBFISHING (GDWeave, not BepInEx), TF2 MvM (server plugin), Deep Rock Galactic (mod.io).
 
 ## Adding a game
