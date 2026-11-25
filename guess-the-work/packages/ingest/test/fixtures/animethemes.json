@@ -1,0 +1,6 @@
+{"anime":[{"name":"Shingeki no Kyojin","slug":"shingeki_no_kyojin","resources":[{"site":"MyAnimeList","external_id":16498},{"site":"AniList","external_id":16498}],
+"animethemes":[
+ {"type":"OP","sequence":1,"slug":"OP1","song":{"title":"Guren no Yumiya","artists":[{"name":"Linked Horizon"}]},"animethemeentries":[{"version":null,"nsfw":false,"spoiler":false,"videos":[{"basename":"ShingekiNoKyojin-OP1.webm","link":"https://v.animethemes.moe/ShingekiNoKyojin-OP1.webm","audio":{"link":"https://a.animethemes.moe/ShingekiNoKyojin-OP1.ogg"}}]}]},
+ {"type":"ED","sequence":1,"slug":"ED1","song":{"title":"Utsukushiki Zankoku na Sekai","artists":[{"name":"Yoko Hikasa"}]},"animethemeentries":[{"version":null,"nsfw":false,"spoiler":false,"videos":[{"basename":"ShingekiNoKyojin-ED1.webm","link":"https://v.animethemes.moe/ShingekiNoKyojin-ED1.webm","audio":{"link":"https://a.animethemes.moe/ShingekiNoKyojin-ED1.ogg"}}]}]},
+ {"type":"OP","sequence":2,"slug":"OP2","song":{"title":"Spoiler song","artists":[]},"animethemeentries":[{"nsfw":false,"spoiler":true,"videos":[{"basename":"x.webm","link":"https://v.animethemes.moe/x.webm"}]}]}
+]}]}

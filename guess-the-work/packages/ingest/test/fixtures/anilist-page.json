@@ -1,0 +1,1156 @@
+{
+ "data": {
+  "Page": {
+   "pageInfo": {
+    "total": 5000,
+    "lastPage": 2500,
+    "hasNextPage": true
+   },
+   "media": [
+    {
+     "id": 16498,
+     "idMal": 16498,
+     "isAdult": false,
+     "format": "TV",
+     "season": "SPRING",
+     "seasonYear": 2013,
+     "episodes": 25,
+     "duration": 24,
+     "genres": [
+      "Action",
+      "Drama",
+      "Fantasy",
+      "Mystery"
+     ],
+     "averageScore": 85,
+     "popularity": 1082581,
+     "favourites": 81014,
+     "title": {
+      "romaji": "Shingeki no Kyojin",
+      "english": "Attack on Titan",
+      "native": "進撃の巨人"
+     },
+     "synonyms": [
+      "SnK",
+      "AoT",
+      "Ataque a los Titanes",
+      "Ataque dos Titãs",
+      "L'Attacco dei Giganti",
+      "מתקפת הטיטאנים",
+      "进击的巨人",
+      "L’Attaque des Titans",
+      "الهجوم على العمالقة",
+      "ผ่าพิภพไททัน",
+      "حمله به تایتان",
+      "Ataque de Titãs",
+      "Atak Tytanów",
+      "Атака титанов",
+      "Đại Chiến Titan"
+     ],
+     "description": "Several hundred years ago, humans were nearly exterminated by titans. Titans are typically several stories tall, seem to have no intelligence, devour human beings and, worst of all, seem to do it for the pleasure rather than as a food source. A small percentage of humanity survived by walling themselves in a city protected by extremely high walls, even taller than the biggest of titans.<br><br>\r\nFlash forward to the present and the city has not seen a titan in over 100 years. Teenage boy Eren and his foster sister Mikasa witness something horrific as the city walls are destroyed by a colossal titan that appears out of thin air. As the smaller titans flood the city, the two kids watch in horror as their mother is eaten alive. Eren vows that he will murder every single titan and take revenge for all of mankind.<br><br>\r\n(Source: MangaHelpers)",
+     "coverImage": {
+      "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/large/bx16498-buvcRTBx4NSm.jpg",
+      "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/bx16498-buvcRTBx4NSm.jpg"
+     },
+     "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/16498-8jpFCOcDmneX.jpg",
+     "tags": [
+      {
+       "name": "Kaiju",
+       "rank": 93,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Revenge",
+       "rank": 93,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Tragedy",
+       "rank": 89,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": true,
+       "isAdult": false
+      },
+      {
+       "name": "Henshin",
+       "rank": 88,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Military",
+       "rank": 88,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Male Protagonist",
+       "rank": 86,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Primarily Teen Cast",
+       "rank": 85,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Post-Apocalyptic",
+       "rank": 84,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Super Power",
+       "rank": 81,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Survival",
+       "rank": 80,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Dystopian",
+       "rank": 77,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Memory Manipulation",
+       "rank": 77,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Gore",
+       "rank": 77,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Steampunk",
+       "rank": 77,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Ensemble Cast",
+       "rank": 74,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Swordplay",
+       "rank": 74,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Cannibalism",
+       "rank": 69,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Espionage",
+       "rank": 68,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Orphan",
+       "rank": 67,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Shounen",
+       "rank": 63,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Kuudere",
+       "rank": 62,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Coming of Age",
+       "rank": 60,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Amnesia",
+       "rank": 60,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Time Skip",
+       "rank": 60,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": true,
+       "isAdult": false
+      },
+      {
+       "name": "Medieval",
+       "rank": 60,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Suicide",
+       "rank": 55,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Rural",
+       "rank": 50,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Primarily Male Cast",
+       "rank": 33,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Adoption",
+       "rank": 31,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      }
+     ],
+     "studios": {
+      "nodes": [
+       {
+        "name": "WIT STUDIO"
+       }
+      ]
+     },
+     "staff": {
+      "edges": [
+       {
+        "role": "Original Creator",
+        "node": {
+         "id": 106705,
+         "name": {
+          "full": "Hajime Isayama",
+          "native": "諫山創"
+         }
+        }
+       },
+       {
+        "role": "Director",
+        "node": {
+         "id": 100088,
+         "name": {
+          "full": "Tetsurou Araki",
+          "native": "荒木哲郎"
+         }
+        }
+       },
+       {
+        "role": "Assistant Director",
+        "node": {
+         "id": 118905,
+         "name": {
+          "full": "Masashi Koizuka",
+          "native": "肥塚正史"
+         }
+        }
+       },
+       {
+        "role": "Assistant Director",
+        "node": {
+         "id": 117045,
+         "name": {
+          "full": "Hiroyuki Tanaka",
+          "native": "田中洋之"
+         }
+        }
+       }
+      ]
+     },
+     "characters": {
+      "edges": [
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 95672,
+          "name": {
+           "full": "Yuuki Kaji",
+           "native": "梶裕貴",
+           "alternative": [
+            "Yuki Kaji",
+            "Yuu-tan (ゆうたん)",
+            "Kaji-kyun (梶きゅん)"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95672-T33YV7yCDKnL.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 40882,
+         "name": {
+          "full": "Eren Yeager",
+          "native": "エレン・イェーガー",
+          "alternative": [
+           "Eren Jaeger",
+           "Eren Jäger",
+           "Shi ni Isogi Yarou (死に急ぎ野郎)",
+           "Suicidal Maniac"
+          ],
+          "first": "Eren",
+          "last": "Yeager"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b40882-dsj7IP943WFF.jpg"
+         },
+         "favourites": 32074
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 100142,
+          "name": {
+           "full": "Yui Ishikawa",
+           "native": "石川由依",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n100142-k6RP0HzXffUG.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 40881,
+         "name": {
+          "full": "Mikasa Ackerman",
+          "native": "ミカサ・アッカーマン",
+          "alternative": [],
+          "first": "Mikasa",
+          "last": "Ackerman"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b40881-F3gr1PkreDvj.png"
+         },
+         "favourites": 25857
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 95158,
+          "name": {
+           "full": "Marina Inoue",
+           "native": "井上麻里奈",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95158-OLhgs8zv5xsp.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 46494,
+         "name": {
+          "full": "Armin Arlert",
+          "native": "アルミン・アルレルト",
+          "alternative": [
+           "Armin Arlelt"
+          ],
+          "first": "Armin",
+          "last": "Arlert"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b46494-g7xYYuBtYPnO.png"
+         },
+         "favourites": 14267
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95118,
+          "name": {
+           "full": "Hiroshi Kamiya",
+           "native": "神谷浩史",
+           "alternative": [
+            "HiroC (ヒロC)",
+            "Kousuke Kanda (神田浩介)",
+            "Kamiyan"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95118-oOElrn1aSaiC.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 45627,
+         "name": {
+          "full": "Levi",
+          "native": "リヴァイ",
+          "alternative": [
+           "Levi Heichou (リヴァイ兵長)",
+           "Captain Levi",
+           "Jinrui Saikyou no Heishi (人類最強の兵士)",
+           "Humanity's Strongest Soldier",
+           "Heishichou (兵士長)"
+          ],
+          "first": "Levi",
+          "last": ""
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b45627-CR68RyZmddGG.png"
+         },
+         "favourites": 38668
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95082,
+          "name": {
+           "full": "Romi Park",
+           "native": "朴璐美",
+           "alternative": [
+            "Romi Paku",
+            "Romi Pak (박로미)"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95082-pNGbnYv4cHAK.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 71121,
+         "name": {
+          "full": "Hange Zoe",
+          "native": "ハンジ・ゾエ",
+          "alternative": [
+           "Hange Zoë",
+           "Hanji",
+           "Hans"
+          ],
+          "first": "Hange",
+          "last": "Zoe"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b71121-7R7CnQd3lHgt.png"
+         },
+         "favourites": 14006
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95212,
+          "name": {
+           "full": "Daisuke Ono",
+           "native": "小野大輔",
+           "alternative": [
+            "Shinsuke Nakamoto (中本伸輔)",
+            "Kouhai Nezumi (鼠後輩)",
+            "OnoD"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95212-wX1M4LJN96q2.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 46496,
+         "name": {
+          "full": "Erwin Smith",
+          "native": "エルヴィン・スミス",
+          "alternative": [
+           "Eyebrow"
+          ],
+          "first": "Erwin",
+          "last": "Smith"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b46496-Mu86MENd5wNB.png"
+         },
+         "favourites": 13013
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95034,
+          "name": {
+           "full": "Yuu Kobayashi",
+           "native": "小林ゆう",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95034-AwobjrcmkMi9.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 45887,
+         "name": {
+          "full": "Sasha Blouse",
+          "native": "サシャ・ブラウス",
+          "alternative": [
+           "Sasha Braus",
+           "Imo Onna (芋女)",
+           "Potato Girl"
+          ],
+          "first": "Sasha",
+          "last": "Blouse"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b45887-QPtJH0KwqthW.jpg"
+         },
+         "favourites": 8243
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 100626,
+          "name": {
+           "full": "Yoshimasa Hosoya",
+           "native": "細谷佳正",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n100626-bH8eZ0wv3HYX.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 46484,
+         "name": {
+          "full": "Reiner Braun",
+          "native": "ライナー・ブラウン",
+          "alternative": [],
+          "first": "Reiner",
+          "last": "Braun"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b46484-P6A2GjNQn49F.png"
+         },
+         "favourites": 7816
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95196,
+          "name": {
+           "full": "Kishou Taniyama",
+           "native": "谷山紀章",
+           "alternative": [
+            "Kazuya Sugisaki (杉崎和哉)",
+            "Daisuke Mitsuokaki (光岡樹乃介)",
+            "Kiiyan",
+            "Kishow"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95196-t2vbxQMee0ci.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 46498,
+         "name": {
+          "full": "Jean Kirstein",
+          "native": "ジャン・キルシュタイン",
+          "alternative": [
+           "Jean Kirschtein",
+           "Jeanie",
+           "Horse Face"
+          ],
+          "first": "Jean",
+          "last": "Kirstein"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b46498-ritqAj9FW6jX.png"
+         },
+         "favourites": 6289
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 100295,
+          "name": {
+           "full": "Yuu Shimamura",
+           "native": "嶋村侑",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n100295-SLfRq3RqJEoF.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 46490,
+         "name": {
+          "full": "Annie Leonhart",
+          "native": "アニ・レオンハート",
+          "alternative": [],
+          "first": "Annie",
+          "last": "Leonhart"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b46490-tan274Ifc1Jf.jpg"
+         },
+         "favourites": 4848
+        }
+       }
+      ]
+     }
+    },
+    {
+     "id": 8687,
+     "idMal": 8687,
+     "isAdult": false,
+     "format": "TV",
+     "season": "SPRING",
+     "seasonYear": 2005,
+     "episodes": null,
+     "duration": 25,
+     "genres": [
+      "Adventure",
+      "Comedy",
+      "Sci-Fi"
+     ],
+     "averageScore": 77,
+     "popularity": 8146,
+     "favourites": 379,
+     "title": {
+      "romaji": "Doraemon (2005)",
+      "english": null,
+      "native": "ドラえもん (2005)"
+     },
+     "synonyms": [],
+     "description": "A new Doraemon series produced by the same team as the 1979 series (in association with Studio Pierrot) with new voice actors and staff and updated character designs.",
+     "coverImage": {
+      "extraLarge": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b8687-bBnJMGnih4PT.jpg",
+      "large": "https://s4.anilist.co/file/anilistcdn/media/anime/cover/medium/b8687-bBnJMGnih4PT.jpg"
+     },
+     "bannerImage": "https://s4.anilist.co/file/anilistcdn/media/anime/banner/8687-aa3QbJjGfy3B.jpg",
+     "tags": [
+      {
+       "name": "Kids",
+       "rank": 100,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Primarily Child Cast",
+       "rank": 93,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Episodic",
+       "rank": 91,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "School",
+       "rank": 85,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Achronological Order",
+       "rank": 75,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Alternate Universe",
+       "rank": 70,
+       "isMediaSpoiler": true,
+       "isGeneralSpoiler": true,
+       "isAdult": false
+      },
+      {
+       "name": "Robots",
+       "rank": 64,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Bullying",
+       "rank": 63,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "Baseball",
+       "rank": 33,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      },
+      {
+       "name": "College",
+       "rank": 20,
+       "isMediaSpoiler": false,
+       "isGeneralSpoiler": false,
+       "isAdult": false
+      }
+     ],
+     "studios": {
+      "nodes": [
+       {
+        "name": "Shin-Ei Animation"
+       }
+      ]
+     },
+     "staff": {
+      "edges": [
+       {
+        "role": "Character Design (eps 1-313)",
+        "node": {
+         "id": 110643,
+         "name": {
+          "full": "Ayumu Watanabe",
+          "native": "渡辺歩"
+         }
+        }
+       },
+       {
+        "role": "Theme Song Performance",
+        "node": {
+         "id": 101253,
+         "name": {
+          "full": "Hitomi Shimatani",
+          "native": "島谷ひとみ"
+         }
+        }
+       },
+       {
+        "role": "Storyboard",
+        "node": {
+         "id": 105102,
+         "name": {
+          "full": "Shigeo Koshi",
+          "native": "腰繁男"
+         }
+        }
+       },
+       {
+        "role": "Key Animation",
+        "node": {
+         "id": 115568,
+         "name": {
+          "full": "Tomohiro Kishi",
+          "native": "岸友洋"
+         }
+        }
+       }
+      ]
+     },
+     "characters": {
+      "edges": [
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 101567,
+          "name": {
+           "full": "Wasabi Mizuta",
+           "native": "水田わさび",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n101567-CAAMepraYceN.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 4304,
+         "name": {
+          "full": "Doraemon",
+          "native": "ドラえもん",
+          "alternative": [
+           "Dora-chan"
+          ],
+          "first": "Doraemon",
+          "last": null
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b4304-4eXX8C1O4Pda.png"
+         },
+         "favourites": 691
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 111907,
+          "name": {
+           "full": "Megumi Oohara",
+           "native": "大原めぐみ",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n111907-bypAKya73si1.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 4303,
+         "name": {
+          "full": "Nobita Nobi",
+          "native": "野比のび太",
+          "alternative": [
+           "Guglia",
+           "Guglielmo Guglielminetti"
+          ],
+          "first": "Nobita",
+          "last": "Nobi"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/4303.jpg"
+         },
+         "favourites": 189
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 95298,
+          "name": {
+           "full": "Yumi Kakazu",
+           "native": "かかずゆみ",
+           "alternative": [
+            "嘉数由美"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95298-wWENaJp9ERf7.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 8260,
+         "name": {
+          "full": "Shizuka Minamoto",
+          "native": "源静香",
+          "alternative": [
+           "Shizu-chan (静ちゃん)",
+           "しずか",
+           "Susy"
+          ],
+          "first": "Shizuka",
+          "last": "Minamoto"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b8260-Hz17eZuElZ7U.png"
+         },
+         "favourites": 95
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 95001,
+          "name": {
+           "full": "Tomokazu Seki",
+           "native": "関智一",
+           "alternative": [
+            "Seki Mondoya",
+            "Monto Hiraku (門戸開)"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95001-vm0RtZhmlzhK.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 8261,
+         "name": {
+          "full": "Suneo Honekawa",
+          "native": "骨川スネ夫",
+          "alternative": [
+           "Zippo"
+          ],
+          "first": "Suneo",
+          "last": "Honekawa"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b8261-qGxKWau5iZrf.png"
+         },
+         "favourites": 46
+        }
+       },
+       {
+        "role": "MAIN",
+        "voiceActors": [
+         {
+          "id": 107480,
+          "name": {
+           "full": "Subaru Kimura",
+           "native": "木村昴",
+           "alternative": [
+            "Subaru Samuel Bartsch (昴・サミュエル・バーチュ)"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n107480-h2RgLXNP7hcj.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 8262,
+         "name": {
+          "full": "Takeshi Gouda",
+          "native": "剛田武",
+          "alternative": [
+           "Gian (ジャイアン)",
+           "Giangi"
+          ],
+          "first": "Takeshi",
+          "last": "Gouda"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b8262-N2Lsf46EjZBf.png"
+         },
+         "favourites": 40
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 111753,
+          "name": {
+           "full": "Chiaki Fujimoto",
+           "native": "藤本千秋",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/16753.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 61815,
+         "name": {
+          "full": "Dorami",
+          "native": "ドラミ",
+          "alternative": [],
+          "first": "Dorami",
+          "last": null
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b61815-iYem2dlcvRU9.png"
+         },
+         "favourites": 31
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 114733,
+          "name": {
+           "full": "Shihoko Hagino",
+           "native": "萩野 志保子",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/19733.jpg"
+          }
+         }
+        ],
+        "node": {
+         "id": 31870,
+         "name": {
+          "full": "Hidetoshi Dekisugi",
+          "native": "出木杉英才",
+          "alternative": [],
+          "first": "Hidetoshi",
+          "last": "Dekisugi"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b31870-GGFedy239Ddk.png"
+         },
+         "favourites": 11
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95009,
+          "name": {
+           "full": "Kotono Mitsuishi",
+           "native": "三石琴乃",
+           "alternative": [
+            "琴ちゃん",
+            "琴ちゃわん",
+            "Koto-chan",
+            "Koto-chawan"
+           ]
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95009-d01Dg8mMwcg6.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 163725,
+         "name": {
+          "full": "Tamako Nobi",
+          "native": "野比玉子",
+          "alternative": [
+           "Mama (ママ)",
+           "のびたまこ",
+           "Tamako Kataoka (片岡玉子)"
+          ],
+          "first": "Tamako",
+          "last": "Nobi"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b163725-HLpX1CACQtVL.png"
+         },
+         "favourites": 11
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 95310,
+          "name": {
+           "full": "Yasunori Matsumoto",
+           "native": "松本保典",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n95310-n59AcIeJBg9W.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 163726,
+         "name": {
+          "full": "Nobisuke Nobi",
+          "native": "野比のび助",
+          "alternative": [
+           "Papa (パパ)"
+          ],
+          "first": "Nobisuke",
+          "last": "Nobi"
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b163726-PR4mAPmZpfnw.png"
+         },
+         "favourites": 7
+        }
+       },
+       {
+        "role": "SUPPORTING",
+        "voiceActors": [
+         {
+          "id": 101787,
+          "name": {
+           "full": "Sachi Matsumoto",
+           "native": "松本さち",
+           "alternative": []
+          },
+          "image": {
+           "large": "https://s4.anilist.co/file/anilistcdn/staff/large/n101787-WRivQ5zSDlow.png"
+          }
+         }
+        ],
+        "node": {
+         "id": 163719,
+         "name": {
+          "full": "Sewashi",
+          "native": "セワシ",
+          "alternative": [],
+          "first": "Sewashi",
+          "last": null
+         },
+         "image": {
+          "large": "https://s4.anilist.co/file/anilistcdn/character/large/b163719-YcJdWAUtoPe1.jpg"
+         },
+         "favourites": 6
+        }
+       }
+      ]
+     }
+    }
+   ]
+  }
+ }
+}

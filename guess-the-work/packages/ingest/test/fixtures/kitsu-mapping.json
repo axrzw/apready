@@ -1,0 +1,158 @@
+{
+ "data": [
+  {
+   "id": "254628",
+   "type": "mappings",
+   "links": {
+    "self": "https://kitsu.io/api/edge/mappings/254628"
+   },
+   "attributes": {
+    "createdAt": "2020-05-02T14:54:40.114Z",
+    "updatedAt": "2020-05-02T14:54:40.114Z",
+    "externalSite": "anilist/anime",
+    "externalId": "16498"
+   },
+   "relationships": {
+    "item": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/mappings/254628/relationships/item",
+      "related": "https://kitsu.io/api/edge/mappings/254628/item"
+     },
+     "data": {
+      "type": "anime",
+      "id": "7442"
+     }
+    }
+   }
+  }
+ ],
+ "included": [
+  {
+   "id": "7442",
+   "type": "anime",
+   "links": {
+    "self": "https://kitsu.io/api/edge/anime/7442"
+   },
+   "attributes": {
+    "titles": {
+     "en": "Attack on Titan",
+     "en_jp": "Shingeki no Kyojin",
+     "en_us": "Attack on Titan",
+     "ja_jp": "進撃の巨人"
+    },
+    "abbreviatedTitles": [
+     "AoT"
+    ],
+    "canonicalTitle": "Attack on Titan",
+    "userCount": 620271,
+    "averageRating": "84.39",
+    "synopsis": "Centuries ago, mankind was slaughtered to near extinction by monstrous humanoid creatures called titans, forcing humans to hide in fear behind enormous concentric walls. What makes these giants truly terrifying is that their taste for human flesh is not born out of hunger but what appears to be out of pleasure. To ensure their survival, the remnants of humanity began living within defensive barriers, resulting in one hundred years without a single titan encounter. However, that fragile calm is soon shattered when a colossal titan manages to breach the supposedly impregnable outer wall, reigniting the fight for survival against the man-eating abominations.\n\nAfter witnessing a horrific personal loss at the hands of the invading creatures, Eren Yeager dedicates his life to their eradication by enlisting into the Survey Corps, an elite military unit that combats the merciless humanoids outside the protection of the walls. Based on Hajime Isayama's award-winning manga, Shingeki no Kyojin follows Eren, along with his adopted sister Mikasa Ackerman and his childhood friend Armin Arlert, as they join the brutal war against the titans and race to discover a way of defeating them before the last walls are breached.\n\n(Source: MAL Rewrite)"
+   },
+   "relationships": {
+    "genres": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/genres",
+      "related": "https://kitsu.io/api/edge/anime/7442/genres"
+     }
+    },
+    "categories": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/categories",
+      "related": "https://kitsu.io/api/edge/anime/7442/categories"
+     }
+    },
+    "castings": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/castings",
+      "related": "https://kitsu.io/api/edge/anime/7442/castings"
+     }
+    },
+    "installments": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/installments",
+      "related": "https://kitsu.io/api/edge/anime/7442/installments"
+     }
+    },
+    "mappings": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/mappings",
+      "related": "https://kitsu.io/api/edge/anime/7442/mappings"
+     }
+    },
+    "reviews": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/reviews",
+      "related": "https://kitsu.io/api/edge/anime/7442/reviews"
+     }
+    },
+    "mediaRelationships": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/media-relationships",
+      "related": "https://kitsu.io/api/edge/anime/7442/media-relationships"
+     }
+    },
+    "characters": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/characters",
+      "related": "https://kitsu.io/api/edge/anime/7442/characters"
+     }
+    },
+    "staff": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/staff",
+      "related": "https://kitsu.io/api/edge/anime/7442/staff"
+     }
+    },
+    "productions": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/productions",
+      "related": "https://kitsu.io/api/edge/anime/7442/productions"
+     }
+    },
+    "quotes": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/quotes",
+      "related": "https://kitsu.io/api/edge/anime/7442/quotes"
+     }
+    },
+    "episodes": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/episodes",
+      "related": "https://kitsu.io/api/edge/anime/7442/episodes"
+     }
+    },
+    "streamingLinks": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/streaming-links",
+      "related": "https://kitsu.io/api/edge/anime/7442/streaming-links"
+     }
+    },
+    "animeProductions": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/anime-productions",
+      "related": "https://kitsu.io/api/edge/anime/7442/anime-productions"
+     }
+    },
+    "animeCharacters": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/anime-characters",
+      "related": "https://kitsu.io/api/edge/anime/7442/anime-characters"
+     }
+    },
+    "animeStaff": {
+     "links": {
+      "self": "https://kitsu.io/api/edge/anime/7442/relationships/anime-staff",
+      "related": "https://kitsu.io/api/edge/anime/7442/anime-staff"
+     }
+    }
+   }
+  }
+ ],
+ "meta": {
+  "count": 1
+ },
+ "links": {
+  "first": "https://kitsu.io/api/edge/mappings?filter%5BexternalId%5D=16498&filter%5BexternalSite%5D=anilist%2Fanime&include=item&page%5Blimit%5D=10&page%5Boffset%5D=0",
+  "last": "https://kitsu.io/api/edge/mappings?filter%5BexternalId%5D=16498&filter%5BexternalSite%5D=anilist%2Fanime&include=item&page%5Blimit%5D=10&page%5Boffset%5D=0"
+ }
+}

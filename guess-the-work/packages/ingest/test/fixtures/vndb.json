@@ -1,0 +1,323 @@
+{
+ "count": 1290,
+ "more": true,
+ "results": [
+  {
+   "aliases": [
+    "Saya's Song"
+   ],
+   "alttitle": "沙耶の唄",
+   "description": "The story centers around Fuminori Sakisaka, a medical school student involved in a vehicle accident that claimed the lives of both his parents and left him with critical injuries. \nHe was rescued by experimental brain surgery that coincidentally altered his perception of the world dramatically. \n\nEverything now seems to be composed of slimy intestines and gore to him. In addition, the rest of his senses: touch, hearing, smell, and taste, are also impaired, similar to his sight, further damaging his mental health.\n\nFuminori's desire to live dwindles, and one night, while still in the hospital, he contemplates suicide. However, a girl in a white dress named Saya appears before him. Compared to the horrible surroundings, she looks completely normal, if not downright gorgeous. Fuminori soon falls in love with Saya, and she becomes his raison d'être.\n\nAs time passes, Fuminori gets increasingly secluded from the rest of his normal life as he embarks on a mission to find a specific person Saya is looking for. Fuminori's friends and doctor get more concerned as he acts strangely over time. Nonetheless, they will soon cross paths, for better or worse...",
+   "developers": [
+    {
+     "id": "p42",
+     "name": "NITRO PLUS"
+    }
+   ],
+   "id": "v97",
+   "image": {
+    "sexual": 0.47,
+    "url": "https://t.vndb.org/cv/68/93368.jpg",
+    "violence": 0
+   },
+   "length_minutes": 375,
+   "rating": 78.5,
+   "released": "2003-12-26",
+   "screenshots": [
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/63/263.jpg"
+    },
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/65/265.jpg"
+    },
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/66/266.jpg"
+    }
+   ],
+   "tags": [
+    {
+     "id": "g8",
+     "name": "Fear of Death",
+     "rating": 1.60174882411957,
+     "spoiler": 0
+    },
+    {
+     "id": "g23",
+     "name": "Sexual Content",
+     "rating": 2.03296709060669,
+     "spoiler": 0
+    },
+    {
+     "id": "g25",
+     "name": "Personal Armed Combat",
+     "rating": 1.35541129112244,
+     "spoiler": 1
+    },
+    {
+     "id": "g325",
+     "name": "Battle of Wits",
+     "rating": 1.01522767543793,
+     "spoiler": 1
+    },
+    {
+     "id": "g509",
+     "name": "Alien Heroine",
+     "rating": 2.81818175315857,
+     "spoiler": 2
+    },
+    {
+     "id": "g55",
+     "name": "Cthulhu Mythos",
+     "rating": 1.96768426895142,
+     "spoiler": 1
+    }
+   ],
+   "title": "Saya no Uta",
+   "titles": [
+    {
+     "latin": null,
+     "title": "Saya no Uta ~ The Song of Saya"
+    },
+    {
+     "latin": "Saya no Uta",
+     "title": "沙耶の唄"
+    },
+    {
+     "latin": "Shaye zhi Ge",
+     "title": "沙耶之歌"
+    },
+    {
+     "latin": null,
+     "title": "Saya no Uta"
+    },
+    {
+     "latin": null,
+     "title": "La canción de Saya"
+    },
+    {
+     "latin": null,
+     "title": "Saya no Uta"
+    },
+    {
+     "latin": null,
+     "title": "Saya no Uta"
+    },
+    {
+     "latin": "Sayaui Norae",
+     "title": "사야의 노래"
+    },
+    {
+     "latin": null,
+     "title": "Saya no Uta"
+    },
+    {
+     "latin": "Pesn' Saji",
+     "title": "Песнь Сайи"
+    },
+    {
+     "latin": null,
+     "title": "Saya’nın Şarkısı"
+    },
+    {
+     "latin": null,
+     "title": "Khúc ca của Saya"
+    }
+   ],
+   "va": [
+    {
+     "character": {
+      "id": "c66",
+      "image": {
+       "sexual": 0,
+       "url": "https://t.vndb.org/ch/05/149705.jpg"
+      },
+      "name": "Saya",
+      "original": "沙耶"
+     },
+     "staff": {
+      "id": "s14",
+      "name": "Kawamura Midori"
+     }
+    },
+    {
+     "character": {
+      "id": "c70",
+      "image": {
+       "sexual": 0,
+       "url": "https://t.vndb.org/ch/08/149708.jpg"
+      },
+      "name": "Tsukuba You",
+      "original": "津久葉 瑶"
+     },
+     "staff": {
+      "id": "s25",
+      "name": "Yazawa Izumi"
+     }
+    },
+    {
+     "character": {
+      "id": "c69",
+      "image": {
+       "sexual": 0,
+       "url": "https://t.vndb.org/ch/10/149710.jpg"
+      },
+      "name": "Takahata Oumi",
+      "original": "高畠 青海"
+     },
+     "staff": {
+      "id": "s125",
+      "name": "Kaibara Elena"
+     }
+    }
+   ],
+   "votecount": 24711
+  },
+  {
+   "aliases": [
+    "DDLC",
+    "DDLCP",
+    "DDLC+",
+    "두근두근 문예부",
+    "心跳文学俱乐部",
+    "心跳文学社"
+   ],
+   "alttitle": null,
+   "description": "Hi, Monika here!\n\nWelcome to the Literature Club! It's always been a dream of mine to make something special out of the things I love. Now that you're a club member, you can help me make that dream come true in this cute game!\n\nEvery day is full of chit-chat and fun activities with all of my adorable and unique club members:\n\nSayori, the youthful bundle of sunshine who values happiness the most;\nNatsuki, the deceivingly cute girl who packs an assertive punch;\nYuri, the timid and mysterious one who finds comfort in the world of books;\n...And, of course, Monika, the leader of the club! That's me!\n\nI'm super excited for you to make friends with everyone and help the Literature Club become a more intimate place for all my members. But I can tell already that you're a sweetheart—will you promise to spend the most time with me? ♥\n\n[From [url=https://teamsalvato.itch.io/ddlc]Itch.io[/url]]",
+   "developers": [
+    {
+     "id": "p7209",
+     "name": "Team Salvato"
+    }
+   ],
+   "id": "v21905",
+   "image": {
+    "sexual": 0,
+    "url": "https://t.vndb.org/cv/36/79136.jpg",
+    "violence": 0
+   },
+   "length_minutes": 390,
+   "rating": 69.1,
+   "released": "2017-09-22",
+   "screenshots": [
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/84/106684.jpg"
+    },
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/85/106685.jpg"
+    },
+    {
+     "sexual": 0,
+     "url": "https://t.vndb.org/sf/86/106686.jpg"
+    }
+   ],
+   "tags": [
+    {
+     "id": "g7",
+     "name": "Horror",
+     "rating": 2.68501377105713,
+     "spoiler": 2
+    },
+    {
+     "id": "g32",
+     "name": "ADV",
+     "rating": 2.72727274894714,
+     "spoiler": 0
+    },
+    {
+     "id": "g47",
+     "name": "School",
+     "rating": 1.24123418331146,
+     "spoiler": 0
+    },
+    {
+     "id": "g48",
+     "name": "High School",
+     "rating": 2.59999990463257,
+     "spoiler": 0
+    },
+    {
+     "id": "g96",
+     "name": "Romance",
+     "rating": 2.12820506095886,
+     "spoiler": 0
+    },
+    {
+     "id": "g125",
+     "name": "AI Heroine",
+     "rating": 2.33333325386047,
+     "spoiler": 2
+    }
+   ],
+   "title": "Doki Doki Literature Club!",
+   "titles": [
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": "Doki Doki Bungeibu!",
+     "title": "ドキドキ文芸部!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Literature Club!"
+    },
+    {
+     "latin": null,
+     "title": "Doki Doki Edebiyat Kulübü!"
+    },
+    {
+     "latin": "Doki Doki Literaturnyi klub!",
+     "title": "Doki Doki Літературний клуб!"
+    },
+    {
+     "latin": null,
+     "title": "Câu lạc bộ Văn Học vui nhộn"
+    },
+    {
+     "latin": "Xin Tiao Wen Xue Bu!",
+     "title": "心跳文学部！"
+    },
+    {
+     "latin": "Xin Dong Dong Wen Xue She!",
+     "title": "心動動文學社！"
+    }
+   ],
+   "va": [],
+   "votecount": 19836
+  }
+ ]
+}

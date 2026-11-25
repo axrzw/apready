@@ -1,0 +1,19 @@
+{
+  "_note": "أسماء دبلجة سبيستون والدبلجات العربية. بداية فقط: زد عليها هنا أو من صفحة الأدمن. title = اسم العمل كما في AniList (إنجليزي أو روماجي)، يطابق كل الأعمال اللي اسمها نفسه أو يبدأ فيه (المواسم). characters: اسم الشخصية في AniList -> الأسماء المدبلجة.",
+  "works": [
+    { "title": "Doraemon", "ar": ["دورايمون"], "characters": { "Doraemon": ["دورايمون"], "Nobita Nobi": ["نوبيتا"] } },
+    { "title": "Captain Tsubasa", "ar": ["كابتن ماجد"], "characters": { "Tsubasa Oozora": ["ماجد", "ماجد عبدالله"] } },
+    { "title": "Slam Dunk", "ar": ["سلام دنك"] },
+    { "title": "Hunter x Hunter", "ar": ["القناص"] },
+    { "title": "Case Closed", "ar": ["المحقق كونان", "كونان"], "characters": { "Conan Edogawa": ["كونان"], "Shinichi Kudou": ["شينتشي"] } },
+    { "title": "Pokémon", "ar": ["بوكيمون"], "characters": { "Pikachu": ["بيكاتشو"] } },
+    { "title": "Digimon Adventure", "ar": ["أبطال الديجيتال", "ديجيمون"] },
+    { "title": "Yu-Gi-Oh! Duel Monsters", "ar": ["يوغي يو"] },
+    { "title": "ONE PIECE", "ar": ["ون بيس"] },
+    { "title": "Dragon Ball", "ar": ["دراغون بول", "دراجون بول"] },
+    { "title": "Naruto", "ar": ["ناروتو"] },
+    { "title": "UFO Robo Grendizer", "ar": ["غريندايزر", "جريندايزر"] },
+    { "title": "Beyblade", "ar": ["بي بليد", "بيبليد"] },
+    { "title": "Detective Conan", "ar": ["المحقق كونان"] }
+  ]
+}

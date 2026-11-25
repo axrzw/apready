@@ -1,0 +1,81 @@
+{
+ "results": {
+  "bindings": [
+   {
+    "alt": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "المخطوفة (فيلم ٢٠٠١)"
+    },
+    "ar": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "المخطوفة"
+    },
+    "id": {
+     "type": "literal",
+     "value": "199"
+    }
+   },
+   {
+    "alt": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "المخطوفه"
+    },
+    "ar": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "المخطوفة"
+    },
+    "id": {
+     "type": "literal",
+     "value": "199"
+    }
+   },
+   {
+    "alt": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "رحلة تشيهيرو"
+    },
+    "ar": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "المخطوفة"
+    },
+    "id": {
+     "type": "literal",
+     "value": "199"
+    }
+   },
+   {
+    "alt": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "دورايمون (٢٠٠٥)"
+    },
+    "ar": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "دورايمون"
+    },
+    "id": {
+     "type": "literal",
+     "value": "8687"
+    }
+   },
+   {
+    "ar": {
+     "xml:lang": "ar",
+     "type": "literal",
+     "value": "ساموراي تشامبلو"
+    },
+    "id": {
+     "type": "literal",
+     "value": "205"
+    }
+   }
+  ]
+ }
+}
