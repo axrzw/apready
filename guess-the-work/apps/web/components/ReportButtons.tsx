@@ -9,9 +9,9 @@ export default function ReportButtons({ id }: { id: string }) {
   };
   return (
     <div className="flex gap-2">
-      <button className="chip" onClick={() => set("fixed")}>✔ تصلّح</button>
-      <button className="chip" onClick={() => set("ignored")}>تجاهل</button>
-      <a className="chip" href="/admin/works">تعديل الأسماء</a>
+      <button className="toggle" onClick={() => set("fixed")}>تصلّح</button>
+      <button className="toggle" onClick={() => set("ignored")}>تجاهل</button>
+      <a className="toggle" href="/admin/works">تعديل الأسماء</a>
     </div>
   );
 }

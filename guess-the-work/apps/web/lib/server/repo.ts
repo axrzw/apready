@@ -1,19 +1,26 @@
 import "server-only";
-import { SqliteRepo, type Repo } from "@gtw/db";
-import { DB_PATH } from "./env";
+import { join, resolve } from "node:path";
+import { openDb, type Repo } from "@gtw/db";
+import { DATA_DIR } from "./env";
 
-const g = globalThis as unknown as { __gtwRepo?: Repo };
+const g = globalThis as unknown as { __gtwRepo?: Repo; __gtwOpen?: Promise<Repo> };
 
-/** The data layer. DATA_BACKEND=supabase switches to Supabase (see packages/db/src/supabase.ts). */
+function open(): Promise<Repo> {
+  // Neon in production (DATABASE_URL), PGlite folder locally. Migrations run at build (db:setup) and here once.
+  g.__gtwOpen ??= openDb({ pgliteDir: process.env.GTW_PGLITE_DIR || join(DATA_DIR, "pglite"), migrationsDir: resolve(process.cwd(), "..", "..", "packages", "db", "migrations") }).then(async (o) => {
+    if (o.kind === "pglite") await o.migrate();
+    return o.repo;
+  });
+  return g.__gtwOpen;
+}
+
+/** The data layer. Methods are async; the connection opens on first use. */
 export function getRepo(): Repo {
-  if (!g.__gtwRepo) {
-    if (process.env.DATA_BACKEND === "supabase") {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { SupabaseRepo } = require("@gtw/db/supabase") as typeof import("@gtw/db/supabase");
-      g.__gtwRepo = new SupabaseRepo(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-    } else {
-      g.__gtwRepo = new SqliteRepo(DB_PATH);
-    }
-  }
+  g.__gtwRepo ??= new Proxy({} as Repo, {
+    get: (_t, key: string) => async (...args: unknown[]) => {
+      const r = await open();
+      return (r as unknown as Record<string, (...a: unknown[]) => unknown>)[key](...args);
+    },
+  });
   return g.__gtwRepo;
 }

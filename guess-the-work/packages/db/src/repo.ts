@@ -2,10 +2,14 @@ import type { Category, Character, MediaAsset, ModeId, Person, Theme, Tier, Work
 import type { Library } from "@gtw/core/library";
 
 export interface User {
-  id: string; // "discord:123" or "dev:name"
+  id: string;
   name: string;
+  /** accent colour (hex) chosen at login */
+  color?: string;
+  /** avatar glyph id from the list */
   avatar?: string;
   isAdmin?: boolean;
+  kicked?: boolean;
   linked?: { anilist?: string; mal?: string; steam?: string; letterboxd?: string };
   createdAt?: number;
 }
@@ -24,6 +28,46 @@ export interface AnswerRecord {
   roomCode?: string;
   /** extra role info for party modes */
   role?: "describer" | "drawer" | "guesser";
+  elapsedMs?: number;
+  at: number;
+}
+
+export type WatchStatus = "seen" | "watching" | "dropped" | "not_seen";
+export interface WatchEntry {
+  userId: string;
+  workId: string;
+  status: WatchStatus;
+  rating?: number;
+  at: number;
+}
+
+export interface RoomRow<S = unknown> {
+  code: string;
+  version: number;
+  state: S;
+  updatedAt: number;
+}
+
+export interface Template {
+  id: string;
+  userId: string;
+  name: string;
+  settings: unknown;
+  at: number;
+}
+
+export interface SessionSummary {
+  id: string;
+  roomCode: string;
+  summary: unknown;
+  at: number;
+}
+
+export interface Pack {
+  id: string;
+  userId: string;
+  name: string;
+  data: unknown;
   at: number;
 }
 
@@ -85,7 +129,7 @@ export interface CoverageRow {
   count: number;
 }
 
-/** The app talks to the database only through this. SQLite today, Supabase later. */
+/** The app talks to the database only through this (Drizzle on PGlite locally, Neon in production). */
 export interface Repo {
   upsertWorks(works: Work[]): Promise<void>;
   upsertCharacters(chars: Character[]): Promise<void>;
@@ -124,4 +168,35 @@ export interface Repo {
   setSetting<T>(key: string, value: T): Promise<void>;
   logJob(name: string, status: string, detail?: string): Promise<void>;
   listJobs(limit?: number): Promise<{ name: string; status: string; detail: string | null; at: number }[]>;
+
+  // live rooms (compare-and-swap on version)
+  getRoom<S>(code: string): Promise<RoomRow<S> | undefined>;
+  /** inserts when expectedVersion is 0; returns false when someone else wrote first */
+  saveRoom<S>(code: string, state: S, expectedVersion: number): Promise<boolean>;
+  deleteRoomsBefore(ts: number): Promise<number>;
+
+  // watch log, wishlist
+  setWatch(e: WatchEntry): Promise<void>;
+  removeWatch(userId: string, workId: string): Promise<void>;
+  watchOf(userId: string): Promise<WatchEntry[]>;
+  watchAll(): Promise<WatchEntry[]>;
+  addWish(userId: string, workId: string): Promise<void>;
+  removeWish(userId: string, workId: string): Promise<void>;
+  wishesOf(userId: string): Promise<string[]>;
+
+  // templates, archive, packs
+  saveTemplate(t: Template): Promise<void>;
+  listTemplates(): Promise<Template[]>;
+  deleteTemplate(id: string): Promise<void>;
+  saveSession(s: SessionSummary): Promise<void>;
+  listSessions(limit?: number): Promise<SessionSummary[]>;
+  getSession(id: string): Promise<SessionSummary | undefined>;
+  savePack(p: Pack): Promise<void>;
+  listPacks(): Promise<Pack[]>;
+  getPack(id: string): Promise<Pack | undefined>;
+  answersOfRoom(roomCode: string): Promise<(AnswerRecord & { id: number })[]>;
+
+  /** every row of every table (backup) and restore */
+  dump(): Promise<Record<string, unknown[]>>;
+  restore(d: Record<string, unknown[]>): Promise<void>;
 }

@@ -2,27 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tokens: docs/DESIGN.md */
 :root {
-  --font-ar: "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, "Geeza Pro", system-ui, sans-serif;
+  /* RGB channels so Tailwind opacity modifiers work (bg-accent/10) */
+  --bg-c: 11 11 13;
+  --bg-raise-c: 17 17 20;
+  --surface-c: 22 22 26;
+  --surface-2-c: 30 30 35;
+  --text-c: 238 234 226;
+  --muted-c: 156 151 142;
+  --faint-c: 95 91 85;
+  --accent-c: 233 180 76;
+  --accent-ink-c: 26 19 6;
+  --signal-c: 217 80 63;
+  --ok-c: 91 192 142;
+  --bg: rgb(var(--bg-c));
+  --surface: rgb(var(--surface-c));
+  --surface-2: rgb(var(--surface-2-c));
+  --text: rgb(var(--text-c));
+  --accent: rgb(var(--accent-c));
+  --accent-ink: rgb(var(--accent-ink-c));
+  --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.14);
   color-scheme: dark;
 }
-html, body { background: #0b0b12; color: #ececf4; }
-body { min-height: 100vh; background-image: radial-gradient(1200px 600px at 80% -10%, rgba(245,165,36,0.10), transparent), radial-gradient(900px 500px at -10% 110%, rgba(167,139,250,0.10), transparent); }
+
+html, body { background: var(--bg); color: var(--text); }
+body { min-height: 100dvh; font-feature-settings: "tnum" 0; -webkit-tap-highlight-color: transparent; }
+/* film grain, barely there */
+body::before {
+  content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .035;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+::selection { background: var(--accent); color: var(--accent-ink); }
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
 
 @layer components {
-  .card { @apply rounded-2xl border border-ink-700 bg-ink-900/80 p-4 shadow-lg backdrop-blur; }
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50; }
-  .btn-primary { @apply btn bg-brand-500 text-ink-950 hover:bg-brand-400; }
-  .btn-ghost { @apply btn border border-ink-600 bg-ink-800 hover:bg-ink-700; }
-  .btn-danger { @apply btn bg-rose-600 text-white hover:bg-rose-500; }
-  .input { @apply w-full rounded-xl border border-ink-600 bg-ink-800 px-3 py-2 outline-none placeholder:text-zinc-500 focus:border-brand-500; }
-  .label { @apply mb-1 block text-sm text-zinc-400; }
-  .chip { @apply inline-flex items-center gap-1 rounded-full border border-ink-600 bg-ink-800 px-3 py-1 text-sm; }
-  .chip-on { @apply border-brand-500 bg-brand-500/15 text-brand-300; }
+  .panel { @apply rounded-md border border-line bg-surface; }
+  .label { @apply text-[11px] font-semibold uppercase tracking-label text-faint; }
+  .btn { @apply inline-flex h-11 select-none items-center justify-center gap-2 rounded px-4 text-[15px] font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-primary { @apply btn bg-accent text-accentInk hover:brightness-110; }
+  .btn-ghost { @apply btn border border-lineStrong text-text hover:bg-surface2; }
+  .btn-quiet { @apply btn h-9 px-3 text-sm text-muted hover:text-text; }
+  .btn-danger { @apply btn border border-signal/40 text-signal hover:bg-signal/10; }
+  .field { @apply h-11 w-full rounded border border-line bg-surface2 px-3 text-[15px] text-text outline-none transition-colors placeholder:text-faint focus:border-accent; }
+  .toggle { @apply inline-flex h-9 items-center gap-2 rounded border border-line px-3 text-sm text-muted transition-colors hover:border-lineStrong hover:text-text; }
+  .toggle-on { @apply border-accent/60 bg-accent/10 text-text; }
+  .rule { @apply h-px w-full bg-line; }
+  .skeleton { @apply relative overflow-hidden rounded bg-surface2; }
+  .skeleton::after { content: ""; @apply absolute inset-0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.05), transparent); animation: shimmer 1.4s infinite; }
+  /* crop marks around the hero image */
+  .crop { position: relative; }
+  .crop::before, .crop::after { content: ""; position: absolute; width: 18px; height: 18px; border-color: var(--accent); opacity: .7; pointer-events: none; }
+  .crop::before { top: -8px; inset-inline-start: -8px; border-top: 1px solid; border-inline-start: 1px solid; }
+  .crop::after { bottom: -8px; inset-inline-end: -8px; border-bottom: 1px solid; border-inline-end: 1px solid; }
+  /* paper (drawer) */
+  .paper { background-color: #f2ede3; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='p'><feTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .3  0 0 0 0 .22  0 0 0 .09 0'/></filter><rect width='100%' height='100%' filter='url(%23p)'/></svg>"); }
+  /* stage light (describer) */
+  .stage { background: radial-gradient(60% 55% at 50% 0%, rgba(233,180,76,.16), transparent 70%), var(--bg); }
+  /* studio (camera) */
+  .studio { background: linear-gradient(var(--line) 1px, transparent 1px) 0 33.33%/100% 33.33%, linear-gradient(90deg, var(--line) 1px, transparent 1px) 33.33% 0/33.33% 100%; }
+  .redact { @apply mx-0.5 inline-block h-[0.95em] translate-y-[0.12em] rounded-sm bg-text/90 align-baseline; }
 }
 
-/* a wrong answer shakes */
-@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
-.shake { animation: shake .4s; }
-@keyframes pop { 0% { transform: scale(.9); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
-.pop { animation: pop .25s ease-out; }
+@keyframes shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes shake { 20%, 60% { transform: translateX(-5px); } 40%, 80% { transform: translateX(5px); } }
+.shake { animation: shake .35s; }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after, .shake { animation: none; }
+}

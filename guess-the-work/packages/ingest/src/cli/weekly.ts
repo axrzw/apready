@@ -3,8 +3,8 @@
  *   pnpm weekly            (run it from cron, or let the web app's scheduler run it: ENABLE_SCHEDULER=1)
  */
 import { seeded } from "@gtw/core/rng";
-import { SqliteRepo, type Repo } from "@gtw/db";
-import { CACHE_DIR, DB_PATH, MEDIA_DIR, ensureProxyEnv } from "../config";
+import type { Repo } from "@gtw/db";
+import { CACHE_DIR, MEDIA_DIR, ensureProxyEnv, openRepo } from "../config";
 import { Http } from "../http";
 import { collectBand, seedAnime } from "../pipeline/anime";
 import { checkDeadLinks } from "../pipeline/maintenance";
@@ -19,7 +19,8 @@ export function currentSeason(d = new Date()): { season: string; year: number } 
 
 export async function runWeekly(argv: string[], repo?: Repo) {
   const a = parseArgs(argv);
-  const r = repo ?? new SqliteRepo(DB_PATH);
+  const opened = repo ? null : await openRepo();
+  const r = repo ?? opened!.repo;
   const http = new Http({ cacheDir: CACHE_DIR, ttlMs: 86_400_000 });
   const rng = seeded(Date.now());
   const log = (m: string) => console.log(m);
@@ -57,6 +58,7 @@ export async function runWeekly(argv: string[], repo?: Repo) {
   await r.logJob("weekly", "done", JSON.stringify(report));
   await r.setSetting("lastWeekly", Date.now());
   console.log(JSON.stringify(report));
+  await opened?.close();
   return report;
 }
 

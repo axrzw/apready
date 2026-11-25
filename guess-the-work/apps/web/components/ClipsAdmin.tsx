@@ -8,12 +8,12 @@ export default function ClipsAdmin({ ytdlp }: { ytdlp: boolean }) {
   const [busy, setBusy] = useState(false);
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-black">✂️ إضافة أوستات ومشاهد</h1>
-      <p className="text-sm text-zinc-400">
+      <h1 className="font-display text-3xl">إضافة أوستات ومشاهد</h1>
+      <p className="text-sm text-muted">
         حط رابط المقطع وتوقيت البداية والنهاية، والسيرفر يقصه ويخزنه (للاستخدام الخاص بيننا). {ytdlp ? "روابط يوتيوب تشتغل (yt-dlp موجود)." : "yt-dlp مو مثبت: استخدم رابط ملف مباشر (mp3/mp4/webm…)."}
       </p>
       <form
-        className="card grid gap-3 sm:grid-cols-2"
+        className="panel p-4 grid gap-3 sm:grid-cols-2"
         onSubmit={async (e) => {
           e.preventDefault();
           setBusy(true);
@@ -21,13 +21,13 @@ export default function ClipsAdmin({ ytdlp }: { ytdlp: boolean }) {
           const r = await fetch("/api/admin/clip", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...f, start: Number(f.start), end: Number(f.end) }) });
           const j = await r.json();
           setBusy(false);
-          setMsg(r.ok ? `✔ انحفظ (${j.id})` : `✖ ${j.error}`);
+          setMsg(r.ok ? `انحفظ (${j.id})` : `ما انحفظ: ${j.error}`);
         }}
       >
         <div className="sm:col-span-2">
           <span className="label">العمل</span>
           <input
-            className="input"
+            className="field"
             placeholder="ابحث…"
             value={f.q}
             onChange={async (e) => {
@@ -37,7 +37,7 @@ export default function ClipsAdmin({ ytdlp }: { ytdlp: boolean }) {
           />
           <div className="mt-1 flex flex-wrap gap-1">
             {found.slice(0, 8).map((w) => (
-              <button type="button" key={w.id} className={`chip ${f.workId === w.id ? "chip-on" : ""}`} onClick={() => setF({ ...f, workId: w.id })}>
+              <button type="button" key={w.id} className={`toggle ${f.workId === w.id ? "toggle-on" : ""}`} onClick={() => setF({ ...f, workId: w.id })}>
                 {w.titleAr ?? w.title}
               </button>
             ))}
@@ -45,7 +45,7 @@ export default function ClipsAdmin({ ytdlp }: { ytdlp: boolean }) {
         </div>
         <label>
           <span className="label">النوع</span>
-          <select className="input" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
+          <select className="field" value={f.type} onChange={(e) => setF({ ...f, type: e.target.value })}>
             <option value="OST">أوست (صوت)</option>
             <option value="OP">أوبننق (صوت)</option>
             <option value="ED">إندنق (صوت)</option>
@@ -55,20 +55,20 @@ export default function ClipsAdmin({ ytdlp }: { ytdlp: boolean }) {
         </label>
         <label>
           <span className="label">الرابط</span>
-          <input className="input" required value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} dir="ltr" />
+          <input className="field" required value={f.url} onChange={(e) => setF({ ...f, url: e.target.value })} dir="ltr" />
         </label>
         <label>
           <span className="label">البداية (ثانية)</span>
-          <input className="input" type="number" step="0.1" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} />
+          <input className="field" type="number" step="0.1" value={f.start} onChange={(e) => setF({ ...f, start: e.target.value })} />
         </label>
         <label>
           <span className="label">النهاية (ثانية)</span>
-          <input className="input" type="number" step="0.1" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} />
+          <input className="field" type="number" step="0.1" value={f.end} onChange={(e) => setF({ ...f, end: e.target.value })} />
         </label>
         {f.type !== "scene" && f.type !== "frame" && (
           <>
-            <input className="input" placeholder="اسم الأغنية/المقطوعة" value={f.song} onChange={(e) => setF({ ...f, song: e.target.value })} />
-            <input className="input" placeholder="الفنان/الملحن (فاصلة)" value={f.artists} onChange={(e) => setF({ ...f, artists: e.target.value })} />
+            <input className="field" placeholder="اسم الأغنية/المقطوعة" value={f.song} onChange={(e) => setF({ ...f, song: e.target.value })} />
+            <input className="field" placeholder="الفنان/الملحن (فاصلة)" value={f.artists} onChange={(e) => setF({ ...f, artists: e.target.value })} />
           </>
         )}
         <button className="btn-primary sm:col-span-2" disabled={!f.workId || busy}>

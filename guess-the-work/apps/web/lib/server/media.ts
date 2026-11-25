@@ -3,7 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import type { Asset } from "@gtw/core/questions";
-import { renderEffect, type Box } from "@gtw/ingest/effects";
+import { renderEffect } from "@gtw/ingest/effects";
 import { clipAudio } from "@gtw/ingest/media";
 import { MEDIA_DIR } from "./env";
 
@@ -71,16 +71,6 @@ export function localPath(src: string): string {
   return p;
 }
 
-function textBoxes(src: string): Box[] {
-  const f = join(MEDIA_DIR, "ocr", `${hash(src)}.json`);
-  if (!existsSync(f)) return [];
-  try {
-    return JSON.parse(readFileSync(f, "utf8")) as Box[];
-  } catch {
-    return [];
-  }
-}
-
 export async function renderImage(e: TokenEntry, requestedStep: number): Promise<{ buffer: Buffer; type: string }> {
   const a = e.asset;
   if (a.type === "plain") {
@@ -94,7 +84,7 @@ export async function renderImage(e: TokenEntry, requestedStep: number): Promise
   const hit = renderCache.get(key);
   if (hit) return hit;
   const input = await loadSource(a.src);
-  const out = await renderEffect(input, { effect: a.effect, step, steps: a.steps, seed: a.seed, textBoxes: textBoxes(a.src) });
+  const out = await renderEffect(input, { effect: a.effect, step, steps: a.steps, seed: a.seed, textBoxes: a.mask });
   if (renderCache.size > 400) renderCache.delete(renderCache.keys().next().value!);
   renderCache.set(key, out);
   return out;

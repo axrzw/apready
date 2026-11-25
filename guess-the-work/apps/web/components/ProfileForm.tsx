@@ -12,7 +12,7 @@ export default function ProfileForm({ linked }: { linked: Record<string, string 
   ];
   return (
     <form
-      className="card space-y-3"
+      className="panel p-4 space-y-3"
       onSubmit={async (e) => {
         e.preventDefault();
         await fetch("/api/profile", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(f) });
@@ -22,13 +22,13 @@ export default function ProfileForm({ linked }: { linked: Record<string, string 
       {fields.map(([k, label, note]) => (
         <label key={k} className="block">
           <span className="label">
-            {label} <span className="text-xs text-zinc-500">({note})</span>
+            {label} <span className="text-xs text-faint">({note})</span>
           </span>
-          <input className="input" dir="ltr" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} />
+          <input className="field" dir="ltr" value={f[k]} onChange={(e) => setF({ ...f, [k]: e.target.value })} />
         </label>
       ))}
       <button className="btn-primary">حفظ</button>
-      {ok && <p className="text-emerald-300">انحفظ ✔</p>}
+      {ok && <p className="text-ok">انحفظ</p>}
     </form>
   );
 }

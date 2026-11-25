@@ -12,7 +12,7 @@ export type AudioEffectId = "normal" | "fast" | "slow" | "reverse" | "first_seco
 
 /** What the player sees. `src` stays on the server; the browser only gets a random token. */
 export type Asset =
-  | { type: "image"; src: string; effect: ImageEffectId; steps: number; seed: number }
+  | { type: "image"; src: string; effect: ImageEffectId; steps: number; seed: number; mask?: { x: number; y: number; w: number; h: number }[] }
   | { type: "audio"; src: string; effect: AudioEffectId; start: number; duration: number }
   | { type: "video"; src: string; muted: boolean };
 
@@ -67,25 +67,26 @@ export interface BuildOptions {
   timeLimitMs?: number;
 }
 
+/** icon = lucide-react component name */
 export const MODES: { id: ModeId; ar: string; en: string; icon: string }[] = [
-  { id: "opening", ar: "الأوبننق", en: "Opening", icon: "🎵" },
-  { id: "ending", ar: "الإندنق", en: "Ending", icon: "🎶" },
-  { id: "ost", ar: "الأوست", en: "OST", icon: "🎼" },
-  { id: "audio_edit", ar: "الصوت المعدّل", en: "Edited audio", icon: "🎛️" },
-  { id: "scene", ar: "المشهد", en: "Scene", icon: "🎬" },
-  { id: "image", ar: "الصورة", en: "Image", icon: "🖼️" },
-  { id: "poster", ar: "البوستر", en: "Poster", icon: "🪧" },
-  { id: "shadow", ar: "الظل", en: "Shadow", icon: "👤" },
-  { id: "eyes", ar: "العيون", en: "Eyes", icon: "👀" },
-  { id: "character_name", ar: "اسم الشخصية", en: "Character name", icon: "🏷️" },
-  { id: "tags", ar: "الوسوم", en: "Tags", icon: "🔖" },
-  { id: "plot", ar: "القصة", en: "Plot", icon: "📜" },
-  { id: "voice_actor", ar: "مؤدي الصوت", en: "Voice actor", icon: "🎙️" },
-  { id: "common_link", ar: "الرابط المشترك", en: "Common link", icon: "🔗" },
-  { id: "higher_lower", ar: "أعلى أو أقل", en: "Higher or lower", icon: "⬆️" },
-  { id: "timeline", ar: "الترتيب الزمني", en: "Timeline", icon: "📅" },
-  { id: "odd_one", ar: "الدخيل", en: "Odd one out", icon: "🕵️" },
-  { id: "song", ar: "اسم الأغنية أو الفنان", en: "Song or artist", icon: "🎤" },
+  { id: "opening", ar: "الأوبننق", en: "Opening", icon: "AudioLines" },
+  { id: "ending", ar: "الإندنق", en: "Ending", icon: "Music2" },
+  { id: "ost", ar: "الأوست", en: "OST", icon: "Disc3" },
+  { id: "audio_edit", ar: "الصوت المعدّل", en: "Edited audio", icon: "SlidersHorizontal" },
+  { id: "scene", ar: "المشهد", en: "Scene", icon: "Clapperboard" },
+  { id: "image", ar: "الصورة", en: "Image", icon: "Image" },
+  { id: "poster", ar: "البوستر", en: "Poster", icon: "RectangleVertical" },
+  { id: "shadow", ar: "الظل", en: "Shadow", icon: "UserRound" },
+  { id: "eyes", ar: "العيون", en: "Eyes", icon: "Eye" },
+  { id: "character_name", ar: "اسم الشخصية", en: "Character name", icon: "Tag" },
+  { id: "tags", ar: "الوسوم", en: "Tags", icon: "Hash" },
+  { id: "plot", ar: "القصة", en: "Plot", icon: "ScrollText" },
+  { id: "voice_actor", ar: "مؤدي الصوت", en: "Voice actor", icon: "Mic" },
+  { id: "common_link", ar: "الرابط المشترك", en: "Common link", icon: "Link2" },
+  { id: "higher_lower", ar: "أعلى أو أقل", en: "Higher or lower", icon: "ArrowUpDown" },
+  { id: "timeline", ar: "الترتيب الزمني", en: "Timeline", icon: "CalendarRange" },
+  { id: "odd_one", ar: "الدخيل", en: "Odd one out", icon: "Shuffle" },
+  { id: "song", ar: "اسم الأغنية أو الفنان", en: "Song or artist", icon: "Mic2" },
 ];
 
 const WORK_Q = { ar: "وش هذا العمل؟", en: "Which work is this?" };
@@ -334,7 +335,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
         ...base(mode, c.key, w, o),
         promptAr: `${WORK_Q.ar} (${EFFECTS[effect].ar})`,
         promptEn: `${WORK_Q.en} (${EFFECTS[effect].en})`,
-        assets: [{ type: "image", src: w.posterUrl, effect, steps: EFFECTS[effect].steps, seed: seed(rng) }],
+        assets: [{ type: "image", src: w.posterUrl, effect, steps: EFFECTS[effect].steps, seed: seed(rng), mask: w.posterBoxes }],
         answerType: "text",
         ...ans,
         hints: hintsFor(lib, w, ans.names),
@@ -498,7 +499,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
         choices: shuffled.map(({ x, id }) => ({ id, label: x.title, labelAr: x.titleAr })),
         items: shuffled.map(({ x }) => ({ label: x.title, labelAr: x.titleAr, image: x.posterUrl })),
         correctOrder: order,
-        display: { title: picked.slice().sort((p, q) => p.year! - q.year!).map((x) => `${x.year} ${x.title}`).join(" ← ") },
+        display: { title: picked.slice().sort((p, q) => p.year! - q.year!).map((x) => `${x.year} ${x.title}`).join("، ") },
         hints: [],
         timeLimitMs: o.timeLimitMs ?? 45_000,
       };

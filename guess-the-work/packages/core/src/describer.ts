@@ -71,7 +71,7 @@ export function choose(s: RoomState, uid: string, index: number, now: number) {
   d.penalty = 0;
   setPhase(s, "describe_turn", now, s.settings.describe.turnSec);
   const p = s.players.find((x) => x.id === uid);
-  systemMsg(s, `🎙️ ${p?.name} يوصف الحين`, now);
+  systemMsg(s, `${p?.name} يوصف الحين`, now);
 }
 
 export function skipItem(s: RoomState, uid: string): boolean {
@@ -106,7 +106,7 @@ export function guess(s: RoomState, uid: string, text: string, now: number): Gue
   const prev = d.guessed[uid];
   if (!prev || prev.points < pts) d.guessed[uid] = { points: pts, at: now, factor };
   const name = s.players.find((p) => p.id === uid)?.name;
-  systemMsg(s, full ? `✅ ${name} عرفها!` : `🟡 ${name} عرف العمل (نص النقاط)`, now);
+  systemMsg(s, full ? `${name} عرفها` : `${name} عرف العمل (جزء من النقاط)`, now);
   const guessers = s.players.filter((p) => p.id !== describerId(s));
   if (guessers.every((p) => d.guessed[p.id]?.factor === 1)) s.phaseEndsAt = Math.min(s.phaseEndsAt, now + 1500);
   return { correct: full, points: pts, factor };
@@ -122,7 +122,7 @@ export function chat(s: RoomState, uid: string, text: string, now: number): { ma
     if (hits.length) {
       const pen = s.settings.describe.penalty * hits.length;
       d.penalty += pen;
-      systemMsg(s, `🚫 كلمة ممنوعة! -${pen}`, now);
+      systemMsg(s, `كلمة ممنوعة: خصم ${pen}`, now);
       return { masked: true, penalty: pen };
     }
     return { masked: false };

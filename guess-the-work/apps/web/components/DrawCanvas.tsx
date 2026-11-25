@@ -1,11 +1,13 @@
 "use client";
 import { getStroke } from "perfect-freehand";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/lib/icons";
 
 type Pt = [number, number, number];
 type Op = { kind: "stroke"; color: string; size: number; points: Pt[]; erase: boolean } | { kind: "fill"; color: string; x: number; y: number };
 
-const COLORS = ["#111111", "#ffffff", "#e11d48", "#f97316", "#facc15", "#22c55e", "#06b6d4", "#3b82f6", "#a855f7", "#ec4899", "#8b5a2b", "#9ca3af"];
+const PAPER = "#f2ede3";
+const COLORS = ["#1b1712", "#f2ede3", "#e11d48", "#f97316", "#facc15", "#22c55e", "#06b6d4", "#3b82f6", "#a855f7", "#ec4899", "#8b5a2b", "#9ca3af"];
 const W = 800;
 const H = 600;
 
@@ -56,7 +58,7 @@ export default function DrawCanvas({ onExport, disabled }: { onExport: (png: str
   const ref = useRef<HTMLCanvasElement>(null);
   const [ops, setOps] = useState<Op[]>([]);
   const [redo, setRedo] = useState<Op[]>([]);
-  const [color, setColor] = useState("#111111");
+  const [color, setColor] = useState("#1b1712");
   const [size, setSize] = useState(8);
   const [tool, setTool] = useState<"pen" | "eraser" | "fill">("pen");
   const current = useRef<Pt[] | null>(null);
@@ -64,12 +66,12 @@ export default function DrawCanvas({ onExport, disabled }: { onExport: (png: str
   const redraw = useCallback(
     (list: Op[], live?: Op) => {
       const ctx = ref.current!.getContext("2d", { willReadFrequently: true })!;
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = PAPER;
       ctx.fillRect(0, 0, W, H);
       for (const op of live ? [...list, live] : list) {
         if (op.kind === "fill") floodFill(ctx, op.x, op.y, op.color);
         else {
-          ctx.fillStyle = op.erase ? "#ffffff" : op.color;
+          ctx.fillStyle = op.erase ? PAPER : op.color;
           ctx.fill(pathFrom(getStroke(op.points, { size: op.size, thinning: op.erase ? 0 : 0.5, smoothing: 0.5, streamline: 0.5 })));
         }
       }
@@ -88,40 +90,40 @@ export default function DrawCanvas({ onExport, disabled }: { onExport: (png: str
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {COLORS.map((c) => (
-          <button key={c} aria-label={c} className={`h-7 w-7 rounded-full border-2 ${color === c && tool !== "eraser" ? "border-brand-400" : "border-ink-600"}`} style={{ background: c }} onClick={() => (setColor(c), tool === "eraser" && setTool("pen"))} />
+          <button key={c} aria-label={c} className={`h-7 w-7 rounded-sm transition ${color === c && tool !== "eraser" ? "ring-2 ring-accent ring-offset-2 ring-offset-bg" : "ring-1 ring-line"}`} style={{ background: c }} onClick={() => (setColor(c), tool === "eraser" && setTool("pen"))} />
         ))}
-        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-7 w-9" />
-        <select className="input w-auto py-1" value={size} onChange={(e) => setSize(Number(e.target.value))}>
+        <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-7 w-9 cursor-pointer rounded-sm bg-transparent" aria-label="colour" />
+        <select className="field h-9 w-auto px-2" value={size} onChange={(e) => setSize(Number(e.target.value))}>
           {[3, 6, 10, 16, 28, 48].map((s) => (
             <option key={s} value={s}>
               {s}px
             </option>
           ))}
         </select>
-        <button className={`chip ${tool === "pen" ? "chip-on" : ""}`} onClick={() => setTool("pen")}>
-          ✏️ قلم
+        <button className={`toggle ${tool === "pen" ? "toggle-on" : ""}`} onClick={() => setTool("pen")}>
+          <Icon name="Pen" size={16} /> قلم
         </button>
-        <button className={`chip ${tool === "eraser" ? "chip-on" : ""}`} onClick={() => setTool("eraser")}>
-          🧽 ممحاة
+        <button className={`toggle ${tool === "eraser" ? "toggle-on" : ""}`} onClick={() => setTool("eraser")}>
+          <Icon name="Eraser" size={16} /> ممحاة
         </button>
-        <button className={`chip ${tool === "fill" ? "chip-on" : ""}`} onClick={() => setTool("fill")}>
-          🪣 تعبئة
+        <button className={`toggle ${tool === "fill" ? "toggle-on" : ""}`} onClick={() => setTool("fill")}>
+          <Icon name="PaintBucket" size={16} /> تعبئة
         </button>
-        <button className="chip" disabled={!ops.length} onClick={() => (setRedo((r) => [ops[ops.length - 1], ...r]), setOps((o) => o.slice(0, -1)))}>
-          ↶ تراجع
+        <button className="toggle" aria-label="undo" disabled={!ops.length} onClick={() => (setRedo((r) => [ops[ops.length - 1], ...r]), setOps((o) => o.slice(0, -1)))}>
+          <Icon name="Undo2" size={16} /> تراجع
         </button>
-        <button className="chip" disabled={!redo.length} onClick={() => (setOps((o) => [...o, redo[0]]), setRedo((r) => r.slice(1)))}>
-          ↷ إعادة
+        <button className="toggle" aria-label="redo" disabled={!redo.length} onClick={() => (setOps((o) => [...o, redo[0]]), setRedo((r) => r.slice(1)))}>
+          <Icon name="Redo2" size={16} /> إعادة
         </button>
-        <button className="chip" onClick={() => (setOps([]), setRedo([]))}>
-          🗑️ مسح
+        <button className="toggle" onClick={() => (setOps([]), setRedo([]))}>
+          <Icon name="Trash2" size={16} /> مسح
         </button>
       </div>
       <canvas
         ref={ref}
         width={W}
         height={H}
-        className="w-full touch-none rounded-xl border border-ink-600 bg-white"
+        className="paper w-full touch-none rounded-md"
         style={{ aspectRatio: `${W}/${H}` }}
         onPointerDown={(e) => {
           if (disabled) return;
@@ -148,7 +150,7 @@ export default function DrawCanvas({ onExport, disabled }: { onExport: (png: str
         }}
       />
       <button className="btn-primary w-full" disabled={disabled} onClick={() => onExport(ref.current!.toDataURL("image/png"))}>
-        ✅ خلصت، أرسل الرسمة
+        <Icon name="Check" size={18} /> خلصت، أرسل الرسمة
       </button>
     </div>
   );

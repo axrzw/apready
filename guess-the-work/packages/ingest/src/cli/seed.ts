@@ -5,21 +5,21 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { seeded } from "@gtw/core/rng";
-import { SqliteRepo, type Repo } from "@gtw/db";
-import { CACHE_DIR, DB_PATH, MEDIA_DIR, PROJECT_ROOT, ensureProxyEnv } from "../config";
+import type { Repo } from "@gtw/db";
+import { CACHE_DIR, DATA_DIR, MEDIA_DIR, PROJECT_ROOT, ensureProxyEnv, openRepo } from "../config";
 import { Http } from "../http";
 import { seedAnime, type SpacetoonFile } from "../pipeline/anime";
 import { processThemes } from "../pipeline/media";
 import { textBoxes, closeOcr } from "../ocr";
 import { readFileSync as readFile } from "node:fs";
-import { DATA_DIR } from "../config";
 import { seedOthers } from "../pipeline/others";
 import { num, parseArgs } from "./args";
 
 
 export async function runSeed(argv: string[], repo?: Repo) {
   const a = parseArgs(argv);
-  const r = repo ?? new SqliteRepo(DB_PATH);
+  const opened = repo ? null : await openRepo();
+  const r = repo ?? opened!.repo;
   const http = new Http({ cacheDir: CACHE_DIR, log: (m) => console.log("  http:", m) });
   const rng = seeded(String(a.seed ?? Date.now()));
   const log = (m: string) => console.log(m);
@@ -48,6 +48,7 @@ export async function runSeed(argv: string[], repo?: Repo) {
   const counts = await r.counts();
   console.log("library:", JSON.stringify(counts));
   await r.logJob("seed", "done", JSON.stringify({ anime, others, counts }));
+  await opened?.close();
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

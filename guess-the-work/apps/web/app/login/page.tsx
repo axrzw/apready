@@ -1,37 +1,26 @@
-import { devLoginEnabled, discord } from "@/lib/server/env";
+import { GROUP_PASSWORD } from "@/lib/server/env";
+import { getSession } from "@/lib/server/session";
+import LoginForm from "@/components/LoginForm";
 
 const ERR: Record<string, string> = {
-  notallowed: "حسابك مو بالقائمة المسموحة. كلّم صاحب الموقع.",
-  state: "انتهت صلاحية المحاولة، جرّب مرة ثانية.",
-  discord: "صار خطأ مع ديسكورد، جرّب بعد شوي.",
+  password: "كلمة السر غلط.",
   name: "اكتب اسمك.",
-  code: "ما وصلنا رمز من ديسكورد.",
+  nopass: "الموقع ما له كلمة سر للحين. أضف GROUP_PASSWORD في إعدادات Vercel.",
 };
 
-export default async function Login({ searchParams }: { searchParams: Promise<{ e?: string }> }) {
-  const { e } = await searchParams;
+export default async function Login({ searchParams }: { searchParams: Promise<{ e?: string; next?: string }> }) {
+  const { e, next } = await searchParams;
+  const s = await getSession();
   return (
-    <div className="mx-auto mt-16 max-w-md space-y-6 text-center">
-      <h1 className="text-4xl font-black">
-        <span className="text-brand-400">خمّن</span> العمل
-      </h1>
-      <p className="text-zinc-400">موقع خاص للشلة. لازم تدخل عشان تلعب.</p>
-      {e && <p className="rounded-xl bg-rose-500/15 p-3 text-rose-300">{ERR[e] ?? e}</p>}
-      {discord.clientId && (
-        <a href="/api/auth/discord" className="btn w-full bg-[#5865F2] py-3 text-white hover:bg-[#4752c4]">
-          دخول بالديسكورد
-        </a>
-      )}
-      {devLoginEnabled && (
-        <form action="/api/auth/dev" method="post" className="card space-y-3 text-start">
-          <p className="text-sm text-zinc-400">وضع التطوير: دخول بدون ديسكورد (يقفل تلقائياً في الإنتاج لما تحط مفاتيح ديسكورد).</p>
-          <input name="name" className="input" placeholder="اسمك" required maxLength={32} />
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" name="admin" /> أدمن
-          </label>
-          <button className="btn-primary w-full">ادخل</button>
-        </form>
-      )}
+    <div className="mx-auto max-w-md pt-6 sm:pt-12">
+      <div className="mb-8 space-y-3 text-center">
+        <div className="label">PRIVATE SCREENING</div>
+        <h1 className="font-display text-5xl font-semibold leading-none">
+          <span className="text-accent">خمّن</span> العمل
+        </h1>
+        <p className="text-sm text-muted">عرض خاص للشلة. كلمة سر القروب واسمك، وبس.</p>
+      </div>
+      <LoginForm error={e ? ERR[e] ?? e : !GROUP_PASSWORD ? ERR.nopass : undefined} next={next ?? "/"} name={s?.name} color={s?.color} avatar={s?.avatar} />
     </div>
   );
 }

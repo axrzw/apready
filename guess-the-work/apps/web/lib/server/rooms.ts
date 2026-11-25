@@ -167,7 +167,7 @@ export function getLive(code: string): Live | undefined {
 export function newRoom(user: Session, settings: Partial<RoomSettings>, tag?: string, code?: string): RoomState {
   let c = code ?? roomCode();
   while (!code && rooms.has(c)) c = roomCode();
-  const s = createRoom(c, { id: user.uid, name: user.name, avatar: user.avatar }, settings);
+  const s = createRoom(c, { id: user.uid, name: user.name, avatar: user.avatar, color: user.color }, settings);
   s.tag = tag;
   wrap(s);
   return s;
@@ -176,7 +176,7 @@ export function newRoom(user: Session, settings: Partial<RoomSettings>, tag?: st
 export function joinRoom(code: string, user: Session) {
   const live = getLive(code);
   if (!live) throw new Error("الغرفة مو موجودة");
-  join(live.state, { id: user.uid, name: user.name, avatar: user.avatar });
+  join(live.state, { id: user.uid, name: user.name, avatar: user.avatar, color: user.color });
   publish(live.state.code);
   return live.state;
 }

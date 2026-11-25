@@ -13,7 +13,11 @@
     "ocr": "pnpm --filter @gtw/ingest ocr",
     "names": "pnpm --filter @gtw/ingest names",
     "snapshot:import": "pnpm --filter @gtw/ingest snapshot:import",
-    "snapshot:export": "pnpm --filter @gtw/ingest snapshot:export"
+    "snapshot:export": "pnpm --filter @gtw/ingest snapshot:export",
+    "backup": "pnpm --filter @gtw/ingest backup",
+    "restore": "pnpm --filter @gtw/ingest restore",
+    "db:setup": "pnpm --filter @gtw/ingest db:setup",
+    "lint": "pnpm --filter web lint"
   },
   "devDependencies": {
     "typescript": "5.9.3",

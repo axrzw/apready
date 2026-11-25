@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { parseAniListUser, parseMalList } from "../src/sources/lists";
 import { currentSeason } from "../src/cli/weekly";
 import { checkDeadLinks } from "../src/pipeline/maintenance";
-import { SqliteRepo } from "@gtw/db";
+import { openDb } from "@gtw/db";
 import { seeded } from "@gtw/core/rng";
 
 const fx = (n: string) => JSON.parse(readFileSync(join(__dirname, "fixtures", n), "utf8"));
@@ -25,7 +25,9 @@ describe("weekly", () => {
     expect(currentSeason(new Date("2026-12-25"))).toEqual({ season: "WINTER", year: 2027 });
   });
   it("removes dead posters and missing local files", async () => {
-    const repo = new SqliteRepo(":memory:");
+    const o = await openDb({ url: "", pgliteDir: "memory://" });
+    await o.migrate();
+    const repo = o.repo;
     const dir = mkdtempSync(join(tmpdir(), "gtw-dl-"));
     mkdirSync(join(dir, "frames"));
     writeFileSync(join(dir, "frames", "ok.jpg"), "x");

@@ -32,6 +32,12 @@ export interface Work {
   screenshots?: string[];
   sourceIds?: Record<string, string | number>;
   adult?: boolean;
+  /** text areas on the poster found by OCR (hidden before any effect) */
+  posterBoxes?: { x: number; y: number; w: number; h: number }[];
+  /** currently airing (AniList status RELEASING) */
+  airing?: boolean;
+  /** anime | donghua | manga | manhwa | manhua | light_novel | western | kdrama | cdrama | jdrama | thai ... */
+  subtype?: string;
 }
 
 export interface Person {

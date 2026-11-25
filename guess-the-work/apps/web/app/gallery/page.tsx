@@ -1,37 +1,45 @@
+import Link from "next/link";
 import { requireUser } from "@/lib/server/session";
 import { getRepo } from "@/lib/server/repo";
 import { assetUrl } from "@/lib/server/media";
+import { Icon } from "@/lib/icons";
+import { Empty, PageTitle } from "@/components/ui";
 
 export default async function Gallery() {
   await requireUser();
   const repo = getRepo();
   const [drawings, users] = await Promise.all([repo.listDrawings(), repo.listUsers()]);
-  const name = (id: string) => users.find((u) => u.id === id)?.name ?? "؟";
+  const user = (id: string) => users.find((u) => u.id === id);
   return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-black">🖼️ معرض الرسمات</h1>
-      {!drawings.length && <p className="card text-zinc-400">ما فيه رسمات للحين. العبوا طور الرسّام!</p>}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {drawings.map((d) => {
-          const url = assetUrl({ asset: { type: "plain", src: d.png } });
-          return (
-            <div key={d.id} className="card space-y-2">
-              <img src={url} alt="" className="h-52 w-full rounded-lg bg-white object-contain" />
-              <div className="flex items-center justify-between text-sm">
-                <span>
-                  <b>{name(d.userId)}</b> · {d.subject}
-                </span>
-                <a className="chip" href={url} download={`drawing-${d.id}.png`}>
-                  ⬇ PNG
-                </a>
-              </div>
-              <div className="text-xs text-zinc-500">
-                🏆 {d.votesBest} · 😂 {d.votesFunny} · {new Date(d.at).toLocaleDateString("ar")}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div>
+      <PageTitle kicker="EXHIBITION" title="معرض الرسمات" />
+      {!drawings.length ? (
+        <Empty icon="Palette" title="المعرض فاضي" text="العبوا طور الرسّام وتنحفظ الرسمات هنا." action={<Link href="/play?room=1" className="btn-primary">أنشئ غرفة</Link>} />
+      ) : (
+        <div className="columns-2 gap-4 sm:columns-3 lg:columns-4">
+          {drawings.map((d) => {
+            const url = assetUrl({ asset: { type: "plain", src: d.png } });
+            return (
+              <figure key={d.id} className="mb-4 break-inside-avoid space-y-2">
+                <img src={url} alt="" className="paper w-full rounded-sm p-1" />
+                <figcaption className="flex items-start justify-between gap-2 text-sm">
+                  <span>
+                    <span style={{ color: user(d.userId)?.color }}>{user(d.userId)?.name ?? "؟"}</span>
+                    <span className="block text-xs text-muted">{d.subject}</span>
+                  </span>
+                  <a className="text-faint hover:text-text" href={url} download={`drawing-${d.id}.png`} aria-label="download">
+                    <Icon name="Download" size={16} />
+                  </a>
+                </figcaption>
+                <div className="num flex gap-3 text-xs text-faint">
+                  <span className="flex items-center gap-1"><Icon name="Trophy" size={12} /> {d.votesBest}</span>
+                  <span className="flex items-center gap-1"><Icon name="Sparkles" size={12} /> {d.votesFunny}</span>
+                </div>
+              </figure>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

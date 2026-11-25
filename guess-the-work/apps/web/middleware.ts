@@ -8,6 +8,8 @@ export function middleware(req: NextRequest) {
     if (pathname.startsWith("/api/")) return NextResponse.json({ error: "login" }, { status: 401 });
     const url = req.nextUrl.clone();
     url.pathname = "/login";
+    // invite links (/room/CODE) come back here after the password
+    url.search = `?next=${encodeURIComponent(pathname + req.nextUrl.search)}`;
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

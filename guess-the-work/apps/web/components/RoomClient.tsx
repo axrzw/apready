@@ -1,8 +1,13 @@
 "use client";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { MODES } from "@gtw/core/questions";
 import { useRoom, type View } from "./useRoom";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
+import { Icon } from "@/lib/icons";
+import { unlockAudio } from "@/lib/sound";
 import QuestionView from "./QuestionView";
 import Scoreboard from "./Scoreboard";
 import Timer from "./Timer";
@@ -10,55 +15,79 @@ import Chat from "./Chat";
 import SettingsForm from "./SettingsForm";
 import DescriberView from "./DescriberView";
 import DrawerView from "./DrawerView";
-import { MODES } from "@gtw/core/questions";
+import { Avatar, CountUp, ErrorNote, Skeleton } from "./ui";
+
+type Act = (a: Record<string, unknown>) => Promise<unknown>;
 
 export default function RoomClient({ code, lang }: { code: string; lang: Lang }) {
   const { view, error, act, now, setError } = useRoom(code);
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    try {
+      setReady(sessionStorage.getItem("gtw-ready") === "1");
+    } catch {}
+  }, []);
+
   if (!view)
+    return error ? (
+      <div className="mx-auto max-w-md space-y-4 pt-12 text-center">
+        <Icon name="CircleSlash" size={40} className="mx-auto text-faint" strokeWidth={1.2} />
+        <p className="font-display text-xl">{error}</p>
+        <Link href="/" className="btn-ghost">
+          الرئيسية
+        </Link>
+      </div>
+    ) : (
+      <RoomSkeleton />
+    );
+
+  // mobile browsers only play sound after a tap: one "ready" tap per session unlocks it
+  if (!ready)
     return (
-      <div className="mt-20 text-center text-zinc-400">
-        {error ? (
-          <>
-            <p className="text-rose-300">{error}</p>
-            <Link href="/" className="btn-ghost mt-4">
-              رجوع
-            </Link>
-          </>
-        ) : (
-          "…"
-        )}
+      <div className="mx-auto flex max-w-sm flex-col items-center gap-6 pt-16 text-center">
+        <div className="label">ROOM {view.code}</div>
+        <h1 className="font-display text-4xl">جاهز؟</h1>
+        <p className="text-sm text-muted">اضغط عشان يشتغل الصوت والمؤثرات عندك. شغّل صوت الجوال.</p>
+        <button
+          className="btn-primary h-14 w-full text-lg"
+          onClick={() => {
+            unlockAudio();
+            try {
+              sessionStorage.setItem("gtw-ready", "1");
+            } catch {}
+            setReady(true);
+          }}
+        >
+          <Icon name="Play" /> جاهز
+        </button>
       </div>
     );
+
   const isHost = view.hostId === view.me;
   const solo = view.tag === "solo";
   const kind = view.settings.kind;
-  const modeName = (id: string) => MODES.find((m) => m.id === id)?.[lang] ?? id;
+  const mode = view.question ? MODES.find((m) => m.id === view.question!.mode) : undefined;
+  const stage = kind === "describer" ? "stage" : "";
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-      <section className="space-y-4">
-        {error && (
-          <div className="flex items-center justify-between rounded-xl bg-rose-500/15 p-3 text-rose-300">
-            {error}
-            <button onClick={() => setError(null)}>✕</button>
-          </div>
-        )}
-        <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+    <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
+      <section className={`min-w-0 space-y-5 ${stage}`}>
+        {error && <ErrorNote text={error} onClose={() => setError(null)} />}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           {!solo && (
-            <span className="chip">
-              {t(lang, "code")}: <b className="font-mono text-lg tracking-widest text-white">{view.code}</b>
-            </span>
+            <button className="num flex items-center gap-2 font-display text-lg tracking-[0.25em]" onClick={() => navigator.clipboard?.writeText(`${location.origin}/room/${view.code}`)} title="نسخ رابط الدعوة">
+              {view.code}
+              <Icon name="Copy" size={14} className="text-faint" />
+            </button>
           )}
-          {view.tag?.startsWith("daily:") && <span className="chip chip-on">{t(lang, "daily")}</span>}
-          <span>{kind === "guess" ? (view.settings.modes.length > 1 ? `Mix: ${view.settings.modes.length} أطوار` : modeName(view.settings.modes[0])) : kind === "describer" ? "🎙️ الواصف" : "🎨 الرسّام"}</span>
-          {view.question && (
-            <span className="chip">
-              {MODES.find((m) => m.id === view.question!.mode)?.icon} {modeName(view.question.mode)}
-            </span>
-          )}
+          {view.tag?.startsWith("daily:") && <span className="label text-accent">DAILY</span>}
+          <span className="flex items-center gap-2 text-sm text-muted">
+            {mode ? <Icon name={mode.icon} size={16} className="text-accent" /> : <Icon name={kind === "describer" ? "Mic" : kind === "drawer" ? "Pen" : "LayoutGrid"} size={16} className="text-accent" />}
+            {mode ? mode[lang] : kind === "describer" ? "الواصف" : kind === "drawer" ? "الرسّام" : view.settings.modes.length > 1 ? "Mix" : MODES.find((m) => m.id === view.settings.modes[0])?.[lang]}
+          </span>
           {view.total > 0 && kind === "guess" && (
-            <span className="ms-auto">
-              {view.index + 1} / {view.total}
+            <span className="num ms-auto text-sm text-faint">
+              <span className="text-text">{String(view.index + 1).padStart(2, "0")}</span> / {String(view.total).padStart(2, "0")}
             </span>
           )}
         </div>
@@ -72,19 +101,22 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
         {view.phase === "finished" && <Finished view={view} act={act} lang={lang} isHost={isHost} />}
 
         {isHost && (view.phase === "question" || view.phase === "reveal") && (
-          <button className="btn-ghost" onClick={() => act({ type: "skip" })}>
-            ⏭ {view.phase === "reveal" ? t(lang, "next") : t(lang, "skip")}
-          </button>
+          <div className="flex justify-end">
+            <button className="btn-quiet border border-line" onClick={() => act({ type: "skip" })}>
+              <Icon name="SkipForward" size={16} className="rtl:-scale-x-100" />
+              {view.phase === "reveal" ? t(lang, "next") : t(lang, "skip")}
+            </button>
+          </div>
         )}
       </section>
       <aside className="space-y-4">
-        <div className="card">
-          <h3 className="mb-2 font-bold">{t(lang, "players")}</h3>
+        <div className="panel p-3">
+          <div className="label mb-2 px-2">{t(lang, "players")}</div>
           <Scoreboard view={view} />
         </div>
         {!solo && (
-          <div className="card">
-            <Chat view={view} onSend={(text) => act({ type: "chat", text })} placeholder={kind === "guess" ? "سوالف…" : "خمّن هنا…"} />
+          <div className="panel p-3">
+            <Chat view={view} onSend={(text) => act({ type: "chat", text })} placeholder={kind === "guess" ? "سوالف" : "خمّن هنا"} />
           </div>
         )}
       </aside>
@@ -92,16 +124,53 @@ export default function RoomClient({ code, lang }: { code: string; lang: Lang })
   );
 }
 
-function Lobby({ view, act, lang, isHost }: { view: View; act: (a: Record<string, unknown>) => Promise<unknown>; lang: Lang; isHost: boolean }) {
+function RoomSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="card text-center">
-        <p className="text-zinc-400">شارك الرمز مع الشباب في الديسكورد:</p>
-        <p className="my-2 font-mono text-5xl font-black tracking-[0.3em] text-brand-400">{view.code}</p>
-        <button className="chip" onClick={() => navigator.clipboard.writeText(`${location.origin}/room/${view.code}`)}>
-          📋 نسخ الرابط
-        </button>
+    <div className="grid gap-6 lg:grid-cols-[1fr_300px]" aria-busy>
+      <div className="space-y-5">
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-[3px] w-full" />
+        <Skeleton className="mx-auto h-8 w-2/3" />
+        <Skeleton className="mx-auto aspect-[2/3] w-64" />
+        <Skeleton className="mx-auto h-12 w-full max-w-xl" />
       </div>
+      <div className="space-y-2">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-9" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Lobby({ view, act, lang, isHost }: { view: View; act: Act; lang: Lang; isHost: boolean }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div className="space-y-6">
+      {view.tag !== "solo" && (
+        <div className="border-y border-line py-8 text-center">
+          <div className="label">INVITE CODE</div>
+          <div className="num my-3 font-display text-6xl tracking-[0.3em] text-accent sm:text-7xl">{view.code}</div>
+          <button
+            className="btn-ghost h-9"
+            onClick={() => {
+              void navigator.clipboard?.writeText(`${location.origin}/room/${view.code}`);
+              setCopied(true);
+            }}
+          >
+            <Icon name={copied ? "Check" : "Copy"} size={16} />
+            {copied ? "انتسخ الرابط" : "انسخ رابط الدعوة"}
+          </button>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {view.players.map((p) => (
+              <motion.div key={p.id} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-2 text-sm">
+                <Avatar name={p.name} color={p.color} icon={p.avatar} size={28} />
+                {p.name}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
       {isHost ? (
         <SettingsForm
           initial={view.settings}
@@ -113,37 +182,45 @@ function Lobby({ view, act, lang, isHost }: { view: View; act: (a: Record<string
           lang={lang}
         />
       ) : (
-        <p className="card text-center text-zinc-400">{t(lang, "waitingHost")}</p>
+        <p className="py-6 text-center text-muted">{t(lang, "waitingHost")}</p>
       )}
     </div>
   );
 }
 
-function Finished({ view, act, lang, isHost }: { view: View; act: (a: Record<string, unknown>) => Promise<unknown>; lang: Lang; isHost: boolean }) {
-  const [first, second, third] = view.players;
+function Finished({ view, act, lang, isHost }: { view: View; act: Act; lang: Lang; isHost: boolean }) {
+  const podium = [view.players[1], view.players[0], view.players[2]];
+  const heights = ["h-20", "h-28", "h-14"];
   return (
-    <div className="card pop space-y-4 text-center">
-      <h2 className="text-3xl font-black">{t(lang, "finished")} 🎉</h2>
-      <div className="flex items-end justify-center gap-4">
-        {[second, first, third].map((p, i) =>
+    <div className="space-y-8 border-y border-line py-10 text-center">
+      <div>
+        <div className="label">FIN</div>
+        <h2 className="mt-2 font-display text-4xl">{t(lang, "finished")}</h2>
+      </div>
+      <div className="flex items-end justify-center gap-3 sm:gap-6">
+        {podium.map((p, i) =>
           p ? (
-            <div key={p.id} className="flex flex-col items-center">
-              <span className="text-3xl">{["🥈", "🥇", "🥉"][i]}</span>
-              <span className="font-bold">{p.name}</span>
-              <span className="font-mono text-brand-300">{p.score}</span>
-              <div className={`mt-1 w-20 rounded-t-lg bg-ink-700 ${["h-16", "h-24", "h-10"][i]}`} />
-            </div>
+            <motion.div key={p.id} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: [0.35, 0.6, 0.15][i], type: "spring", stiffness: 200, damping: 22 }} className="flex w-24 flex-col items-center gap-2 sm:w-32">
+              <Avatar name={p.name} color={p.color} icon={p.avatar} size={i === 1 ? 52 : 40} />
+              <span className="max-w-full truncate text-sm">{p.name}</span>
+              <CountUp value={p.score} className="font-display text-xl text-accent" />
+              <div className={`w-full rounded-t-sm border border-b-0 border-line ${i === 1 ? "bg-accent/15" : "bg-surface"} ${heights[i]} grid place-items-center`}>
+                <span className="num font-display text-2xl text-faint">{[2, 1, 3][i]}</span>
+              </div>
+            </motion.div>
           ) : null,
         )}
       </div>
       <div className="flex justify-center gap-2">
         {isHost && view.tag !== "solo" && !view.tag?.startsWith("daily:") && (
           <button className="btn-primary" onClick={() => act({ type: "lobby" })}>
+            <Icon name="RotateCcw" size={16} />
             {t(lang, "playAgain")}
           </button>
         )}
         {view.tag === "solo" && (
           <Link className="btn-primary" href="/play">
+            <Icon name="RotateCcw" size={16} />
             {t(lang, "playAgain")}
           </Link>
         )}

@@ -25,33 +25,11 @@ class InProcBus implements RealtimeBus {
   }
 }
 
-class SupabaseBus extends InProcBus {
-  private channels = new Map<string, { send: (m: unknown) => unknown }>();
-  constructor(private client: { channel: (name: string) => { on: (...a: unknown[]) => unknown; subscribe: () => unknown; send: (m: unknown) => unknown } }) {
-    super();
-  }
-  publish(room: string, event: string) {
-    super.publish(room, event);
-    let ch = this.channels.get(room);
-    if (!ch) {
-      const c = this.client.channel(`room:${room}`);
-      c.subscribe();
-      ch = c;
-      this.channels.set(room, c);
-    }
-    void ch.send({ type: "broadcast", event: "update", payload: { event } });
-  }
-}
-
 const g = globalThis as unknown as { __gtwBus?: RealtimeBus };
 
 export function getBus(): RealtimeBus {
   if (!g.__gtwBus) {
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.REALTIME === "supabase") {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
-      g.__gtwBus = new SupabaseBus(createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY) as never);
-    } else g.__gtwBus = new InProcBus();
+    g.__gtwBus = new InProcBus();
   }
   return g.__gtwBus;
 }

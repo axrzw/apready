@@ -14,7 +14,7 @@ for (const f of [join(PROJECT_ROOT, "apps", "web", ".env.local"), join(PROJECT_R
   }
 }
 export const DATA_DIR = process.env.GTW_DATA_DIR || join(PROJECT_ROOT, "data");
-export const DB_PATH = process.env.GTW_DB_PATH || join(DATA_DIR, "gtw.sqlite");
+export const PGLITE_DIR = process.env.GTW_PGLITE_DIR || join(DATA_DIR, "pglite");
 export const MEDIA_DIR = process.env.GTW_MEDIA_DIR || join(DATA_DIR, "media");
 export const CACHE_DIR = join(DATA_DIR, "cache");
 
@@ -27,4 +27,12 @@ export function ensureProxyEnv() {
     env: { ...process.env, NODE_USE_ENV_PROXY: "1", NODE_NO_WARNINGS: "1" },
   });
   process.exit(r.status ?? 1);
+}
+
+/** Opens the database (Neon with DATABASE_URL, else PGlite in data/pglite) and runs the migrations. */
+export async function openRepo() {
+  const { openDb } = await import("@gtw/db");
+  const o = await openDb({ pgliteDir: PGLITE_DIR });
+  await o.migrate();
+  return o;
 }

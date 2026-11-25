@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@gtw/core", "@gtw/db", "@gtw/ingest"],
-  serverExternalPackages: ["sharp"],
+  serverExternalPackages: ["sharp", "@electric-sql/pglite", "ffmpeg-static", "tesseract.js"],
+  // ffmpeg binary + db migrations must ship with the functions
+  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
+  outputFileTracingIncludes: { "/**": ["../../packages/db/migrations/**", "../../snapshot/**"] },
   poweredByHeader: false,
   images: { unoptimized: true },
   async headers() {
@@ -10,7 +13,8 @@ const nextConfig = {
   },
   webpack(config, { isServer }) {
     if (isServer) {
-      config.externals = [...(config.externals || []), { "node:sqlite": "commonjs node:sqlite" }];
+      // loaded from node_modules at run time (wasm / native binaries), even when imported from workspace packages
+      config.externals = [...(config.externals || []), { "@electric-sql/pglite": "commonjs @electric-sql/pglite", "@electric-sql/pglite/vector": "commonjs @electric-sql/pglite/vector", "ffmpeg-static": "commonjs ffmpeg-static", "tesseract.js": "commonjs tesseract.js" }];
     }
     return config;
   },

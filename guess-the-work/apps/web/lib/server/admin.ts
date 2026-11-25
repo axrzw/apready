@@ -3,15 +3,13 @@ import { spawn, spawnSync } from "node:child_process";
 import { mkdirSync, openSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { getSession } from "./session";
-import { getRepo } from "./repo";
 import { DATA_DIR } from "./env";
 import { invalidateLibrary } from "./library";
 
 export async function adminApi() {
   const s = await getSession();
   if (!s) return Response.json({ error: "login" }, { status: 401 });
-  const u = await getRepo().getUser(s.uid);
-  if (!s.admin && !u?.isAdmin) return Response.json({ error: "admin only" }, { status: 403 });
+  if (!s.admin) return Response.json({ error: "admin only" }, { status: 403 });
   return s;
 }
 

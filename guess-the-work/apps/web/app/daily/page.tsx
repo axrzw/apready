@@ -6,6 +6,8 @@ import { getLibrary } from "@/lib/server/library";
 import { getLive, newRoom, startRoom } from "@/lib/server/rooms";
 import { availableModes } from "@gtw/core/generate";
 import { createHash } from "node:crypto";
+import { Empty, PageTitle } from "@/components/ui";
+import LeaderTable from "@/components/LeaderTable";
 
 /** Same 10 questions for everybody today (seeded by the date, Riyadh time). One try each. */
 export default async function Daily() {
@@ -15,6 +17,7 @@ export default async function Daily() {
   const code = `D${createHash("sha1").update(`${date}|${s.uid}`).digest("hex").slice(0, 8).toUpperCase()}`;
   if (getLive(code)) redirect(`/room/${code}`);
   const board = await getRepo().leaderboard({ roomCode: tag });
+  const users = await getRepo().listUsers();
   const played = board.find((r) => r.userId === s.uid);
   if (!played) {
     const lib = await getLibrary();
@@ -26,23 +29,18 @@ export default async function Daily() {
     }
   }
   return (
-    <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-2xl font-black">التحدي اليومي · {date}</h1>
-      {played ? <p className="card">لعبته اليوم: {played.points} نقطة ({played.correct}/{played.answers}). ارجع بكرة!</p> : <p className="card">ما فيه أسئلة في المكتبة. شغّل السحب من الأدمن.</p>}
-      <div className="card">
-        <h2 className="mb-2 font-bold">ترتيب اليوم</h2>
-        <ol className="space-y-1">
-          {board.map((r, i) => (
-            <li key={r.userId} className="flex justify-between">
-              <span>
-                {i + 1}. {r.name}
-              </span>
-              <span className="font-mono text-brand-300">{r.points}</span>
-            </li>
-          ))}
-        </ol>
-      </div>
-      <Link href="/" className="btn-ghost">
+    <div className="mx-auto max-w-xl">
+      <PageTitle kicker={`DAILY · ${date}`} title="التحدي اليومي" />
+      {played ? (
+        <p className="mb-6 text-muted">
+          لعبته اليوم: <span className="num text-accent">{played.points}</span> نقطة ({played.correct} من {played.answers}). ارجع بكرة.
+        </p>
+      ) : (
+        <Empty icon="Library" title="ما فيه أسئلة" text="المكتبة فاضية. شغّل السحب من الأدمن." />
+      )}
+      <h2 className="mb-2 mt-8 font-display text-lg">ترتيب اليوم</h2>
+      {board.length ? <LeaderTable rows={board.map((r) => ({ ...r, color: users.find((u) => u.id === r.userId)?.color, avatar: users.find((u) => u.id === r.userId)?.avatar }))} /> : <p className="text-sm text-faint">ما أحد لعب اليوم.</p>}
+      <Link href="/" className="btn-ghost mt-8">
         الرئيسية
       </Link>
     </div>

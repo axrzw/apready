@@ -4,14 +4,19 @@ import { useState } from "react";
 import SettingsForm from "./SettingsForm";
 import type { Lang } from "@/lib/i18n";
 import { t } from "@/lib/i18n";
+import { ErrorNote, PageTitle } from "./ui";
 
 export default function PlaySetup({ lang, room }: { lang: Lang; room: boolean }) {
   const router = useRouter();
   const [err, setErr] = useState<string | null>(null);
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      <h1 className="text-2xl font-black">{room ? t(lang, "createRoom") : t(lang, "solo")}</h1>
-      {err && <p className="rounded-xl bg-rose-500/15 p-3 text-rose-300">{err}</p>}
+    <div className="mx-auto max-w-3xl">
+      <PageTitle kicker={room ? "NEW ROOM" : "SOLO PRACTICE"} title={room ? t(lang, "createRoom") : t(lang, "solo")} />
+      {err && (
+        <div className="mb-4">
+          <ErrorNote text={err} onClose={() => setErr(null)} />
+        </div>
+      )}
       <SettingsForm
         lang={lang}
         allowParty={room}

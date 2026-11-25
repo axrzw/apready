@@ -100,7 +100,7 @@ export function guess(s: RoomState, uid: string, text: string, now: number) {
     mine.work = true;
     mine.points += base();
     hit = true;
-    systemMsg(s, `✅ ${name} عرف العمل`, now);
+    systemMsg(s, `${name} عرف العمل`, now);
   }
   if (it.kind === "character" && !mine.specific && matchAnswer(text, it.names).ok) {
     mine.specific = true;
@@ -110,7 +110,7 @@ export function guess(s: RoomState, uid: string, text: string, now: number) {
     }
     mine.points += Math.round(base() * SPECIFIC_BONUS);
     hit = true;
-    systemMsg(s, `🌟 ${name} عرف الشخصية بعد!`, now);
+    systemMsg(s, `${name} عرف الشخصية بعد`, now);
   }
   if (!hit) s.chat.push({ id: (s.chat.at(-1)?.id ?? 0) + 1, at: now, playerId: uid, text, kind: "guess" });
   const guessers = s.players.filter((p) => p.id !== cur.playerId);

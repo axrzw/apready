@@ -16,11 +16,15 @@
     "names": "tsx src/cli/names.ts",
     "ocr": "tsx src/cli/ocr.ts",
     "snapshot:export": "tsx src/cli/snapshot.ts export",
-    "snapshot:import": "tsx src/cli/snapshot.ts import"
+    "snapshot:import": "tsx src/cli/snapshot.ts import",
+    "backup": "tsx src/cli/backup.ts backup",
+    "restore": "tsx src/cli/backup.ts restore",
+    "db:setup": "tsx src/cli/setup.ts"
   },
   "dependencies": {
     "@gtw/core": "workspace:*",
     "@gtw/db": "workspace:*",
+    "ffmpeg-static": "5.2.0",
     "sharp": "0.34.5",
     "tesseract.js": "5.1.1"
   }

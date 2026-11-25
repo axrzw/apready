@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
 import { useTick, type View } from "./useRoom";
 import DrawCanvas from "./DrawCanvas";
+import { Icon } from "@/lib/icons";
 
 interface Item {
   title: string;
@@ -44,13 +45,13 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
       <div className="space-y-3">
         {d.myOffers && (
           <div>
-            <p className="mb-2 text-center font-bold">اختر وش بترسم (يشوفه أنت بس):</p>
+            <p className="mb-3 text-center font-display text-xl">اختر وش بترسم. تشوفه أنت بس.</p>
             <div className="grid grid-cols-2 gap-3">
               {d.myOffers.map((o, i) => (
-                <button key={i} className="card hover:border-brand-500" onClick={() => act({ type: "draw_choose", index: i })}>
-                  <img src={o.image} alt="" className="mx-auto h-40 rounded-lg object-contain" />
-                  <div className="mt-2 font-bold">{L(o)}</div>
-                  {o.sub && <div className="text-sm text-zinc-400">{o.sub}</div>}
+                <button key={i} className="group space-y-2 text-start" onClick={() => act({ type: "draw_choose", index: i })}>
+                  <img src={o.image} alt="" className="aspect-[2/3] w-full rounded-md border border-line object-cover transition group-hover:border-accent" />
+                  <div className="font-display text-lg leading-tight">{L(o)}</div>
+                  {o.sub && <div className="text-xs text-muted">{o.sub}</div>}
                 </button>
               ))}
             </div>
@@ -58,13 +59,13 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
         )}
         {d.myItem && (
           <div className="grid gap-3 md:grid-cols-[180px_1fr]">
-            <div className="card text-center">
-              <img src={d.myItem.image} alt="" className="mx-auto max-h-56 rounded-lg object-contain" />
-              <div className="mt-2 font-bold text-brand-300">{L(d.myItem)}</div>
-              {d.myItem.sub && <div className="text-sm text-zinc-400">{d.myItem.sub}</div>}
+            <div className="space-y-2 text-center">
+              <img src={d.myItem.image} alt="" className="mx-auto aspect-[2/3] w-full max-w-[180px] rounded-md object-cover" />
+              <div className="font-display text-xl text-accent">{L(d.myItem)}</div>
+              {d.myItem.sub && <div className="text-xs text-muted">{d.myItem.sub}</div>}
             </div>
             {sent ? (
-              <p className="card grid place-items-center text-center text-emerald-300">✅ وصلت رسمتك. ننتظر الباقين ({d.submitted.length}/{view.players.length})</p>
+              <div className="paper grid min-h-64 place-items-center rounded-md text-center text-[#3b3226]"><p className="flex items-center gap-2"><Icon name="Check" /> وصلت رسمتك. ننتظر الباقين <span className="num">({d.submitted.length}/{view.players.length})</span></p></div>
             ) : (
               <CanvasWithRef exportRef={exportRef} onExport={(png) => act({ type: "draw_submit", png })} />
             )}
@@ -77,14 +78,14 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
     const own = d.current.by === view.me;
     return (
       <div className="space-y-3">
-        <p className="text-center text-zinc-400">
-          رسمة {d.current.index + 1} من {d.current.total} · رسمها {own ? "أنت" : "واحد منكم 🤫"}
+        <p className="num text-center text-sm text-muted">
+          رسمة {d.current.index + 1} من {d.current.total} · {own ? "هذي رسمتك" : "رسمها واحد منكم"}
         </p>
-        <img src={d.current.png} alt="" className="mx-auto max-h-[55vh] rounded-xl border border-ink-600 bg-white" />
+        <img src={d.current.png} alt="" className="paper mx-auto max-h-[52dvh] rounded-md p-2" />
         {own ? (
-          <p className="card text-center">هذي رسمتك، ما تخمّن عليها 😄</p>
+          <p className="text-center text-muted">هذي رسمتك، ما تخمّن عليها.</p>
         ) : d.current.mine?.work && (d.current.kind === "work" || d.current.mine.specific) ? (
-          <p className="card text-center text-emerald-300">✅ عرفتها كلها!</p>
+          <p className="flex items-center justify-center gap-2 text-ok"><Icon name="Check" /> عرفتها كلها</p>
         ) : (
           <form
             className="flex gap-2"
@@ -94,8 +95,8 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
               setGuess("");
             }}
           >
-            <input className="input text-lg" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder={d.current.mine?.work ? "عرفت العمل! وش الشخصية؟ (نقاط إضافية)" : "وش العمل؟ (والشخصية لنقاط إضافية)"} autoFocus />
-            <button className="btn-primary">خمّن</button>
+            <input className="field h-12 text-base" value={guess} onChange={(e) => setGuess(e.target.value)} placeholder={d.current.mine?.work ? "عرفت العمل! وش الشخصية؟ (نقاط إضافية)" : "وش العمل؟ (والشخصية لنقاط إضافية)"} autoFocus />
+            <button className="btn-primary h-12">خمّن</button>
           </form>
         )}
       </div>
@@ -105,35 +106,36 @@ export default function DrawerView({ view, act, lang }: { view: View; act: (a: R
   if ((view.phase === "draw_vote" || view.phase === "finished") && d.gallery)
     return (
       <div className="space-y-3">
-        <p className="text-center font-bold">{view.phase === "draw_vote" ? "صوّت: أفضل رسمة 🏆 وأضحك رسمة 😂" : "المعرض"}</p>
+        <p className="text-center font-display text-2xl">{view.phase === "draw_vote" ? "صوّتوا: أفضل رسمة، وأضحك رسمة" : "المعرض"}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           {d.gallery.map((g) => (
-            <div key={g.id} className="card space-y-2">
+            <div key={g.id} className="space-y-3 rounded-md border border-line bg-surface p-3">
               <div className="grid grid-cols-2 gap-2">
-                <img src={g.png} alt="" className="h-40 w-full rounded-lg bg-white object-contain" />
-                <img src={g.original} alt="" className="h-40 w-full rounded-lg object-contain" />
+                <img src={g.png} alt="" className="paper aspect-[4/3] w-full rounded-sm object-contain p-1" />
+                <img src={g.original} alt="" className="aspect-[4/3] w-full rounded-sm bg-black object-contain" />
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span>
                   <b>{name(g.by)}</b> رسم «{L(g)}»
                 </span>
-                <a className="chip" href={g.png} download={`drawing-${g.id}.png`}>
-                  ⬇ PNG
+                <a className="btn-quiet h-8 border border-line" href={g.png} download={`drawing-${g.id}.png`}>
+                  <Icon name="Download" size={14} /> PNG
                 </a>
               </div>
               {view.phase === "draw_vote" && g.by !== view.me ? (
                 <div className="flex gap-2">
-                  <button className={`chip ${d.myVotes?.best === g.id ? "chip-on" : ""}`} onClick={() => act({ type: "draw_vote", drawingId: g.id, kind: "best" })}>
-                    🏆 أفضل
+                  <button className={`toggle ${d.myVotes?.best === g.id ? "toggle-on" : ""}`} onClick={() => act({ type: "draw_vote", drawingId: g.id, kind: "best" })}>
+                    <Icon name="Trophy" size={14} /> أفضل رسمة
                   </button>
-                  <button className={`chip ${d.myVotes?.funny === g.id ? "chip-on" : ""}`} onClick={() => act({ type: "draw_vote", drawingId: g.id, kind: "funny" })}>
-                    😂 أضحك
+                  <button className={`toggle ${d.myVotes?.funny === g.id ? "toggle-on" : ""}`} onClick={() => act({ type: "draw_vote", drawingId: g.id, kind: "funny" })}>
+                    <Icon name="Sparkles" size={14} /> أضحك رسمة
                   </button>
                 </div>
               ) : (
                 view.phase === "finished" && (
-                  <div className="text-sm text-zinc-400">
-                    🏆 {g.votesBest} · 😂 {g.votesFunny}
+                  <div className="num flex gap-4 text-sm text-muted">
+                    <span className="flex items-center gap-1"><Icon name="Trophy" size={14} /> {g.votesBest}</span>
+                    <span className="flex items-center gap-1"><Icon name="Sparkles" size={14} /> {g.votesFunny}</span>
                   </div>
                 )
               )}

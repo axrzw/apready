@@ -49,6 +49,7 @@ export interface Player {
   id: string;
   name: string;
   avatar?: string;
+  color?: string;
   score: number;
   streak: number;
   lastSeen: number;
@@ -125,7 +126,7 @@ export interface AnswerResult {
   closed?: boolean;
 }
 
-export function createRoom(code: string, host: { id: string; name: string; avatar?: string }, settings: Partial<RoomSettings> = {}, now = Date.now()): RoomState {
+export function createRoom(code: string, host: { id: string; name: string; avatar?: string; color?: string }, settings: Partial<RoomSettings> = {}, now = Date.now()): RoomState {
   return {
     code,
     hostId: host.id,
@@ -143,11 +144,13 @@ export function createRoom(code: string, host: { id: string; name: string; avata
   };
 }
 
-export function join(s: RoomState, p: { id: string; name: string; avatar?: string }, now = Date.now()): RoomState {
+export function join(s: RoomState, p: { id: string; name: string; avatar?: string; color?: string }, now = Date.now()): RoomState {
   const found = s.players.find((x) => x.id === p.id);
   if (found) {
     found.lastSeen = now;
     found.name = p.name;
+    found.avatar = p.avatar;
+    found.color = p.color;
     return s;
   }
   s.players.push({ ...p, score: 0, streak: 0, lastSeen: now });
@@ -383,6 +386,7 @@ export interface PublicPlayer {
   id: string;
   name: string;
   avatar?: string;
+  color?: string;
   score: number;
   streak: number;
   answered: boolean;
@@ -425,6 +429,7 @@ export function publicRoom<Q>(s: RoomState, me: string, now: number, present: (q
       id: p.id,
       name: p.name,
       avatar: p.avatar,
+      color: p.color,
       score: p.score,
       streak: p.streak,
       answered: !!s.answers[p.id],
