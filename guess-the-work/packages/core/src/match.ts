@@ -94,6 +94,8 @@ function close(a: string, b: string): number | null {
   if (ca === cb) return 0;
   const allowed = maxDistance([...cb].length);
   if (!allowed || ca[0] !== cb[0]) return null;
+  // numbers must be exact: "Work 5" is not "Work 6", "Mob Psycho 100" is not "10"
+  if ((ca.match(/\d+/g) ?? []).join(",") !== (cb.match(/\d+/g) ?? []).join(",")) return null;
   if (Math.abs([...ca].length - [...cb].length) > allowed) return null;
   const d = editDistance(ca, cb);
   return d <= allowed ? d : null;

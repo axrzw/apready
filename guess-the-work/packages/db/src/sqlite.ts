@@ -185,9 +185,10 @@ export class SqliteRepo implements Repo {
     return m;
   }
 
-  async leaderboard(opts: { mode?: string; since?: number } = {}): Promise<LeaderRow[]> {
+  async leaderboard(opts: { mode?: string; since?: number; roomCode?: string } = {}): Promise<LeaderRow[]> {
     const where: string[] = [];
     const args: (string | number)[] = [];
+    if (opts.roomCode) (where.push("room_code = ?"), args.push(opts.roomCode));
     if (opts.mode) (where.push("mode = ?"), args.push(opts.mode));
     if (opts.since) (where.push("at >= ?"), args.push(opts.since));
     const rows = this.db

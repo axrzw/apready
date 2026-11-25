@@ -107,7 +107,7 @@ export interface Repo {
 
   recordAnswer(a: AnswerRecord): Promise<void>;
   seen(userIds: string[]): Promise<Map<string, number>>;
-  leaderboard(opts?: { mode?: string; since?: number }): Promise<LeaderRow[]>;
+  leaderboard(opts?: { mode?: string; since?: number; roomCode?: string }): Promise<LeaderRow[]>;
   playerStats(userId: string): Promise<PlayerStats>;
   accuracy(userIds: string[], lastN?: number): Promise<number | null>;
 

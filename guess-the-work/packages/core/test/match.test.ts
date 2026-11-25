@@ -98,3 +98,11 @@ describe("findNames / redact / leaks", () => {
     expect(leaksAnswer("Studio: Wit Studio", aot)).toBe(false);
   });
 });
+
+describe("numbers", () => {
+  it("never fuzzy-matches a different number", () => {
+    expect(matchAnswer("Mob Psycho 10", ["Mob Psycho 100"]).ok).toBe(false);
+    expect(matchAnswer("Steins Gate 0", ["Steins Gate"]).ok).toBe(false);
+    expect(matchAnswer("mob psyco 100", ["Mob Psycho 100"]).ok).toBe(true);
+  });
+});

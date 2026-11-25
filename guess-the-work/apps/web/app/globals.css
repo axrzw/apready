@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-ar: "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, "Geeza Pro", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { background: #0b0b12; color: #ececf4; }
+body { min-height: 100vh; background-image: radial-gradient(1200px 600px at 80% -10%, rgba(245,165,36,0.10), transparent), radial-gradient(900px 500px at -10% 110%, rgba(167,139,250,0.10), transparent); }
+
+@layer components {
+  .card { @apply rounded-2xl border border-ink-700 bg-ink-900/80 p-4 shadow-lg backdrop-blur; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 font-semibold transition active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-50; }
+  .btn-primary { @apply btn bg-brand-500 text-ink-950 hover:bg-brand-400; }
+  .btn-ghost { @apply btn border border-ink-600 bg-ink-800 hover:bg-ink-700; }
+  .btn-danger { @apply btn bg-rose-600 text-white hover:bg-rose-500; }
+  .input { @apply w-full rounded-xl border border-ink-600 bg-ink-800 px-3 py-2 outline-none placeholder:text-zinc-500 focus:border-brand-500; }
+  .label { @apply mb-1 block text-sm text-zinc-400; }
+  .chip { @apply inline-flex items-center gap-1 rounded-full border border-ink-600 bg-ink-800 px-3 py-1 text-sm; }
+  .chip-on { @apply border-brand-500 bg-brand-500/15 text-brand-300; }
+}
+
+/* a wrong answer shakes */
+@keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-4px); } 40%, 60% { transform: translateX(4px); } }
+.shake { animation: shake .4s; }
+@keyframes pop { 0% { transform: scale(.9); opacity: 0 } 100% { transform: scale(1); opacity: 1 } }
+.pop { animation: pop .25s ease-out; }
