@@ -13,7 +13,6 @@ import { processThemes } from "../pipeline/media";
 import { seedOthers } from "../pipeline/others";
 import { num, parseArgs } from "./args";
 
-ensureProxyEnv();
 
 export async function runSeed(argv: string[], repo?: Repo) {
   const a = parseArgs(argv);
@@ -42,6 +41,7 @@ export async function runSeed(argv: string[], repo?: Repo) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
+  ensureProxyEnv();
   runSeed(process.argv.slice(2)).catch((e) => {
     console.error(e);
     process.exit(1);

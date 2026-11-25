@@ -1,6 +1,7 @@
 import { apiUser } from "@/lib/server/session";
 import { getLibrary } from "@/lib/server/library";
 import { candidatesFor, MODES } from "@gtw/core/questions";
+import { getRepo } from "@/lib/server/repo";
 
 export const runtime = "nodejs";
 
@@ -10,5 +11,5 @@ export async function GET() {
   if (u instanceof Response) return u;
   const lib = await getLibrary();
   const counts = Object.fromEntries(MODES.map((m) => [m.id, candidatesFor(m.id, lib).length]));
-  return Response.json({ counts, works: lib.works.length });
+  return Response.json({ counts, works: lib.works.length, defaultMix: await getRepo().getSetting("defaultMix") });
 }

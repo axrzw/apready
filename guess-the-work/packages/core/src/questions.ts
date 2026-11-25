@@ -112,8 +112,19 @@ function imageChars(lib: LibraryIndex): Character[] {
   return lib.characters.filter((c) => c.imageUrl && lib.work.has(c.workId) && c.role !== "BACKGROUND");
 }
 
-/** All question material for a mode, as candidates for the selector. */
+const candCache = new WeakMap<LibraryIndex, Map<ModeId, Candidate[]>>();
+const linkCache = new WeakMap<LibraryIndex, LinkGroup[]>();
+
+/** All question material for a mode, as candidates for the selector (cached per library). */
 export function candidatesFor(mode: ModeId, lib: LibraryIndex): Candidate[] {
+  let m = candCache.get(lib);
+  if (!m) candCache.set(lib, (m = new Map()));
+  let c = m.get(mode);
+  if (!c) m.set(mode, (c = computeCandidates(mode, lib)));
+  return c;
+}
+
+function computeCandidates(mode: ModeId, lib: LibraryIndex): Candidate[] {
   const W = (id: string) => lib.work.get(id)!;
   switch (mode) {
     case "opening":
@@ -171,6 +182,12 @@ interface LinkGroup {
 
 /** Groups of works that share one thing (studio, creator, voice actor, year). */
 export function linkGroups(lib: LibraryIndex): LinkGroup[] {
+  let g = linkCache.get(lib);
+  if (!g) linkCache.set(lib, (g = computeLinkGroups(lib)));
+  return g;
+}
+
+function computeLinkGroups(lib: LibraryIndex): LinkGroup[] {
   const groups = new Map<string, LinkGroup>();
   const add = (kind: LinkGroup["kind"], value: string, w: Work, names: string[]) => {
     const k = `${kind}:${value}`;
@@ -249,7 +266,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
     case "ending":
     case "ost":
     case "audio_edit": {
-      const t = lib.themes.find((x) => x.id === id);
+      const t = lib.theme.get(id);
       if (!t || !w) return null;
       const effect: AudioEffectId = mode === "audio_edit" ? pick(["fast", "slow", "reverse", "first_second"] as const, rng) : "normal";
       const ans = workAnswer(lib, w, rng);
@@ -268,7 +285,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
       };
     }
     case "song": {
-      const t = lib.themes.find((x) => x.id === id);
+      const t = lib.theme.get(id);
       if (!t || !w) return null;
       const names = [t.song, ...t.artists];
       const correct = randomId(rng, 8);
@@ -291,7 +308,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
     }
     case "scene": {
       if (!w) return null;
-      const m = lib.media.find((x) => x.id === id);
+      const m = lib.mediaById.get(id);
       const level = o.sceneLevel ?? 1;
       let asset: Asset;
       if (m && (m.kind === "clip" || m.kind === "clip_silent")) {
@@ -328,7 +345,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
     case "shadow":
     case "eyes":
     case "character_name": {
-      const ch = lib.characters.find((x) => x.id === id);
+      const ch = lib.character.get(id);
       if (!ch?.imageUrl || !w) return null;
       const effect: ImageEffectId = mode === "shadow" ? "silhouette" : mode === "eyes" ? "eyes" : mode === "image" ? pick(["crop", "blur", "zoom"] as const, rng) : "none";
       const asset: Asset = { type: "image", src: ch.imageUrl, effect, steps: EFFECTS[effect].steps, seed: seed(rng) };
@@ -380,7 +397,7 @@ export function buildQuestion(mode: ModeId, c: Candidate, lib: LibraryIndex, o: 
     case "voice_actor": {
       const [pid, charId] = id.split("|");
       const p = lib.person.get(pid);
-      const ch = lib.characters.find((x) => x.id === charId);
+      const ch = lib.character.get(charId);
       if (!p || !ch || !w) return null;
       const roles = shuffle((lib.rolesByPerson.get(pid) ?? []).filter((r) => r.workId !== w.id && lib.work.has(r.workId)), rng).slice(0, 4);
       const names = characterNames(ch);

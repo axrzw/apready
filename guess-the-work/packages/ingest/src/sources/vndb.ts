@@ -5,7 +5,7 @@ import type { Http } from "../http";
 export const VNDB = "https://api.vndb.org/kana";
 
 export const VN_FIELDS =
-  "title,alttitle,titles.title,titles.latin,aliases,released,rating,votecount,image.url,image.sexual,image.violence,description,developers.name,tags.name,tags.spoiler,tags.rating,screenshots.url,screenshots.sexual,length_minutes,va.character.id,va.character.name,va.character.original,va.character.image.url,va.character.image.sexual,va.staff.id,va.staff.name";
+  "title,alttitle,titles.title,titles.latin,aliases,released,rating,votecount,image.url,image.sexual,image.violence,description,developers.name,tags.name,tags.spoiler,tags.rating,tags.category,screenshots.url,screenshots.sexual,length_minutes,va.character.id,va.character.name,va.character.original,va.character.image.url,va.character.image.sexual,va.staff.id,va.staff.name";
 
 export interface VndbVn {
   id: string;
@@ -19,7 +19,7 @@ export interface VndbVn {
   image: { url: string; sexual: number; violence: number } | null;
   description: string | null;
   developers: { name: string }[];
-  tags: { name: string; spoiler: number; rating: number }[];
+  tags: { name: string; spoiler: number; rating: number; category?: string }[];
   screenshots: { url: string; sexual: number }[];
   length_minutes: number | null;
   va?: { character: { id: string; name: string; original: string | null; image: { url: string; sexual: number } | null }; staff: { id: string; name: string } }[];
@@ -30,6 +30,8 @@ const clean = (s: string | null) => s?.replace(/\[url=[^\]]*\]([^[]*)\[\/url\]/g
 /** VNs with an explicit cover are skipped entirely; explicit screenshots are dropped. */
 export function mapVndb(v: VndbVn): { work: Work; characters: Character[]; people: Person[] } | null {
   if (!v.image || v.image.sexual >= 1 || v.image.violence >= 2) return null;
+  // adult games often have an all-ages port: skip anything with real sexual-content tags
+  if (v.tags.some((t) => t.category === "ero" && t.rating >= 1.2)) return null;
   const workId = `vndb:${v.id}`;
   const score = v.rating ? Math.round(v.rating) : undefined;
   const names = new Set([v.alttitle, ...v.titles.flatMap((t) => [t.title, t.latin]), ...v.aliases].filter((x): x is string => !!x && x !== v.title));
@@ -44,7 +46,7 @@ export function mapVndb(v: VndbVn): { work: Work; characters: Character[]; peopl
       format: "VN",
       year: v.released && /^\d{4}/.test(v.released) ? Number(v.released.slice(0, 4)) : undefined,
       genres: [],
-      tags: v.tags.filter((t) => t.spoiler === 0 && t.rating >= 2).slice(0, 10).map((t) => t.name),
+      tags: v.tags.filter((t) => t.spoiler === 0 && t.rating >= 2 && t.category !== "ero").slice(0, 10).map((t) => t.name),
       studios: v.developers.map((d) => d.name),
       score,
       popularity: v.votecount,

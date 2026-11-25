@@ -26,7 +26,10 @@ export default function SettingsForm({
   useEffect(() => {
     fetch("/api/modes")
       .then((r) => r.json())
-      .then((j) => setCounts(j.counts ?? {}));
+      .then((j) => {
+        setCounts(j.counts ?? {});
+        if (j.defaultMix && !initial?.mix) setS((x) => ({ ...x, mix: j.defaultMix }));
+      });
   }, []);
   const set = <K extends keyof RoomSettings>(k: K, v: RoomSettings[K]) => setS((x) => ({ ...x, [k]: v }));
   const toggleMode = (m: ModeId) => set("modes", s.modes.includes(m) ? s.modes.filter((x) => x !== m) : [...s.modes, m]);

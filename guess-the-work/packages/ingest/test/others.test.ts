@@ -42,3 +42,10 @@ describe("series / VN / movie / game mapping", () => {
     expect(got.length).toBe(20);
   });
 });
+
+describe("VNDB adult filter", () => {
+  it("skips VNs with sexual-content tags even with a clean cover", () => {
+    const v = JSON.parse(readFileSync(join(__dirname, "fixtures", "vndb.json"), "utf8")).results[1];
+    expect(mapVndb({ ...v, tags: [...v.tags, { name: "Sexual Content", spoiler: 0, rating: 2.5, category: "ero" }] })).toBeNull();
+  });
+});

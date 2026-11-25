@@ -31,6 +31,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <Link href="/leaderboard">{t(lang, "leaderboard")}</Link>
                 <Link href="/stats">{t(lang, "stats")}</Link>
                 <Link href="/gallery">{t(lang, "gallery")}</Link>
+                <Link href="/profile">🔗</Link>
                 {s.admin && <Link href="/admin">{t(lang, "admin")}</Link>}
               </div>
             )}

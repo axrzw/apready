@@ -10,6 +10,9 @@ export interface Library {
 
 export interface LibraryIndex extends Library {
   work: Map<string, Work>;
+  character: Map<string, Character>;
+  theme: Map<string, Theme>;
+  mediaById: Map<string, MediaAsset>;
   charsByWork: Map<string, Character[]>;
   person: Map<string, Person>;
   rolesByPerson: Map<string, Character[]>;
@@ -35,6 +38,9 @@ export function indexLibrary(lib: Library): LibraryIndex {
     ...lib,
     works,
     work: new Map(works.map((w) => [w.id, w])),
+    character: new Map(lib.characters.map((c) => [c.id, c])),
+    theme: new Map(lib.themes.map((t) => [t.id, t])),
+    mediaById: new Map(lib.media.map((m) => [m.id, m])),
     charsByWork: group(lib.characters, (c) => c.workId),
     person: new Map(lib.people.map((p) => [p.id, p])),
     rolesByPerson: group(lib.characters, (c) => c.voiceActorId),

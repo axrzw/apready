@@ -31,7 +31,7 @@ export interface PickOptions {
 }
 
 export function pickPartyItems(lib: LibraryIndex, n: number, o: PickOptions, prefix: string): PartyItem[] {
-  const chars = candidatesFor("character_name", lib).filter((c) => (lib.characters.find((x) => x.id === c.key.slice("character_name:".length))?.role ?? "") === "MAIN");
+  const chars = candidatesFor("character_name", lib).filter((c) => (lib.character.get(c.key.slice("character_name:".length))?.role ?? "") === "MAIN");
   const posters = candidatesFor("poster", lib);
   const pool: Candidate[] = [...chars.map((c) => ({ ...c, key: `${prefix}:char:${c.key.slice(15)}` })), ...posters.map((c) => ({ ...c, key: `${prefix}:work:${c.key.slice(7)}` }))];
   const chosen = selectQuestions(pool, { count: n, mix: o.mix, rng: o.rng, seen: o.seen, categories: o.categories });
@@ -46,7 +46,7 @@ function itemFrom(lib: LibraryIndex, c: Candidate): PartyItem | null {
   const mainChars = (lib.charsByWork.get(w.id) ?? []).filter((x) => x.role === "MAIN").flatMap(characterNames);
   if (kind === "char") {
     const id = c.key.split(":").slice(3).join(":");
-    const ch = lib.characters.find((x) => x.id === id);
+    const ch = lib.character.get(id);
     if (!ch?.imageUrl) return null;
     const cn = characterNames(ch);
     return { key: c.key, workId: w.id, category: w.category, tier: w.tier, kind: "character", image: ch.imageUrl, names: cn, workNames: wn, forbidden: [...cn, ...wn], display: { title: ch.name, titleAr: ch.nameAr, sub: w.titleAr ?? w.title } };
