@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm install -g pnpm@10.28.0 && cd guess-the-work && pnpm install --frozen-lockfile && cd .. && ln -sfn guess-the-work/apps/web/node_modules node_modules",
+  "buildCommand": "cd guess-the-work && pnpm vercel-build",
+  "outputDirectory": "guess-the-work/apps/web/.next",
+  "crons": [
+    { "path": "/api/cron/weekly", "schedule": "17 3 * * 1" },
+    { "path": "/api/cron/backup", "schedule": "41 2 * * *" }
+  ]
+}

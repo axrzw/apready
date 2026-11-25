@@ -1,0 +1,12 @@
+{
+  "name": "khammin-deploy",
+  "private": true,
+  "description": "«خمّن العمل» (guess-the-work/) builds on Vercel from this repo root: see vercel.json. My Ready AP (app/, recipes/, ...) is Python and does not use this file.",
+  "workspaces": [
+    "guess-the-work/apps/*",
+    "guess-the-work/packages/*"
+  ],
+  "devDependencies": {
+    "next": "15.5.29"
+  }
+}

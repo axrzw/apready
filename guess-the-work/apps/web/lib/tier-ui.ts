@@ -1,7 +1,7 @@
 import type { TierRow } from "@gtw/core/tierlist";
 
-/** Muted, graded tier colours (warm at the top, cool at the bottom): docs/DESIGN.md. */
-export const TIER_COLOR: Record<TierRow, string> = { S: "#C9A45C", A: "#B98A5E", B: "#9C8F63", C: "#6F8A72", D: "#5E7A8C", F: "#6D6580" };
+/** Tier colours (owner: S red, A orange, B and C swapped): docs/DESIGN.md. */
+export const TIER_COLOR: Record<TierRow, string> = { S: "#C8625A", A: "#D08A4E", B: "#6F8A72", C: "#9C8F63", D: "#5E7A8C", F: "#6D6580" };
 
 export interface TierItemView {
   id: string;

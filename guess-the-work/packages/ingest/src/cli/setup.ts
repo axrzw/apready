@@ -18,5 +18,6 @@ async function main() {
 
 main().catch((e) => {
   console.error("setup failed:", e);
-  process.exit(1);
+  // on Vercel a database problem must not block the deploy: the site shows what is missing instead
+  process.exit(process.env.VERCEL ? 0 : 1);
 });
