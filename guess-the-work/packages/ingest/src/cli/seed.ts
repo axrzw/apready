@@ -10,6 +10,9 @@ import { CACHE_DIR, DB_PATH, MEDIA_DIR, PROJECT_ROOT, ensureProxyEnv } from "../
 import { Http } from "../http";
 import { seedAnime, type SpacetoonFile } from "../pipeline/anime";
 import { processThemes } from "../pipeline/media";
+import { textBoxes, closeOcr } from "../ocr";
+import { readFileSync as readFile } from "node:fs";
+import { DATA_DIR } from "../config";
 import { seedOthers } from "../pipeline/others";
 import { num, parseArgs } from "./args";
 
@@ -32,7 +35,14 @@ export async function runSeed(argv: string[], repo?: Repo) {
   const mediaN = num(a.media, 0);
   if (mediaN > 0) {
     const lib = await r.loadLibrary();
-    const res = await processThemes({ repo: r, mediaDir: MEDIA_DIR, themes: lib.themes.filter((t) => !t.audioClip), limit: mediaN, log });
+    // frames with clear text (credits, titles) are skipped
+    const hasText = async (file: string) => {
+      const meta = await (await import("sharp")).default(file).metadata();
+      const area = (await textBoxes(readFile(file), `${DATA_DIR}/tessdata`, 70)).reduce((s, b) => s + b.w * b.h, 0);
+      return area > 0.01 * (meta.width ?? 1) * (meta.height ?? 1);
+    };
+    const res = await processThemes({ repo: r, mediaDir: MEDIA_DIR, themes: lib.themes.filter((t) => !t.audioClip), limit: mediaN, log, hasText });
+    await closeOcr();
     console.log("media:", JSON.stringify(res));
   }
   const counts = await r.counts();

@@ -204,7 +204,14 @@ function AnswerBox({ view, act, lang }: { view: View; act: Act; lang: Lang }) {
           if (text.trim()) send({ text });
         }}
       >
-        <input autoFocus className="input text-lg" value={text} onChange={(e) => setText(e.target.value)} placeholder={t(lang, "typeAnswer")} autoComplete="off" />
+        <input
+          autoFocus
+          className="input text-lg"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          placeholder={kind === "character" ? (lang === "ar" ? "اكتب اسم الشخصية…" : "Type the character's name…") : q.mode === "song" ? (lang === "ar" ? "اسم الأغنية أو الفنان…" : "Song or artist…") : q.mode === "common_link" ? (lang === "ar" ? "وش الرابط؟ (استوديو، مؤلف، مؤدي، سنة)" : "What links them?") : t(lang, "typeAnswer")}
+          autoComplete="off"
+        />
         <button className="btn-primary">{t(lang, "answer")}</button>
       </form>
       {sugs.length > 0 && (

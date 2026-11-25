@@ -1,19 +1,436 @@
 {
-  "_note": "أسماء دبلجة سبيستون والدبلجات العربية. بداية فقط: زد عليها هنا أو من صفحة الأدمن. title = اسم العمل كما في AniList (إنجليزي أو روماجي)، يطابق كل الأعمال اللي اسمها نفسه أو يبدأ فيه (المواسم). characters: اسم الشخصية في AniList -> الأسماء المدبلجة.",
+  "_note": "أسماء عربية: دبلجة سبيستون والأسماء المشهورة عند الجمهور العربي. بداية فقط: زد عليها هنا (ثم pnpm --filter @gtw/ingest names) أو من صفحة الأدمن. title = اسم العمل كما في AniList (إنجليزي أو روماجي)، يطابق العمل اللي اسمه نفسه أو يبدأ فيه (المواسم). characters: اسم الشخصية في AniList -> الأسماء العربية.",
   "works": [
-    { "title": "Doraemon", "ar": ["دورايمون"], "characters": { "Doraemon": ["دورايمون"], "Nobita Nobi": ["نوبيتا"] } },
-    { "title": "Captain Tsubasa", "ar": ["كابتن ماجد"], "characters": { "Tsubasa Oozora": ["ماجد", "ماجد عبدالله"] } },
-    { "title": "Slam Dunk", "ar": ["سلام دنك"] },
-    { "title": "Hunter x Hunter", "ar": ["القناص"] },
-    { "title": "Case Closed", "ar": ["المحقق كونان", "كونان"], "characters": { "Conan Edogawa": ["كونان"], "Shinichi Kudou": ["شينتشي"] } },
-    { "title": "Pokémon", "ar": ["بوكيمون"], "characters": { "Pikachu": ["بيكاتشو"] } },
-    { "title": "Digimon Adventure", "ar": ["أبطال الديجيتال", "ديجيمون"] },
-    { "title": "Yu-Gi-Oh! Duel Monsters", "ar": ["يوغي يو"] },
-    { "title": "ONE PIECE", "ar": ["ون بيس"] },
-    { "title": "Dragon Ball", "ar": ["دراغون بول", "دراجون بول"] },
-    { "title": "Naruto", "ar": ["ناروتو"] },
-    { "title": "UFO Robo Grendizer", "ar": ["غريندايزر", "جريندايزر"] },
-    { "title": "Beyblade", "ar": ["بي بليد", "بيبليد"] },
-    { "title": "Detective Conan", "ar": ["المحقق كونان"] }
+    {
+      "title": "Doraemon",
+      "ar": [
+        "دورايمون"
+      ],
+      "characters": {
+        "Doraemon": [
+          "دورايمون"
+        ],
+        "Nobita Nobi": [
+          "نوبيتا"
+        ]
+      }
+    },
+    {
+      "title": "Captain Tsubasa",
+      "ar": [
+        "كابتن ماجد"
+      ],
+      "characters": {
+        "Tsubasa Oozora": [
+          "ماجد",
+          "ماجد عبدالله"
+        ]
+      }
+    },
+    {
+      "title": "Slam Dunk",
+      "ar": [
+        "سلام دنك"
+      ]
+    },
+    {
+      "title": "Hunter x Hunter",
+      "ar": [
+        "القناص"
+      ]
+    },
+    {
+      "title": "Case Closed",
+      "ar": [
+        "المحقق كونان",
+        "كونان"
+      ],
+      "characters": {
+        "Conan Edogawa": [
+          "كونان"
+        ],
+        "Shinichi Kudou": [
+          "شينتشي"
+        ]
+      }
+    },
+    {
+      "title": "Pokémon",
+      "ar": [
+        "بوكيمون"
+      ],
+      "characters": {
+        "Pikachu": [
+          "بيكاتشو"
+        ]
+      }
+    },
+    {
+      "title": "Digimon Adventure",
+      "ar": [
+        "أبطال الديجيتال",
+        "ديجيمون"
+      ]
+    },
+    {
+      "title": "Yu-Gi-Oh! Duel Monsters",
+      "ar": [
+        "يوغي يو"
+      ]
+    },
+    {
+      "title": "ONE PIECE",
+      "ar": [
+        "ون بيس"
+      ]
+    },
+    {
+      "title": "Dragon Ball",
+      "ar": [
+        "دراغون بول",
+        "دراجون بول"
+      ]
+    },
+    {
+      "title": "Naruto",
+      "ar": [
+        "ناروتو"
+      ]
+    },
+    {
+      "title": "UFO Robo Grendizer",
+      "ar": [
+        "غريندايزر",
+        "جريندايزر"
+      ]
+    },
+    {
+      "title": "Beyblade",
+      "ar": [
+        "بي بليد",
+        "بيبليد"
+      ]
+    },
+    {
+      "title": "Detective Conan",
+      "ar": [
+        "المحقق كونان"
+      ]
+    },
+    {
+      "title": "Attack on Titan",
+      "ar": [
+        "هجوم العمالقة",
+        "هجوم العمالقه"
+      ]
+    },
+    {
+      "title": "Death Note",
+      "ar": [
+        "مذكرة الموت",
+        "ديث نوت"
+      ]
+    },
+    {
+      "title": "Demon Slayer: Kimetsu no Yaiba",
+      "ar": [
+        "قاتل الشياطين",
+        "قاتل الشياطين كيميتسو نو يايبا"
+      ]
+    },
+    {
+      "title": "Fullmetal Alchemist",
+      "ar": [
+        "الخيميائي المعدني",
+        "الكيميائي المعدني",
+        "فول ميتال ألكميست"
+      ]
+    },
+    {
+      "title": "JUJUTSU KAISEN",
+      "ar": [
+        "جوجوتسو كايسن",
+        "جوجتسو كايسن"
+      ]
+    },
+    {
+      "title": "My Hero Academia",
+      "ar": [
+        "أكاديمية بطلي",
+        "ماي هيرو أكاديميا"
+      ]
+    },
+    {
+      "title": "One-Punch Man",
+      "ar": [
+        "رجل اللكمة الواحدة",
+        "ون بنش مان"
+      ]
+    },
+    {
+      "title": "Spirited Away",
+      "ar": [
+        "المخطوفة",
+        "المخطوفه"
+      ]
+    },
+    {
+      "title": "BLEACH",
+      "ar": [
+        "بليتش"
+      ]
+    },
+    {
+      "title": "Tokyo Ghoul",
+      "ar": [
+        "طوكيو غول"
+      ]
+    },
+    {
+      "title": "Sword Art Online",
+      "ar": [
+        "فن السيف أونلاين",
+        "سورد آرت أونلاين"
+      ]
+    },
+    {
+      "title": "Your Name.",
+      "ar": [
+        "اسمك",
+        "كيمي نو نا وا"
+      ]
+    },
+    {
+      "title": "Grave of the Fireflies",
+      "ar": [
+        "قبر اليراعات"
+      ]
+    },
+    {
+      "title": "Howl's Moving Castle",
+      "ar": [
+        "قلعة هاول المتحركة"
+      ]
+    },
+    {
+      "title": "Princess Mononoke",
+      "ar": [
+        "الأميرة مونونوكي"
+      ]
+    },
+    {
+      "title": "My Neighbor Totoro",
+      "ar": [
+        "جاري توتورو",
+        "توتورو"
+      ]
+    },
+    {
+      "title": "Chainsaw Man",
+      "ar": [
+        "رجل المنشار",
+        "تشينسو مان"
+      ]
+    },
+    {
+      "title": "SPY x FAMILY",
+      "ar": [
+        "عائلة الجاسوس",
+        "سباي فاميلي"
+      ]
+    },
+    {
+      "title": "Haikyu!!",
+      "ar": [
+        "هايكيو"
+      ]
+    },
+    {
+      "title": "Dragon Ball Z",
+      "ar": [
+        "دراغون بول زد"
+      ]
+    },
+    {
+      "title": "Steins;Gate",
+      "ar": [
+        "شتاينز جيت",
+        "ستاينز غيت"
+      ]
+    },
+    {
+      "title": "Code Geass: Lelouch of the Rebellion",
+      "ar": [
+        "كود جياس"
+      ]
+    },
+    {
+      "title": "Neon Genesis Evangelion",
+      "ar": [
+        "إيفانجليون",
+        "نيون جينيسيس إيفانجليون"
+      ]
+    },
+    {
+      "title": "Cowboy Bebop",
+      "ar": [
+        "كاوبوي بيبوب"
+      ]
+    },
+    {
+      "title": "Mob Psycho 100",
+      "ar": [
+        "موب سايكو"
+      ]
+    },
+    {
+      "title": "Vinland Saga",
+      "ar": [
+        "ملحمة فينلاند",
+        "فينلاند ساغا"
+      ]
+    },
+    {
+      "title": "The Promised Neverland",
+      "ar": [
+        "الأرض الموعودة",
+        "نيفرلاند الموعودة"
+      ]
+    },
+    {
+      "title": "Re:ZERO -Starting Life in Another World-",
+      "ar": [
+        "ري زيرو"
+      ]
+    },
+    {
+      "title": "No Game, No Life",
+      "ar": [
+        "لا لعبة لا حياة"
+      ]
+    },
+    {
+      "title": "Black Clover",
+      "ar": [
+        "البرسيم الأسود",
+        "بلاك كلوفر"
+      ]
+    },
+    {
+      "title": "Fairy Tail",
+      "ar": [
+        "فيري تيل",
+        "ذيل الجنية"
+      ]
+    },
+    {
+      "title": "Kuroko's Basketball",
+      "ar": [
+        "سلة كوروكو",
+        "كوروكو"
+      ]
+    },
+    {
+      "title": "Your Lie in April",
+      "ar": [
+        "كذبتك في أبريل",
+        "كذبتك في نيسان"
+      ]
+    },
+    {
+      "title": "A Silent Voice",
+      "ar": [
+        "صوت صامت"
+      ]
+    },
+    {
+      "title": "Parasyte -the maxim-",
+      "ar": [
+        "الطفيلي",
+        "باراسايت"
+      ]
+    },
+    {
+      "title": "Assassination Classroom",
+      "ar": [
+        "فصل الاغتيال"
+      ]
+    },
+    {
+      "title": "The Seven Deadly Sins",
+      "ar": [
+        "الخطايا السبع المميتة"
+      ]
+    },
+    {
+      "title": "Dr. STONE",
+      "ar": [
+        "دكتور ستون"
+      ]
+    },
+    {
+      "title": "Made in Abyss",
+      "ar": [
+        "صنع في الهاوية"
+      ]
+    },
+    {
+      "title": "Frieren: Beyond Journey's End",
+      "ar": [
+        "فريرن"
+      ]
+    },
+    {
+      "title": "Solo Leveling",
+      "ar": [
+        "سولو ليفلنغ",
+        "التسوية الفردية"
+      ]
+    },
+    {
+      "title": "Captain Tsubasa (2018)",
+      "ar": [
+        "كابتن ماجد"
+      ]
+    },
+    {
+      "title": "Remi, Nobody's Girl",
+      "ar": [
+        "ريمي"
+      ]
+    },
+    {
+      "title": "Lupin III",
+      "ar": [
+        "لوبين"
+      ]
+    },
+    {
+      "title": "Mobile Suit Gundam",
+      "ar": [
+        "غاندام",
+        "جاندام"
+      ]
+    },
+    {
+      "title": "Sailor Moon",
+      "ar": [
+        "بحار القمر",
+        "سيلور مون"
+      ]
+    },
+    {
+      "title": "Inuyasha",
+      "ar": [
+        "إينوياشا"
+      ]
+    },
+    {
+      "title": "Rurouni Kenshin",
+      "ar": [
+        "ساموراي إكس",
+        "كينشين"
+      ]
+    }
   ]
 }

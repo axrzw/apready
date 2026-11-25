@@ -12,11 +12,16 @@
   "scripts": {
     "typecheck": "tsc -p .",
     "seed": "tsx src/cli/seed.ts",
-    "weekly": "tsx src/cli/weekly.ts"
+    "weekly": "tsx src/cli/weekly.ts",
+    "names": "tsx src/cli/names.ts",
+    "ocr": "tsx src/cli/ocr.ts",
+    "snapshot:export": "tsx src/cli/snapshot.ts export",
+    "snapshot:import": "tsx src/cli/snapshot.ts import"
   },
   "dependencies": {
     "@gtw/core": "workspace:*",
     "@gtw/db": "workspace:*",
-    "sharp": "0.34.5"
+    "sharp": "0.34.5",
+    "tesseract.js": "5.1.1"
   }
 }

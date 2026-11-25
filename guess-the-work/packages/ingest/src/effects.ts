@@ -252,7 +252,7 @@ export function silhouette(data: Buffer, w: number, h: number, t: number): Buffe
   const bg = [0, 1, 2].map((k) => border.reduce((s, p) => s + p[k], 0) / border.length);
   // flood fill from the border through pixels close to the background colour
   const isBg = new Uint8Array(w * h);
-  const close = (i: number) => Math.abs(data[i * 3] - bg[0]) + Math.abs(data[i * 3 + 1] - bg[1]) + Math.abs(data[i * 3 + 2] - bg[2]) < 70;
+  const close = (i: number) => Math.abs(data[i * 3] - bg[0]) + Math.abs(data[i * 3 + 1] - bg[1]) + Math.abs(data[i * 3 + 2] - bg[2]) < 45;
   const stack: number[] = [];
   for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
   for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
@@ -268,6 +268,19 @@ export function silhouette(data: Buffer, w: number, h: number, t: number): Buffe
   }
   const out = Buffer.alloc(w * h * 3);
   const colour = t >= 1 ? 1 : t * 0.6;
+  // busy background (no flat border colour), or the fill leaked into the character:
+  // fall back to a stencil (dark half black, light half white)
+  const bgFrac = isBg.reduce((a, b) => a + b, 0) / (w * h);
+  if (bgFrac < 0.08 || bgFrac > 0.85) {
+    const lum = new Float32Array(w * h);
+    for (let i = 0; i < w * h; i++) lum[i] = 0.299 * data[i * 3] + 0.587 * data[i * 3 + 1] + 0.114 * data[i * 3 + 2];
+    const median = [...lum].sort((a, b) => a - b)[Math.floor(lum.length * 0.55)];
+    for (let i = 0; i < w * h; i++) {
+      const dark = lum[i] <= median;
+      for (let k = 0; k < 3; k++) out[i * 3 + k] = t >= 1 ? data[i * 3 + k] : Math.round((dark ? 0 : 235) * (1 - colour) + data[i * 3 + k] * colour);
+    }
+    return out;
+  }
   for (let i = 0; i < w * h; i++)
     for (let k = 0; k < 3; k++) out[i * 3 + k] = isBg[i] ? (t >= 1 ? data[i * 3 + k] : 240) : Math.round(data[i * 3 + k] * colour);
   return out;

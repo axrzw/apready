@@ -292,3 +292,8 @@ See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, 
 - More Resident Evil parts. RE9 (Requiem) is added from LechapelierHD/Re9-archipelago.
   No Archipelago support found for the RE1 / RE0 remasters (Nov 2026). Check again later.
 - Portal 1: no Archipelago support found yet (Nov 2026). Check again later.
+
+## Second project in this repo: `guess-the-work/` («خمّن العمل»)
+A separate private web game for the owner's friends (Next.js + TypeScript monorepo, its own pnpm workspace). Nothing in it
+touches My Ready AP. Start with `guess-the-work/README.md` and `guess-the-work/docs/` (PLAN, DECISIONS, QUESTIONS,
+BLOCKERS, MORNING_REPORT). Commands run inside `guess-the-work/`: `pnpm test`, `pnpm typecheck`, `pnpm build`.

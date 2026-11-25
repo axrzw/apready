@@ -1,8 +1,18 @@
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 
 export const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
+
+/** Scripts read the same env file as the site (apps/web/.env.local, then .env). Real env vars win. */
+for (const f of [join(PROJECT_ROOT, "apps", "web", ".env.local"), join(PROJECT_ROOT, ".env")]) {
+  if (!existsSync(f)) continue;
+  for (const line of readFileSync(f, "utf8").split(/\r?\n/)) {
+    const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
+    if (m && m[2] !== "" && process.env[m[1]] === undefined) process.env[m[1]] = m[2].replace(/^["']|["']$/g, "");
+  }
+}
 export const DATA_DIR = process.env.GTW_DATA_DIR || join(PROJECT_ROOT, "data");
 export const DB_PATH = process.env.GTW_DB_PATH || join(DATA_DIR, "gtw.sqlite");
 export const MEDIA_DIR = process.env.GTW_MEDIA_DIR || join(DATA_DIR, "media");

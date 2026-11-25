@@ -106,3 +106,16 @@ describe("numbers", () => {
     expect(matchAnswer("mob psyco 100", ["Mob Psycho 100"]).ok).toBe(true);
   });
 });
+
+describe("loose Arabic (article and small words)", () => {
+  it("accepts names that differ by «ال» or «على/في/من»", () => {
+    expect(matchAnswer("هجوم العمالقة", ["الهجوم على العمالقة"]).ok).toBe(true);
+    expect(matchAnswer("محقق كونان", ["المحقق كونان"]).ok).toBe(true);
+    expect(matchAnswer("the promised neverland", ["Promised Neverland"]).ok).toBe(true);
+  });
+  it("still rejects different names", () => {
+    expect(matchAnswer("ماجده", ["ماجد"]).ok).toBe(false);
+    expect(matchAnswer("هجوم", ["الهجوم على العمالقة"]).ok).toBe(false);
+    expect(matchAnswer("العمالقة", ["الهجوم على العمالقة"]).ok).toBe(false);
+  });
+});

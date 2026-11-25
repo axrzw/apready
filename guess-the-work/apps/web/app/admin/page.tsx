@@ -9,6 +9,7 @@ const JOB_AR: Record<string, string> = {
   seed_small: "سحب صغير",
   seed_big: "سحب كبير (~5000 عمل)",
   media: "أغاني AnimeThemes + قص الصوت واللقطات (100)",
+  ocr: "OCR: اكتشاف النص على البوسترات (1000) عشان ينحجب",
   keyed: "TMDB + IGDB (يبي مفاتيح)",
 };
 

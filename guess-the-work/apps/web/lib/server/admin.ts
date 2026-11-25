@@ -20,6 +20,7 @@ const JOBS: Record<string, { script: string; args: string[] }> = {
   seed_small: { script: "src/cli/seed.ts", args: ["--anime", "600", "--kitsu", "50", "--tvmaze", "200", "--vndb", "100"] },
   seed_big: { script: "src/cli/seed.ts", args: ["--anime", "3600", "--kitsu", "150", "--tvmaze", "1000", "--vndb", "700"] },
   media: { script: "src/cli/seed.ts", args: ["--anime", "0", "--kitsu", "0", "--tvmaze", "0", "--vndb", "0", "--tmdb", "0", "--igdb", "0", "--themes", "--media", "100"] },
+  ocr: { script: "src/cli/ocr.ts", args: ["--limit", "1000"] },
   keyed: { script: "src/cli/seed.ts", args: ["--anime", "0", "--kitsu", "0", "--tvmaze", "0", "--vndb", "0", "--tmdb", "1500", "--igdb", "1500"] },
 };
 

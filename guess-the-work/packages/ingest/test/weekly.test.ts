@@ -41,3 +41,21 @@ describe("weekly", () => {
     expect((await repo.loadLibrary()).media.map((m) => m.id)).toEqual(["m1"]);
   });
 });
+
+describe("snapshot", () => {
+  it("round-trips the library and drops machine-local files", async () => {
+    const { packLibrary, unpackLibrary } = await import("../src/cli/snapshot");
+    const lib = {
+      works: [{ id: "a", category: "anime" as const, title: "A", aliases: ["x"], genres: [], tags: [], studios: [], popularity: 1, tier: "obscure" as const }],
+      characters: [],
+      people: [],
+      themes: [{ id: "admin:1", workId: "a", type: "OST" as const, song: "s", artists: [] }, { id: "t", workId: "a", type: "OP" as const, song: "s", artists: [], audioClip: "themes/t.mp3", audioUrl: "https://a/t.ogg" }],
+      media: [{ id: "m", workId: "a", kind: "frame" as const, src: "frames/x.jpg" }, { id: "r", workId: "a", kind: "screenshot" as const, src: "https://x/y.jpg" }],
+    };
+    const back = unpackLibrary(packLibrary(lib));
+    expect(back.works).toEqual(lib.works);
+    expect(back.themes.map((t) => t.id)).toEqual(["t"]);
+    expect(back.themes[0].audioClip).toBeUndefined();
+    expect(back.media.map((m) => m.id)).toEqual(["r"]);
+  });
+});

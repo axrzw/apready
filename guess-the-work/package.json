@@ -4,11 +4,16 @@
   "packageManager": "pnpm@10.28.0",
   "scripts": {
     "dev": "pnpm --filter web dev",
-    "build": "pnpm -r --filter ./packages/* run build && pnpm --filter web build",
+    "build": "pnpm --filter web build",
     "test": "vitest run",
-    "typecheck": "pnpm -r run typecheck",
+    "typecheck": "tsc -p packages/core && tsc -p packages/db && tsc -p packages/ingest && pnpm --filter web typecheck",
     "seed": "pnpm --filter @gtw/ingest seed",
-    "weekly": "pnpm --filter @gtw/ingest weekly"
+    "weekly": "pnpm --filter @gtw/ingest weekly",
+    "start": "pnpm --filter web start",
+    "ocr": "pnpm --filter @gtw/ingest ocr",
+    "names": "pnpm --filter @gtw/ingest names",
+    "snapshot:import": "pnpm --filter @gtw/ingest snapshot:import",
+    "snapshot:export": "pnpm --filter @gtw/ingest snapshot:export"
   },
   "devDependencies": {
     "typescript": "5.9.3",

@@ -42,3 +42,13 @@ describe("image effects", async () => {
     expect(px(10, 400)).toBeGreaterThan(200);
   });
 });
+
+describe("silhouette fallback", () => {
+  it("uses a stencil when the fill eats almost everything (white character on white)", async () => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="#fafafa"/><rect x="60" y="60" width="80" height="180" fill="#f0f0f0"/><circle cx="100" cy="100" r="20" fill="#202020"/></svg>`;
+    const img = await sharp(Buffer.from(svg)).jpeg().toBuffer();
+    const r = await renderEffect(img, { effect: "silhouette", step: 0, steps: 5, seed: 1 });
+    const { data, info } = await sharp(r.buffer).raw().toBuffer({ resolveWithObject: true });
+    expect(data[(100 * info.width + 100) * info.channels]).toBeLessThan(60);
+  });
+});

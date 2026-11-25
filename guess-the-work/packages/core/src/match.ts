@@ -101,6 +101,17 @@ function close(a: string, b: string): number | null {
   return d <= allowed ? d : null;
 }
 
+const LOOSE_WORDS = new Set(["علي", "في", "من", "و", "the", "a", "an", "of"]);
+
+/** Looser form: no «ال» at the start of words, no small words (على، في، من، the, of). */
+export function loose(n: string): string {
+  return n
+    .split(" ")
+    .filter((w) => !LOOSE_WORDS.has(w))
+    .map((w) => (w.startsWith("ال") && [...w].length > 3 ? w.slice(2) : w))
+    .join(" ");
+}
+
 export interface MatchResult {
   ok: boolean;
   alias?: string;
@@ -110,12 +121,12 @@ export interface MatchResult {
 export function matchAnswer(input: string, names: readonly string[]): MatchResult {
   const n = normalize(input);
   if (!n) return { ok: false };
-  const inputs = Array.from(new Set([n, stripSeason(n)].filter(Boolean)));
+  const inputs = Array.from(new Set([n, stripSeason(n), loose(n), loose(stripSeason(n))].filter(Boolean)));
   let best: MatchResult = { ok: false };
   for (const alias of names) {
     const na = normalize(alias);
     if (!na) continue;
-    for (const a of new Set([na, stripSeason(na)].filter(Boolean))) {
+    for (const a of new Set([na, stripSeason(na), loose(na), loose(stripSeason(na))].filter(Boolean))) {
       for (const i of inputs) {
         const d = close(i, a);
         if (d !== null && (!best.ok || d < (best.distance ?? 99))) best = { ok: true, alias, distance: d };
