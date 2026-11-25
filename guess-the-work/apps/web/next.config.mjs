@@ -3,7 +3,8 @@ const nextConfig = {
   transpilePackages: ["@gtw/core", "@gtw/db", "@gtw/ingest"],
   serverExternalPackages: ["sharp", "@electric-sql/pglite", "ffmpeg-static", "tesseract.js"],
   // ffmpeg binary + db migrations must ship with the functions
-  outputFileTracingRoot: new URL("../../", import.meta.url).pathname,
+  // deployed from the repo root (vercel.json there): trace from that root, so Vercel finds the app at guess-the-work/apps/web
+  outputFileTracingRoot: new URL(process.env.GTW_REPO_ROOT_DEPLOY ? "../../../" : "../../", import.meta.url).pathname,
   outputFileTracingIncludes: {
     "/**": ["../../packages/db/migrations/**"],
     "/api/m/[token]": ["../../node_modules/.pnpm/ffmpeg-static@*/node_modules/ffmpeg-static/ffmpeg"],
