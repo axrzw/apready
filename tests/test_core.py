@@ -558,3 +558,23 @@ def test_new_famous_games_death_link():
     assert R["minecraft"]["steam_appid"] is None
     y = rec.build_yaml(R["a_hat_in_time"], "P", {"EndGoal": "rush_hour"}, True)
     assert "EnableDLC2: true" in y                                                   # the DLC goal turns its DLC on
+
+
+def test_group_check_warns_about_a_bad_mix(tmp_path, monkeypatch):
+    from app import groupcheck, host
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    R = rec.load_all()
+    pdir = host.players_dir()
+    pdir.mkdir(parents=True, exist_ok=True)
+    for name, rid, dl in (("Mishal", "celeste", True), ("Fahad", "doom_1993", True), ("Saad", "stardew", False),
+                          ("Nasser", "minecraft", True), ("Ali", "minecraft", True)):
+        (pdir / f"{name}.yaml").write_text(rec.build_yaml(R[rid], name, {}, dl), encoding="utf-8")
+    players = host.scan_players(R)
+    assert {p["name"]: p["death_link"] for p in players} == {"Ali": True, "Fahad": True, "Mishal": True, "Nasser": True, "Saad": False}
+    advice = groupcheck.check(players, R)
+    titles = [a["title"] for a in advice]
+    assert "Death Link بيتعب الشباب" in titles and "Mishal" in advice[titles.index("Death Link بيتعب الشباب")]["text"]
+    assert "أطوال مختلفة كثير" in titles and "أكثر من ماين كرافت" in titles and "مو الكل في Death Link" in titles
+    assert "المجموعة حلوة" not in titles
+    ok = groupcheck.check([p for p in players if p["name"] == "Fahad"], R)
+    assert ok[0]["title"] == "المجموعة حلوة"

@@ -11,7 +11,7 @@ import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ._version import VERSION
-from . import dlproxy, host, install, maptracker, recipes as rec, roomfeed, runner, steam, updates, window
+from . import groupcheck, dlproxy, host, install, maptracker, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -100,8 +100,9 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, (base_dir() / "ui" / "icon.png").read_bytes(), "image/png")
         if self.path == "/api/state":
             s = load_settings()
+            players = host.scan_players(RECIPES)
             return self.send(200, {"player_name": s.get("player_name", ""), "games": game_list(), "version": VERSION,
-                                   "players": host.scan_players(RECIPES),
+                                   "players": players, "group": groupcheck.check(players, RECIPES),
                                    "last": s.get("last", {}), "update": UPDATE,
                                    "recipes_rev": RECIPES_REV["n"]})
         if self.path.startswith("/api/feed"):

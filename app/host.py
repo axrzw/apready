@@ -1,4 +1,5 @@
 """Host side: install every needed apworld, generate the seed, open the upload page."""
+import re
 import shutil
 import subprocess
 import sys
@@ -18,8 +19,31 @@ def scan_players(all_recipes: dict) -> list:
         text = f.read_text(encoding="utf-8", errors="ignore")
         game = rec.game_of_yaml(text)
         r = by_game.get(game)
-        out.append({"file": f.name, "game": game, "recipe": r["id"] if r else None})
+        out.append({"file": f.name, "game": game, "recipe": r["id"] if r else None,
+                    "name": _yaml_field(text, "name"),
+                    # Death Link as written for this game (our files say `true`/`false`; weights count as on if `true` is there)
+                    "death_link": _dl_on(text, (r or {}).get("death_link_key", "death_link"))})
     return out
+
+
+def _yaml_field(text: str, key: str):
+    m = re.search(rf"^{re.escape(key)}:\s*['\"]?([^'\"\n]+?)['\"]?\s*$", text, re.M)
+    return m.group(1).strip() if m else None
+
+
+def _dl_on(text: str, key) -> bool:
+    if not key:
+        return False
+    m = re.search(rf"^\s+{re.escape(key)}:\s*(.*)$", text, re.M)
+    if not m:
+        return False
+    v = m.group(1).strip().strip("'\"").lower()
+    if v in ("true", "on", "1", "yes"):
+        return True
+    if v == "":  # weights on the next lines: on if any truthy choice has weight
+        tail = text[m.end():].splitlines()[:4]
+        return any(re.match(r"\s+['\"]?(true|on)['\"]?:\s*[1-9]", t) for t in tail)
+    return False
 
 
 def generate(task: Task, all_recipes: dict):

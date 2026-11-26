@@ -102,6 +102,30 @@
   .chip:hover { color:var(--text); border-color:#45506a; }
   .chip.on { background:var(--text); color:#0b0d12; border-color:var(--text); font-weight:600; }
   .chip .n { opacity:.6; margin-inline-start:4px; font-size:12px; }
+  .intro { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:center; margin-bottom:26px;
+           background:radial-gradient(120% 140% at 100% 0,rgba(229,72,77,.18),transparent 55%),var(--surface); }
+  .intro h2 { margin:0 0 8px; font-size:20px; } .intro p { margin:0 0 14px; color:var(--dim); max-width:560px; }
+  .intro-s { margin:0; padding:0; list-style:none; counter-reset:s; display:grid; gap:10px; }
+  .intro-s li { counter-increment:s; display:grid; grid-template-columns:30px 1fr; grid-template-rows:auto auto; column-gap:12px; }
+  .intro-s li::before { content:counter(s); grid-row:span 2; width:30px; height:30px; border-radius:50%; background:var(--surface2); border:1px solid var(--line2);
+                        display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent2); }
+  .intro-s span { color:var(--dim); font-size:13.5px; }
+  h2.sec { font-size:17px; margin:6px 0 12px; }
+  .packs { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; margin-bottom:28px; }
+  .pack { position:relative; text-align:start; cursor:pointer; border-radius:var(--r); overflow:hidden; border:1px solid var(--line); background:var(--surface);
+          padding:0; color:var(--text); transition:transform .18s, border-color .18s; }
+  .pack:hover { transform:translateY(-3px); border-color:#4a5470; }
+  .pack.on { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+  .pack .strip { display:flex; height:92px; overflow:hidden; }
+  .pack .strip img, .pack .strip div { flex:1; min-width:0; height:100%; object-fit:cover; background:var(--surface2); }
+  .pack .pt { padding:12px 14px 14px; }
+  .pack b { display:block; font-size:15px; } .pack small { color:var(--dim); font-size:13px; display:block; margin-top:3px; }
+  .groupchk { display:grid; gap:10px; }
+  .gc { display:flex; gap:12px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--bg2); }
+  .gc.bad { border-color:rgba(255,99,105,.5); background:var(--bad-bg); } .gc.bad svg { color:var(--bad); }
+  .gc.warn { border-color:rgba(245,179,66,.45); background:var(--warn-bg); } .gc.warn svg { color:var(--warn); }
+  .gc.ok svg { color:var(--ok); }
+  .gc b { display:block; } .gc span { color:var(--dim); font-size:14px; }
   .notice { display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:var(--r-sm); background:var(--info-bg); color:#cfe0ff; margin-bottom:16px; }
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:18px; }
   .tile { cursor:pointer; outline:none; }
@@ -278,6 +302,7 @@
   .dialog .row { justify-content:flex-start; }
 
   @media (max-width: 1000px) {
+    .intro { grid-template-columns:1fr; }
     .app { grid-template-columns:1fr; }
     .side { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
     .side .spacer, .me-box { display:none; }
@@ -314,6 +339,19 @@
           <div><h1>المكتبة</h1><p>اختر لعبتك. البرنامج يركّبها ويوصلها بالروم.</p></div>
           <div class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" placeholder="دوّر على لعبة" oninput="drawLibrary()" autocomplete="off"></div>
         </div>
+        <div class="intro card" id="intro">
+          <div class="intro-t">
+            <h2>أول مرة تلعب Archipelago؟</h2>
+            <p>كل واحد يلعب لعبته على جهازه، بس أغراض لعبتك مخلوطة في ألعاب الشباب، وأغراضهم في لعبتك. تلقى سيف صديقك وهو يلقى مفتاحك. تتساعدون بدون ما تلعبون نفس اللعبة.</p>
+            <div class="row"><button class="btn primary" onclick="openPack('first')">ابدأ بمجموعة سهلة</button>
+              <button class="btn ghost" onclick="hideIntro()">فهمت</button></div>
+          </div>
+          <ol class="intro-s"><li><b>اختر لعبة</b><span>وطلّع ملفك للمستضيف</span></li><li><b>المستضيف يولّد الروم</b><span>ويرسل لكم الرابط</span></li><li><b>الكل يضغط العب</b><span>والبرنامج يوصلكم</span></li></ol>
+        </div>
+        <h2 class="sec">مجموعات جاهزة</h2>
+        <div class="packs" id="packs"></div>
+        <div id="packBar" class="notice hidden"></div>
+        <h2 class="sec">كل الألعاب</h2>
         <div id="newGames" class="notice hidden"><svg class="i"><use href="#i-spark"/></svg><div id="newGamesText"></div></div>
         <div class="chips" id="cats"></div>
         <div class="grid" id="games"></div>
@@ -479,9 +517,14 @@
           <p class="sub">حط ملفاتهم (وملفك أنت) في مجلد اللاعبين.</p>
           <div class="row"><button class="btn" onclick="openFolder('players')"><svg class="i"><use href="#i-folder"/></svg>افتح مجلد اللاعبين</button>
             <button class="btn ghost" onclick="refresh()"><svg class="i"><use href="#i-refresh"/></svg>تحديث</button></div>
-          <table style="margin-top:12px"><thead><tr><th>الملف</th><th>اللعبة</th><th></th></tr></thead><tbody id="players"></tbody></table>
+          <table style="margin-top:12px"><thead><tr><th>الملف</th><th>اللعبة</th><th>Death Link</th><th></th></tr></thead><tbody id="players"></tbody></table>
         </div></div>
         <div class="card step"><div class="num">2</div><div>
+          <h3>فحص المجموعة</h3>
+          <p class="sub">هل الألعاب اللي اختارها الشباب تمشي مع بعض؟ البرنامج يقولك قبل ما تولّد.</p>
+          <div class="groupchk" id="group"></div>
+        </div></div>
+        <div class="card step"><div class="num">3</div><div>
           <h3>ولّد العالم</h3>
           <p class="sub">البرنامج يركّب الـ apworld لكل لعبة، ويولّد العالم، ويفتح لك صفحة الرفع. ترفع الملف وترسل رابط الروم للشباب.</p>
           <button class="btn primary" onclick="generate()"><svg class="i"><use href="#i-spark"/></svg>ولّد وجهّز الروم</button>
@@ -638,6 +681,39 @@ function artImg(urls, onfail, wide) {
   return im;
 }
 
+// ---------- packs: games that go well together ----------
+const PACKS = [
+  {id: "first", t: "أول مرة Archipelago", s: "قصيرة وسهلة: تفهمون الفكرة في سهرة وحدة", g: ["a_short_hike", "doom_1993", "muse_dash", "brotato", "a_hat_in_time"]},
+  {id: "horror", t: "سهرة رعب مع الشباب", s: "تلعبون مع بعض، وDeath Link يخليها فوضى", g: ["lethal_company", "repo", "content_warning", "buckshot"]},
+  {id: "night", t: "ليلة وحدة", s: "تخلص في جلسة: أكشن سريع", g: ["doom_1993", "heretic", "brotato", "buckshot", "muse_dash", "a_short_hike"]},
+  {id: "re", t: "ماراثون Resident Evil", s: "رعب وأغراض الكل تتحكم فيك", g: ["re2", "re3", "re7", "re8", "re4r"]},
+  {id: "adventure", t: "مغامرة ومنصّات", s: "استكشاف وقدرات تنفتح بأغراض الشباب", g: ["hollow_knight", "celeste", "tunic", "cuphead", "blasphemous", "timespinner", "a_hat_in_time"]},
+  {id: "chill", t: "رايقة على جنب", s: "طويلة وهادية، تمشي معكم أسابيع", g: ["stardew", "terraria", "subnautica", "minecraft", "the_witness"]},
+  {id: "souls", t: "للمحترفين", s: "صعبة: شغّلوا الموتات المجانية", g: ["elden_ring", "dark_souls_3", "sekiro", "hollow_knight"]},
+  {id: "together", t: "نفس العالم مع بعض", s: "تلعبون نفس اللعبة في عالم واحد، كل واحد باسمه", g: ["terraria", "valheim", "dst", "peak", "risk_of_rain_2", "lethal_company"]},
+];
+let PACK = null;
+function drawPacks() {
+  const ids = new Set(S.games.map(g => g.id));
+  $("packs").replaceChildren(...PACKS.map(p => {
+    const games = p.g.filter(id => ids.has(id)).map(id => S.games.find(g => g.id === id));
+    const strip = h("div", {class: "strip"}, ...games.filter(g => art(g, "tile").length).slice(0, 4).map(g => artImg(art(g, "tile"), () => {})));
+    return h("button", {class: "pack" + (PACK === p.id ? " on" : ""), onclick: () => openPack(PACK === p.id ? null : p.id)}, strip,
+      h("div", {class: "pt"}, h("b", {}, p.t), h("small", {}, bidi(p.s)), h("small", {}, `${games.length} ألعاب`)));
+  }));
+}
+function openPack(id) {
+  PACK = id; CAT = "all"; $("q").value = "";
+  const p = PACKS.find(x => x.id === id);
+  $("packBar").classList.toggle("hidden", !p);
+  if (p) $("packBar").replaceChildren(svg("info"), h("div", {class: "grow"}, h("b", {}, p.t + ": "), bidi(p.s) + ". كل واحد يختار لعبة منها، أو أكثر من واحد نفس اللعبة."),
+                                       h("button", {class: "btn small", onclick: () => openPack(null)}, "كل الألعاب"));
+  drawPacks(); drawCats(); drawLibrary();
+  if (p) $("packBar").scrollIntoView({behavior: "smooth", block: "start"});
+}
+function hideIntro() { $("intro").classList.add("hidden"); try { localStorage.setItem("mrap.introSeen", "1"); } catch (e) {} }
+try { if (localStorage.getItem("mrap.introSeen")) $("intro").classList.add("hidden"); } catch (e) {}
+
 // ---------- library ----------
 const CATS = [["all", "الكل"], ["new", "للمبتدئين"], ["short", "قصيرة"], ["long", "طويلة"], ["coop", "مع الشباب في نفس العالم"],
               ["action", "أكشن"], ["horror", "رعب"], ["puzzle", "ألغاز"], ["chill", "رايقة"]];
@@ -656,7 +732,8 @@ function drawCats() {
 function drawLibrary() {
   if (!S) return;
   const q = $("q").value.trim().toLowerCase();
-  const list = S.games.filter(g => inCat(g, CAT) && (!q || g.name.toLowerCase().includes(q) || (g.name_ar || "").includes(q) || (g.game || "").toLowerCase().includes(q)));
+  const pack = PACKS.find(x => x.id === PACK);
+  const list = S.games.filter(g => (!pack || pack.g.includes(g.id)) && inCat(g, CAT) && (!q || g.name.toLowerCase().includes(q) || (g.name_ar || "").includes(q) || (g.game || "").toLowerCase().includes(q)));
   $("noGames").classList.toggle("hidden", list.length > 0);
   $("games").replaceChildren(...list.map(g => {
     const cover = h("div", {class: "cover"});
@@ -911,11 +988,18 @@ async function refresh() {
   $("newGames").classList.toggle("hidden", !notes.length);
   $("newGamesText").textContent = bidi(notes.join("  ·  "));
   if (document.activeElement !== $("name")) $("name").value = S.player_name || "";
-  drawCats(); drawLibrary();
+  drawPacks(); drawCats(); drawLibrary(); drawGroup();
   $("players").replaceChildren(...(S.players.length ? S.players.map(p => h("tr", {},
       h("td", {class: "ltr"}, p.file), h("td", {class: "ltr"}, p.game || "؟"),
+      h("td", {}, p.death_link ? h("span", {class: "pill bad"}, svg("skull", "sm"), "شغّال") : h("span", {class: "pill"}, "طافي")),
       h("td", {}, p.recipe ? h("span", {class: "pill ok"}, "جاهزة") : h("span", {class: "pill warn"}, "ما لها وصفة"))))
-    : [h("tr", {}, h("td", {class: "muted", colspan: "3"}, "ما فيه ملفات للحين"))]));
+    : [h("tr", {}, h("td", {class: "muted", colspan: "4"}, "ما فيه ملفات للحين"))]));
+}
+function drawGroup() {
+  const g = S.group || [];
+  $("group").replaceChildren(...(g.length ? g.map(a => h("div", {class: "gc " + a.level}, svg(a.level === "ok" ? "check" : "alert"),
+      h("div", {}, h("b", {}, bidi(a.title)), h("span", {}, bidi(a.text)))))
+    : [h("div", {class: "muted"}, "حط ملفات الشباب في المجلد واضغط تحديث.")]));
 }
 async function ping() {
   try {
