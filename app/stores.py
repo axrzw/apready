@@ -1,10 +1,11 @@
-"""Where is the game installed? Steam first, but also a folder the player picked themselves, GOG Galaxy and
-the Epic Games launcher, for recipes whose mod works with those copies ("stores": ["steam", "gog", "epic"]).
+"""Where is the game installed? Steam first, but also a copy with no launcher (itch.io, Humble, the developer's
+site, GOG's offline installer: the player picks its folder) and the Epic Games launcher, for recipes whose mod
+works with those copies ("stores": ["steam", "standalone", "epic"]).
 
-    locate(recipe, settings) -> {"dir": Path, "store": "folder"|"steam"|"gog"|"epic", "epic_app": str} or None
+    locate(recipe, settings) -> {"dir": Path, "store": "folder"|"steam"|"standalone"|"epic", "epic_app": str} or None
 
-A picked folder wins (the player said so). GOG games are found in the registry (GOG.com\\Games\\<id>), Epic games
-in the launcher's manifests (ProgramData\\Epic\\EpicGamesLauncher\\Data\\Manifests\\*.item), matched by name.
+A picked folder wins (the player said so). Standalone copies installed by GOG are also found in the registry
+(GOG.com\\Games\\<id>); Epic games in the launcher's manifests (ProgramData\\Epic\\...\\Manifests\\*.item).
 """
 import json
 import os
@@ -15,7 +16,7 @@ from typing import Optional
 
 from . import steam
 
-STORE_AR = {"steam": "ستيم", "gog": "GOG", "epic": "Epic", "folder": "مجلد اخترته"}
+STORE_AR = {"steam": "ستيم", "standalone": "نسخة بدون لانشر", "epic": "Epic", "folder": "مجلد اخترته"}
 
 
 def _norm(name: str) -> str:
@@ -110,10 +111,10 @@ def locate(recipe: dict, settings: dict = None) -> Optional[dict]:
         if d:
             return {"dir": d, "store": "steam", "epic_app": ""}
     want = names(recipe)
-    if "gog" in st:
+    if "standalone" in st:  # GOG installs are standalone copies too, and they're in the registry
         for g in gog_games():
-            if _norm(g["name"]) in want and g["dir"].is_dir():
-                return {"dir": g["dir"], "store": "gog", "epic_app": ""}
+            if _norm(g["name"]) in want and g["dir"].is_dir() and folder_ok(recipe, g["dir"]):
+                return {"dir": g["dir"], "store": "standalone", "epic_app": ""}
     if "epic" in st:
         for g in epic_games():
             if _norm(g["name"]) in want and g["dir"].is_dir():

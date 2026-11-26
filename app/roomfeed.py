@@ -168,7 +168,9 @@ class RoomFeed:
                  get_json=_get_json, store=None):
         self.host, self.port, self.slot, self.password = host, int(port), slot, password or ""
         self.tracker, self._get_json = tracker, get_json
+        self.id = uuid.uuid4().hex[:8]  # a new feed (new room / Play again) restarts its event numbers: the page resets on a new id
         self.progress = {}        # player name -> {"done", "total", "goal"}
+        self.progress_error = ""
         self.my_checked = self.my_missing = None
         self._connect = connect or self._open
         self.events = []
@@ -217,15 +219,19 @@ class RoomFeed:
                 tr = self._get_json(f"{WEBHOST}/api/tracker/{self.tracker}")
                 names = {(a["team"], a["player"]): a.get("alias") for a in tr.get("aliases", [])}
                 goal = {(x["team"], x["player"]): x.get("status") == 30 for x in tr.get("player_status", [])}  # 30 = goal done
+                done = {(c["team"], c["player"]): len(c.get("locations") or []) for c in tr.get("player_checks_done", [])}
                 prog = {}
-                for c in tr.get("player_checks_done", []):
-                    k = (c["team"], c["player"])
-                    name = names.get(k) or self.players.get(c["player"]) or f"Player {c['player']}"
-                    prog[name] = {"done": len(c.get("locations", [])), "total": totals.get(k, 0), "goal": goal.get(k, False)}
+                # every slot the room knows (a player with no checks yet may be missing from player_checks_done)
+                for k in sorted(set(totals) | set(done)):
+                    if k[0] != self.team:
+                        continue
+                    name = names.get(k) or self.players.get(k[1]) or f"Player {k[1]}"
+                    prog[name] = {"done": done.get(k, 0), "total": totals.get(k, 0), "goal": goal.get(k, False)}
                 with self.lock:
                     self.progress = prog
-            except Exception:
-                pass  # tracker hiccup: keep the last numbers
+                    self.progress_error = ""
+            except Exception as e:
+                self.progress_error = str(e)[:200]  # tracker hiccup: keep the last numbers, say why if there are none
             if self.stop_flag.wait(30):
                 return
 
@@ -587,10 +593,19 @@ class RoomFeed:
             if self.my_checked is not None:
                 total = len(self.my_checked) + len(self.my_missing)
                 mine = {"done": len(self.my_checked), "total": total}
-            progress = dict(self.progress)
-            if not progress and mine and self.my_slot is not None:  # not on archipelago.gg: at least my own
-                progress = {self._name(self.my_slot): dict(mine, goal=False)}
-            return {"status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
+            progress = {k: dict(v) for k, v in self.progress.items()}
+            if mine and self.my_slot is not None:  # my own numbers live from the room (the website lags a minute)
+                me = self._name(self.my_slot)
+                cur = progress.get(me, {"goal": False})
+                progress[me] = {"done": max(mine["done"], cur.get("done", 0)), "total": mine["total"] or cur.get("total", 0),
+                                "goal": cur.get("goal", False)}
+            why = ""
+            if not self.tracker:
+                why = "no_link"        # a plain address: only my own numbers
+            elif not self.progress:
+                why = "loading" if not self.progress_error else "error"
+            return {"id": self.id, "status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
+                    "progress_why": why,
                     "game_link": {"state": self.game_state, "since": self.game_since},
                     "deaths": None,
                     "room": f"{self.host}:{self.port}", "slot": self.slot}

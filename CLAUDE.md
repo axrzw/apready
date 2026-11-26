@@ -91,6 +91,10 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   heard in the room, and real totals My Ready AP apps share with a Bounce tagged `MyReadyAP`
   ({"kind": "deaths", "source", "deaths"}; "deaths?" asks the others). Shown = max of both per player;
   a remote app can't set my own number. Kept per seed in `%APPDATA%/APReady/deaths.json` (last 20).
+- Progress: everyone from the archipelago.gg tracker (every slot in static_tracker totals, also players with no checks
+  yet), mine merged live from Connected/RoomUpdate; `progress_why` (no_link/loading/error) tells the page why it
+  only has my numbers. Each RoomFeed has an `id`: Play on another room = a new feed whose events restart at 0, the
+  page resets its log when the id changes (before, it kept asking for old numbers and showed nothing).
 - My game connected? `roomfeed` follows the server's Join/Part PrintJSON for my slot (a game's Part says "has left
   the game", the watcher's "stopped viewing"): `game_link` {state unknown|playing|lost, since}. Lost = red banner,
   sound, blinking title, Windows notification. Hints and items carry item/location/sender/receiver so the page
@@ -98,7 +102,9 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 - `app/groupcheck.py`: the host page's "فحص المجموعة" from the players' YAMLs (name, game, Death Link): a harsh
   Death Link game (`dl_fit` 1) next to others, short next to long, two Minecraft files, no recipe; co-op lobbies.
 - `app/stores.py`: where the game is: a folder the player picked (`game_dirs`, checked with recipe `exe`), Steam,
-  GOG (registry), Epic (launcher manifests) for recipes with `stores`. Not found -> the task asks to install it or
+  "standalone" (a copy with no launcher: itch.io, Humble, the developer's site, GOG; the player picks its folder, GOG
+  installs are also found in the registry), Epic (launcher manifests) for recipes with `stores`. Owner: nobody uses
+  GOG as a launcher, so the page talks about «نسخة بدون لانشر». Not found -> the task asks to install it or
   pick the folder (PowerShell folder picker). Launch: Epic via its launcher link, GOG/folder via `exe`.
 - Hints (الروم page card): the feed reads the room's hint storage `_read_hints_<team>_<slot>` (Get + SetNotify):
   «أغراضك وين» and «لازم تجيبها للشباب», found ones struck through; `/api/hint` sends `!hint <item>`

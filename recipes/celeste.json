@@ -185,7 +185,7 @@
   "dl_fit_ar": "تموت مئات المرات! خلّ «كل كم موتة ترسل» على 10 أو أكثر وإلا بتقتل الكل.",
   "stores": [
     "steam",
-    "gog",
+    "standalone",
     "epic"
   ],
   "exe": "Celeste.exe"

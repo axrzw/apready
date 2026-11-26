@@ -980,7 +980,7 @@ async function chooseFolder(game) {
     return true;
   } catch (e) { toast("ما ضبط المجلد", e.message, "bad"); return false; }
 }
-const STORE_AR = {steam: "ستيم", gog: "GOG", epic: "Epic", folder: "مجلد اخترته"};
+const STORE_AR = {steam: "ستيم", standalone: "نسخة بدون لانشر", epic: "Epic", folder: "مجلد اخترته"};
 function drawWhere() {
   const g = S.games.find(x => x.id === cur.id) || cur;
   const box = $("where");
@@ -990,7 +990,7 @@ function drawWhere() {
   box.replaceChildren(found,
     h("button", {class: "btn ghost small", onclick: () => chooseFolder(g.id)}, svg("folder", "sm"), g.store ? "غيّر المجلد" : "عندي اللعبة في مكان ثاني"),
     g.store === "folder" ? h("button", {class: "btn ghost small", onclick: async () => { await api("/api/game_folder", {game: g.id, clear: true}); await refresh(); drawWhere(); }}, "رجّعه تلقائي") : "",
-    other.length ? h("span", {class: "faint"}, "تشتغل كمان مع " + other.join(" و ")) : "");
+    other.length ? h("span", {class: "faint"}, bidi("تشتغل كمان مع " + other.join(" و ") + (g.stores.includes("standalone") ? " (itch.io أو Humble أو موقع اللعبة: اختر مجلدها)" : ""))) : "");
 }
 function setup() { if (cur) runTask("/api/setup", {game: cur.id, options: collect().options}, "taskWrap", () => { $("step1").classList.add("done"); refresh(); }); }
 async function play() {
@@ -1154,7 +1154,7 @@ async function watch() {
   if (needName()) return;
   const room = $("wroom").value.trim();
   if (!room) { $("wroom").classList.add("bad"); return toast("الصق رابط الروم", "", "bad"); }
-  try { await saveName(); await api("/api/watch", {room, password: $("wpass").value}); FEEDEV = []; FEEDNEXT = 0; FIRSTPOLL = true; askNotify(); }
+  try { await saveName(); await api("/api/watch", {room, password: $("wpass").value}); askNotify(); }
   catch (e) { toast("ما قدرت أتابع الروم", e.message, "bad"); }
 }
 $("wroom").addEventListener("input", () => $("wroom").classList.remove("bad"));
@@ -1253,16 +1253,20 @@ function drawRelay(j) {
   box.replaceChildren(head, st);
 }
 const pct = p => p && p.total ? Math.floor(p.done * 100 / p.total) : 0;
-function drawProgress(prog, me) {
+const WHY = {no_link: "تشوف أرقامك بس. عشان تشوف أرقام الكل، تابع الروم برابطه الكامل من archipelago.gg.",
+             loading: "يجيب أرقام الكل من archipelago.gg...", error: "موقع archipelago.gg ما رد للحين. أرقامك تمشي من الروم مباشرة."};
+function drawProgress(prog, me, why) {
   const names = Object.keys(prog || {});
-  if (!names.length) { $("progress").textContent = "لسا ما فيه أرقام."; return; }
-  names.sort((a, b) => pct(prog[b]) - pct(prog[a]));
+  const note = WHY[why] ? h("p", {class: "faint", style: "margin:8px 0 0"}, bidi(WHY[why])) : "";
+  if (!names.length) { $("progress").replaceChildren(LASTF.status === "connected" ? "لسا ما فيه أرقام." : "تابع روم عشان تشوف التقدّم.", note); return; }
+  names.sort((a, b) => (b === me) - (a === me) || pct(prog[b]) - pct(prog[a]));
   $("progress").replaceChildren(...names.map(n => {
     const p = prog[n], v = pct(p);
+    const num = p.goal ? "خلّص" : p.total ? `${p.done} / ${p.total}` : `${p.done} تشيك`;
     return h("div", {class: "prog-row" + (n === me ? " me" : "")},
-      h("div", {class: "lab"}, h("b", {}, n), h("span", {class: "muted"}, p.goal ? "خلّص" : `${p.done} / ${p.total}`)),
+      h("div", {class: "lab"}, h("b", {}, n), h("span", {class: "muted"}, num)),
       h("div", {class: "bar"}, h("i", {style: `width:${p.goal ? 100 : v}%` + (p.goal ? ";background:var(--ok)" : "")})));
-  }));
+  }), note);
 }
 function drawDeaths(d, me) {
   const names = Object.keys(d || {});
@@ -1297,7 +1301,11 @@ function announce(events) {
 let lostTitle = null;
 async function pollFeed() {
   try {
-    const f = await api("/api/feed?since=" + FEEDNEXT);
+    let f = await api("/api/feed?since=" + FEEDNEXT);
+    if (f.id && LASTF.id && f.id !== LASTF.id) {  // a new room (or Play again): start the log over
+      FEEDEV = []; FEEDNEXT = 0; FIRSTPOLL = true; HINTITEMS_LOADED = false; HINTS = {mine: [], theirs: []};
+      f = await api("/api/feed?since=0");
+    }
     LASTF = f;
     if (f.events && f.events.length) {
       FEEDEV = FEEDEV.concat(f.events).slice(-3000);
@@ -1308,7 +1316,7 @@ async function pollFeed() {
     } else if (!$("feed").children.length) drawFeed(true);
     FIRSTPOLL = false;
     drawStatus(f);
-    drawProgress(f.progress, f.me);
+    drawProgress(f.progress, f.me, f.progress_why);
     drawDeaths(f.deaths, f.me);
     if (f.hints) drawHints(f.hints);
     drawTrackers(f);

@@ -175,7 +175,7 @@
   "dl_fit_ar": "تموت فجأة كثير: Death Link فوضوي، استخدم موتات مجانية.",
   "stores": [
     "steam",
-    "gog"
+    "standalone"
   ],
   "exe": "noita.exe"
 }
