@@ -5,7 +5,7 @@
   "game": "Valheim",
   "steam_appid": 892970,
   "verified": false,
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx و Jotunn من Thunderstore والمود من GitHub. لما تفتح اللعبة تطلع نافذة الاتصال: خل Randomized مفعّل.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx و Jotunn من Thunderstore والمود من GitHub. لما تفتح اللعبة تطلع نافذة الاتصال: خل Randomized مفعّل.",
   "sources": [
     "https://github.com/xyzzy44/ValheimArchipelagoRandomizer",
     "https://github.com/xyzzy44/ValheimArchipelagoRandomizer/releases",
@@ -102,5 +102,15 @@
     "التقنية اللي توصلك ما تطلع إلا لما تلقى موادها أول مرة.",
     "هذي اللعبة ما فيها Death Link."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "long",
+  "genres": [
+    "coop",
+    "chill"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "تقدرون تلعبون نفس العالم مع بعض.",
+    "طويلة: خطط لكذا جلسة."
+  ]
 }

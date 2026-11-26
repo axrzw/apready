@@ -6,7 +6,7 @@
   "steam_appid": 1625450,
   "verified": false,
   "death_link_key": "deathlink",
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. ببلاش في ستيم. اللعب الجماعي ما ينفع فيها للحين: لازم تكون لحالك في اللوبي.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. ببلاش في ستيم. اللعب الجماعي ما ينفع فيها للحين: لازم تكون لحالك في اللوبي.",
   "sources": [
     "https://github.com/PGMProductions/Muck-for-Archipelago/blob/main/HOW%20TO%20USE.md",
     "https://thunderstore.io/c/muck/p/PGM_Productions/Muck_For_Archipelago/"
@@ -71,5 +71,16 @@
     "أي صعوبة تمشي.",
     "لو صار خطأ، إعادة تشغيل اللعبة غالباً تحله."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "short",
+  "genres": [
+    "action",
+    "coop"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "جولات قصيرة: حلوة مع ألعاب طويلة."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت في Muck ينهي الجولة: Death Link قاسي شوي."
 }

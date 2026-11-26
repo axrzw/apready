@@ -5,7 +5,7 @@
   "game": "Content Warning",
   "steam_appid": 2881650,
   "verified": false,
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود من Thunderstore.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود من Thunderstore.",
   "sources": [
     "https://github.com/Jakeodude/cw-apworld",
     "https://thunderstore.io/c/content-warning/p/Faust/ContentWarningArchipelago/"
@@ -80,5 +80,17 @@
   "avoid_ar": [
     "لو تلعب لحالك خل Multiplayer Mode طافي في الخيارات."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "short",
+  "genres": [
+    "horror",
+    "coop"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "تلعبونها مع بعض: الكل في نفس العالم.",
+    "اكتب عنوان الروم في اللعبة نفسها."
+  ],
+  "dl_fit": 3,
+  "dl_fit_ar": "مع الشباب في نفس الغرفة: الموت جزء من المتعة."
 }

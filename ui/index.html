@@ -6,399 +6,847 @@
 <title>My Ready AP</title>
 <link rel="icon" href="/icon.png">
 <style>
-  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --text:#e8eaf0; --dim:#9aa3b2;
-          --accent:#e5484d; --ok:#30a46c; --warn:#f5a524; }
+  :root {
+    --bg:#0b0d12; --bg2:#10131a; --surface:#151923; --surface2:#1b2030; --line:#252b3a; --line2:#323a4d;
+    --text:#eef1f6; --dim:#9aa4b6; --faint:#6b7486;
+    --accent:#e5484d; --accent2:#ff6b6f; --accent-bg:rgba(229,72,77,.12);
+    --ok:#3dd68c; --ok-bg:rgba(61,214,140,.12); --warn:#f5b342; --warn-bg:rgba(245,179,66,.12);
+    --bad:#ff6369; --bad-bg:rgba(255,99,105,.12); --info:#6aa8ff; --info-bg:rgba(106,168,255,.12);
+    --gold:#f2c94c;
+    --r:14px; --r-sm:10px; --shadow:0 10px 30px rgba(0,0,0,.35);
+    --font:"Segoe UI Variable Text","Segoe UI",system-ui,Tahoma,sans-serif;
+  }
   * { box-sizing:border-box; }
-  body { margin:0; font-family:"Segoe UI",Tahoma,sans-serif; background:var(--bg); color:var(--text); }
-  header { padding:18px 24px; border-bottom:1px solid var(--line); display:flex; gap:16px; align-items:center; }
-  header h1 { margin:0; font-size:22px; }
-  nav button { background:none; border:1px solid var(--line); color:var(--text); padding:8px 14px; border-radius:8px; cursor:pointer; }
-  nav button.on { border-color:var(--accent); }
-  main { max-width:960px; margin:0 auto; padding:20px; }
+  html, body { height:100%; }
+  body { margin:0; font-family:var(--font); background:var(--bg); color:var(--text); font-size:15px; line-height:1.55;
+         -webkit-font-smoothing:antialiased; }
+  button, input, select, textarea { font:inherit; color:inherit; }
+  a { color:var(--info); }
+  .ltr { direction:ltr; unicode-bidi:isolate; }
+  .hidden { display:none !important; }
+  .muted { color:var(--dim); }
+  .faint { color:var(--faint); font-size:13px; }
+  svg.i { width:18px; height:18px; flex:none; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; vertical-align:middle; }
+  svg.i.sm { width:15px; height:15px; } svg.i.lg { width:22px; height:22px; }
+
+  /* ---------- shell ---------- */
+  .app { display:grid; grid-template-columns:236px 1fr; min-height:100%; }
+  .side { position:sticky; top:0; height:100vh; background:var(--bg2); border-inline-end:1px solid var(--line);
+          display:flex; flex-direction:column; padding:18px 14px; gap:6px; }
+  .brand { display:flex; align-items:center; gap:10px; padding:4px 8px 18px; }
+  .brand img { width:30px; height:30px; border-radius:8px; }
+  .brand b { font-size:17px; letter-spacing:.2px; }
+  .nav { display:flex; align-items:center; gap:12px; width:100%; padding:10px 12px; border:0; border-radius:var(--r-sm);
+         background:none; cursor:pointer; color:var(--dim); text-align:start; font-size:15px; position:relative; }
+  .nav:hover { background:var(--surface); color:var(--text); }
+  .nav.on { background:var(--surface2); color:var(--text); }
+  .nav.on::before { content:""; position:absolute; inset-inline-start:-14px; top:8px; bottom:8px; width:3px; border-radius:3px; background:var(--accent); }
+  .nav .dot { margin-inline-start:auto; width:8px; height:8px; border-radius:50%; background:var(--faint); }
+  .nav .dot.ok { background:var(--ok); box-shadow:0 0 0 3px var(--ok-bg); }
+  .nav .dot.bad { background:var(--bad); box-shadow:0 0 0 3px var(--bad-bg); animation:pulse 1.2s infinite; }
+  .nav .dot.warn { background:var(--warn); }
+  @keyframes pulse { 50% { opacity:.35; } }
+  .side .spacer { flex:1; }
+  .me-box { background:var(--surface); border:1px solid var(--line); border-radius:var(--r-sm); padding:12px; }
+  .me-box label { font-size:12px; color:var(--dim); display:block; margin-bottom:6px; }
+  .me-row { display:flex; gap:6px; }
+  .me-row input { flex:1; min-width:0; }
+  .ver { font-size:12px; color:var(--faint); padding:8px 8px 0; direction:ltr; text-align:end; }
+
+  .view { min-width:0; }
+  .page { max-width:1180px; margin:0 auto; padding:26px 32px 60px; }
+  .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .page-head h1 { margin:0; font-size:26px; font-weight:700; }
+  .page-head p { margin:4px 0 0; color:var(--dim); }
+
+  /* ---------- controls ---------- */
+  input, select, textarea { background:var(--bg); border:1px solid var(--line2); border-radius:var(--r-sm); padding:9px 12px; outline:none; }
+  input:focus, select:focus, textarea:focus { border-color:var(--info); box-shadow:0 0 0 3px var(--info-bg); }
+  input.bad { border-color:var(--bad); box-shadow:0 0 0 3px var(--bad-bg); }
+  textarea { width:100%; min-height:100px; direction:ltr; font-family:Consolas,monospace; font-size:13px; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line2); background:var(--surface2);
+         padding:9px 16px; border-radius:var(--r-sm); cursor:pointer; font-weight:600; white-space:nowrap; transition:background .15s, border-color .15s, transform .05s; }
+  .btn:hover { border-color:#45506a; background:#222839; }
+  .btn:active { transform:translateY(1px); }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .btn.primary:hover { background:var(--accent2); border-color:var(--accent2); }
+  .btn.big { padding:13px 26px; font-size:17px; border-radius:12px; }
+  .btn.ghost { background:none; border-color:transparent; color:var(--dim); }
+  .btn.ghost:hover { color:var(--text); background:var(--surface); }
+  .btn.small { padding:5px 10px; font-size:13px; font-weight:600; }
+  .btn.danger { background:none; border-color:rgba(255,99,105,.45); color:var(--bad); }
+  .btn.danger:hover { background:var(--bad-bg); }
   .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  input, select, textarea { background:#0b0d11; color:var(--text); border:1px solid var(--line); border-radius:8px; padding:9px 11px; font:inherit; }
-  textarea { width:100%; min-height:110px; direction:ltr; font-family:Consolas,monospace; }
-  .btn { background:var(--accent); color:#fff; border:0; padding:11px 18px; border-radius:10px; font-size:16px; cursor:pointer; }
-  .btn.alt { background:#2a2f3a; }
-  .btn:disabled { opacity:.5; cursor:default; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:12px; margin:16px 0; }
-  .game { background:var(--card); border:2px solid var(--line); border-radius:12px; padding:14px; cursor:pointer; }
-  .game.sel { border-color:var(--accent); }
-  .game b { display:block; font-size:16px; }
-  .tag { font-size:12px; color:var(--dim); }
-  .tag.no { color:var(--warn); }
-  .panel { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-top:12px; }
-  .dl { display:flex; justify-content:space-between; align-items:center; padding:14px; border-radius:10px; background:#2a1416; border:1px solid var(--accent); margin-bottom:14px; }
-  .dl strong { font-size:18px; }
-  .switch { position:relative; width:58px; height:32px; }
-  .switch input { display:none; }
-  .switch span { position:absolute; inset:0; background:#444; border-radius:32px; transition:.2s; cursor:pointer; }
-  .switch span:before { content:""; position:absolute; width:24px; height:24px; top:4px; right:4px; background:#fff; border-radius:50%; transition:.2s; }
+  .grow { flex:1; min-width:0; }
+
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:18px 20px; }
+  .card + .card { margin-top:14px; }
+  .card-h { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+  .card-h h2, .card-h h3 { margin:0; font-size:16px; font-weight:700; }
+  .card-h .aside { margin-inline-start:auto; }
+  .pill { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; padding:3px 10px; border-radius:99px;
+          background:var(--surface2); color:var(--dim); border:1px solid var(--line); white-space:nowrap; }
+  .pill.ok { color:var(--ok); background:var(--ok-bg); border-color:transparent; }
+  .pill.warn { color:var(--warn); background:var(--warn-bg); border-color:transparent; }
+  .pill.bad { color:var(--bad); background:var(--bad-bg); border-color:transparent; }
+  .pill.info { color:var(--info); background:var(--info-bg); border-color:transparent; }
+  .pill.gold { color:var(--gold); background:rgba(242,201,76,.12); border-color:transparent; }
+
+  /* ---------- library ---------- */
+  .search { position:relative; width:320px; max-width:100%; }
+  .search input { width:100%; padding-inline-start:38px; }
+  .search svg { position:absolute; inset-inline-start:12px; top:50%; transform:translateY(-50%); color:var(--faint); }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 18px; }
+  .chip { border:1px solid var(--line2); background:none; color:var(--dim); padding:6px 14px; border-radius:99px; cursor:pointer; font-size:14px; }
+  .chip:hover { color:var(--text); border-color:#45506a; }
+  .chip.on { background:var(--text); color:#0b0d12; border-color:var(--text); font-weight:600; }
+  .chip .n { opacity:.6; margin-inline-start:4px; font-size:12px; }
+  .intro { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:center; margin-bottom:26px;
+           background:radial-gradient(120% 140% at 100% 0,rgba(229,72,77,.18),transparent 55%),var(--surface); }
+  .intro h2 { margin:0 0 8px; font-size:20px; } .intro p { margin:0 0 14px; color:var(--dim); max-width:560px; }
+  .intro-s { margin:0; padding:0; list-style:none; counter-reset:s; display:grid; gap:10px; }
+  .intro-s li { counter-increment:s; display:grid; grid-template-columns:30px 1fr; grid-template-rows:auto auto; column-gap:12px; }
+  .intro-s li::before { content:counter(s); grid-row:span 2; width:30px; height:30px; border-radius:50%; background:var(--surface2); border:1px solid var(--line2);
+                        display:flex; align-items:center; justify-content:center; font-weight:800; color:var(--accent2); }
+  .intro-s span { color:var(--dim); font-size:13.5px; }
+  h2.sec { font-size:17px; margin:6px 0 12px; }
+  .packs { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; margin-bottom:28px; }
+  .pack { position:relative; text-align:start; cursor:pointer; border-radius:var(--r); overflow:hidden; border:1px solid var(--line); background:var(--surface);
+          padding:0; color:var(--text); transition:transform .18s, border-color .18s; }
+  .pack:hover { transform:translateY(-3px); border-color:#4a5470; }
+  .pack.on { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-bg); }
+  .pack .strip { display:flex; height:92px; overflow:hidden; }
+  .pack .strip img, .pack .strip div { flex:1; min-width:0; height:100%; object-fit:cover; background:var(--surface2); }
+  .pack .pt { padding:12px 14px 14px; }
+  .pack b { display:block; font-size:15px; } .pack small { color:var(--dim); font-size:13px; display:block; margin-top:3px; }
+  .groupchk { display:grid; gap:10px; }
+  .gc { display:flex; gap:12px; padding:12px 14px; border-radius:12px; border:1px solid var(--line); background:var(--bg2); }
+  .gc.bad { border-color:rgba(255,99,105,.5); background:var(--bad-bg); } .gc.bad svg { color:var(--bad); }
+  .gc.warn { border-color:rgba(245,179,66,.45); background:var(--warn-bg); } .gc.warn svg { color:var(--warn); }
+  .gc.ok svg { color:var(--ok); }
+  .gc b { display:block; } .gc span { color:var(--dim); font-size:14px; }
+  .notice { display:flex; gap:10px; align-items:flex-start; padding:12px 14px; border-radius:var(--r-sm); background:var(--info-bg); color:#cfe0ff; margin-bottom:16px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:18px; }
+  .tile { cursor:pointer; outline:none; }
+  .tile .cover { position:relative; border-radius:12px; overflow:hidden; background:var(--surface2); aspect-ratio:2/3; border:1px solid var(--line);
+                 transition:transform .18s, box-shadow .18s, border-color .18s; }
+  .tile:hover .cover, .tile:focus-visible .cover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:#4a5470; }
+  .tile img { width:100%; height:100%; object-fit:cover; display:block; }
+  .tile.wide img { object-position:center; }
+  .tile .fallback { position:absolute; inset:0; display:flex; align-items:flex-end; padding:16px; font-weight:800; font-size:22px; line-height:1.15;
+                    background:radial-gradient(120% 80% at 80% 10%,#3b4a7a 0,#1b2236 55%,#121620); direction:ltr; text-align:left; }
+  .tile .name { font-weight:600; font-size:14px; direction:ltr; text-align:right; line-height:1.3; margin-top:9px; color:#dfe4ee; }
+  .tile .meta { display:flex; gap:6px; flex-wrap:wrap; margin-top:5px; }
+  .tile .meta span { font-size:11.5px; padding:1px 8px; border-radius:99px; background:var(--surface2); color:var(--dim); border:1px solid var(--line); }
+  .tile .meta span.no { background:var(--warn-bg); color:var(--warn); border-color:transparent; }
+  .tile .meta span.ok { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
+  .empty { padding:40px; text-align:center; color:var(--dim); border:1px dashed var(--line2); border-radius:var(--r); }
+
+  /* ---------- game page ---------- */
+  .hero { position:relative; height:300px; overflow:hidden; background:linear-gradient(160deg,#2a3350,#0b0d12); }
+  .hero img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .hero::after { content:""; position:absolute; inset:0; background:linear-gradient(to top,var(--bg) 4%,rgba(11,13,18,.55) 55%,rgba(11,13,18,.15)); }
+  .hero-in { position:absolute; inset:auto 0 0 0; z-index:1; max-width:1180px; margin:0 auto; padding:0 32px 22px; }
+  .hero h1 { margin:6px 0 8px; font-size:36px; font-weight:800; direction:ltr; text-align:right; text-shadow:0 2px 18px rgba(0,0,0,.6); }
+  .back { position:absolute; top:16px; inset-inline-start:24px; z-index:2; background:rgba(11,13,18,.6); backdrop-filter:blur(6px); }
+  .gp { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:20px; align-items:start; }
+  .notes { color:var(--dim); margin:0 0 16px; max-width:820px; }
+  .step { display:grid; grid-template-columns:34px 1fr; gap:14px; }
+  .step + .step { margin-top:14px; }
+  .step .num { width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:800;
+               background:var(--surface2); border:1px solid var(--line2); color:var(--dim); }
+  .step.done .num { background:var(--ok-bg); color:var(--ok); border-color:transparent; }
+  .step h3 { margin:4px 0 4px; font-size:17px; }
+  .step p.sub { margin:0 0 12px; color:var(--dim); font-size:14px; }
+  .dlbox { display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:12px; background:linear-gradient(90deg,rgba(229,72,77,.16),rgba(229,72,77,.05));
+           border:1px solid rgba(229,72,77,.45); }
+  .dlbox .t { flex:1; }
+  .dlbox strong { font-size:16px; }
+  .dlbox.off { filter:grayscale(1); opacity:.5; }
+  .dlsub { border:1px solid rgba(229,72,77,.3); border-top:0; border-radius:0 0 12px 12px; padding:2px 16px; margin-top:-8px; padding-top:10px; }
+  .switch { position:relative; width:52px; height:30px; flex:none; }
+  .switch input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; z-index:1; }
+  .switch span { position:absolute; inset:0; background:#3a4152; border-radius:30px; transition:.2s; pointer-events:none; }
+  .switch span::before { content:""; position:absolute; width:22px; height:22px; top:4px; right:4px; background:#fff; border-radius:50%; transition:.2s; }
   .switch input:checked + span { background:var(--accent); }
-  .switch input:checked + span:before { transform:translateX(-26px); }
-  .dl.off { opacity:.4; filter:grayscale(1); }
-  .multi-opt { flex-direction:column; align-items:stretch; text-align:start; }
-  .multi-opt .multi { width:100%; }
-  .multi { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:4px 12px; margin-top:6px; }
-  .multi label { display:flex; gap:6px; align-items:center; cursor:pointer; }
-  .release { margin-top:10px; background:transparent; border:1px solid rgba(255,120,120,.5); color:#ff9a9a; }
-  .feed { max-height:460px; overflow-y:auto; font-size:14px; }
-  .ev { display:flex; gap:10px; padding:5px 2px; border-bottom:1px solid rgba(255,255,255,.05); }
-  .ev .t { opacity:.5; font-variant-numeric:tabular-nums; flex:none; direction:ltr; }
-  .ev.death { color:#ff8080; } .ev.hint { color:#ffd27a; } .ev.join, .ev.system { opacity:.65; }
-  .ev.goal { color:#8be28b; font-weight:600; } .ev.me { background:rgba(80,160,255,.10); }
-  .ev.prog { font-weight:600; } .ev.trap { color:#ff9f6b; }
-  .chips { gap:6px; margin-bottom:8px; flex-wrap:wrap; }
-  .chip { background:transparent; color:inherit; border:1px solid rgba(255,255,255,.15); border-radius:16px; padding:4px 12px; cursor:pointer; }
-  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; }
-  .prog-row { margin:8px 0; } .prog-row.me b { color:var(--accent); }
-  .prog-label { display:flex; justify-content:space-between; gap:8px; margin-bottom:4px; }
-  .bar { height:8px; background:rgba(255,255,255,.08); border-radius:6px; overflow:hidden; }
-  .bar i { display:block; height:100%; background:var(--accent); }
-  .death-chip { display:inline-block; margin:3px; padding:3px 10px; border-radius:12px; background:rgba(255,80,80,.12); color:#ff9a9a; }
-  .hints .h { padding:6px 0; border-bottom:1px solid var(--line); }
-  .hints .h.found { opacity:.45; text-decoration:line-through; }
-  .hints .h b { color:var(--text); }
-  .hints .h .imp { color:var(--warn); }
-  h4 { margin:14px 0 6px; font-size:15px; }
-  #deathBar { padding:8px 24px; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; align-items:center; gap:4px; }
-  #deathBar.hidden { display:none; }
-  #deathBar .death-chip.me { outline:1px solid #ff9a9a; }
-  #deathBar .free { color:var(--ok); margin-inline-start:8px; font-size:14px; }
-  #deathBar .relay { flex-basis:100%; font-size:14px; padding:6px 10px; border-radius:8px; margin-top:4px; }
-  #deathBar .relay.ok { color:var(--ok); }
-  #deathBar .relay.wait { color:var(--warn); background:rgba(245,165,36,.08); }
-  #deathBar .relay.bad { color:#ff9a9a; background:rgba(255,80,80,.12); border:1px solid #ff9a9a; }
-  #deathBar .relay code { background:#0b0d11; padding:2px 6px; border-radius:6px; }
-  .btn.small { padding:3px 10px; font-size:13px; }
-  .guide { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 14px; margin:10px 0 14px; }
-  .guide summary { cursor:pointer; font-weight:600; }
-  .guide ol, .guide ul { margin:8px 0 0; padding-inline-start:22px; line-height:1.8; }
-  .guide p { margin:8px 0 0; line-height:1.8; }
-  .guide.warn { border-color:rgba(255,170,60,.35); }
-  .dlopts { border:1px solid rgba(230,70,70,.35); border-top:none; border-radius:0 0 10px 10px; padding:4px 14px; margin-top:-8px; }
-  .dl.off .switch span { cursor:not-allowed; }
-  .opt { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--line); gap:10px; }
-  .opt small { color:var(--dim); display:block; }
-  details { margin-top:14px; }
-  summary { cursor:pointer; color:var(--dim); font-size:15px; padding:6px 0; }
-  pre.log { background:#0b0d11; border:1px solid var(--line); border-radius:8px; padding:12px; min-height:60px; max-height:260px; overflow:auto; white-space:pre-wrap; }
-  .err { color:#ff8a8a; }
-  .need { background:#2b2410; border:1px solid var(--warn); border-radius:10px; padding:14px; margin-top:10px; }
-  .hidden { display:none; }
-  .muted { color:var(--dim); font-size:14px; }
-  #version { position:fixed; bottom:8px; left:10px; font-size:12px; color:var(--dim); opacity:.75;
-             background:var(--card); border:1px solid var(--line); border-radius:6px; padding:2px 7px; pointer-events:none; }
-  body { padding-bottom:36px; }  /* room for the version badge */
-  table { width:100%; border-collapse:collapse; } td { padding:6px; border-bottom:1px solid var(--line); }
+  .switch input:checked + span::before { transform:translateX(-22px); }
+  .switch input:disabled { cursor:not-allowed; }
+  .switch input:focus-visible + span { box-shadow:0 0 0 3px var(--info-bg); }
+  .opt { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:11px 0; border-bottom:1px solid var(--line); }
+  .opt:last-child { border-bottom:0; }
+  .opt .l small { display:block; color:var(--dim); font-size:13px; }
+  .opt select { max-width:320px; }
+  .multi-opt { flex-direction:column; align-items:stretch; }
+  .multi { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:6px 14px; margin-top:8px; }
+  .multi label { display:flex; gap:8px; align-items:center; cursor:pointer; }
+  details.more { margin-top:12px; border-top:1px solid var(--line); padding-top:6px; }
+  details.more > summary { cursor:pointer; color:var(--dim); padding:8px 0; list-style:none; display:flex; align-items:center; gap:8px; font-weight:600; }
+  details.more > summary::-webkit-details-marker { display:none; }
+  details.more[open] > summary svg { transform:rotate(90deg); }
+  .info h3 { font-size:15px; margin:0 0 8px; display:flex; align-items:center; gap:8px; }
+  .info ol, .info ul { margin:0; padding-inline-start:20px; }
+  .info li { margin:6px 0; }
+  .info p { margin:0; }
+  .info.warn h3 { color:var(--warn); }
+  .rate { display:flex; gap:4px; } .rate i { width:22px; height:6px; border-radius:3px; background:var(--line2); }
+  .rate i.on { background:var(--accent); }
+  .field { display:flex; flex-direction:column; gap:6px; }
+  .field label { font-size:13px; color:var(--dim); }
+
+  /* task log */
+  .task { margin-top:14px; border:1px solid var(--line); background:var(--bg2); border-radius:12px; padding:12px 14px; }
+  .task .ln { display:flex; gap:10px; align-items:flex-start; padding:4px 0; font-size:14px; }
+  .task .ln svg { margin-top:3px; }
+  .task .ln.ok svg { color:var(--ok); } .task .ln.run svg { color:var(--info); } .task .ln.do { color:#fff; font-weight:600; }
+  .task .ln.do svg { color:var(--warn); } .task .ln.err { color:var(--bad); }
+  .task .prog { height:4px; border-radius:2px; background:var(--line); overflow:hidden; margin:2px 0 6px 0; }
+  .task .prog i { display:block; height:100%; background:var(--info); transition:width .3s; }
+  .task .done-line { color:var(--ok); font-weight:700; display:flex; gap:8px; align-items:center; margin-top:6px; }
+  .need { margin-top:10px; padding:14px; border-radius:12px; background:var(--warn-bg); border:1px solid rgba(245,179,66,.45); }
+  .need p { margin:0 0 10px; color:#ffe2a8; }
+
+  /* ---------- room page ---------- */
+  .alert { display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:var(--r); margin-bottom:16px; font-weight:600; }
+  .alert.bad { background:var(--bad-bg); border:1px solid rgba(255,99,105,.55); color:#ffc9cb; animation:glow 1.6s infinite; }
+  .alert.warn { background:var(--warn-bg); border:1px solid rgba(245,179,66,.45); color:#ffe2a8; }
+  .alert.ok { background:var(--ok-bg); border:1px solid rgba(61,214,140,.4); color:#c4f5dc; }
+  .alert .t { flex:1; } .alert small { display:block; font-weight:400; opacity:.85; }
+  @keyframes glow { 50% { box-shadow:0 0 0 4px rgba(255,99,105,.15); } }
+  .rgrid { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; align-items:start; }
+  .stat { display:flex; align-items:center; gap:10px; padding:9px 0; border-bottom:1px solid var(--line); }
+  .stat:last-child { border-bottom:0; }
+  .stat .k { color:var(--dim); font-size:14px; flex:1; }
+  .tabs { display:flex; gap:4px; background:var(--bg); border:1px solid var(--line); padding:4px; border-radius:12px; margin-bottom:12px; }
+  .tabs button { flex:1; border:0; background:none; padding:8px 10px; border-radius:9px; cursor:pointer; color:var(--dim); font-weight:600; display:flex; gap:8px; justify-content:center; align-items:center; }
+  .tabs button.on { background:var(--surface2); color:var(--text); }
+  .tabs .count { font-size:12px; background:var(--line2); padding:0 7px; border-radius:99px; }
+  .tabs .count.new { background:var(--accent); color:#fff; }
+  .meter { display:flex; align-items:center; gap:10px; font-size:13px; color:var(--dim); margin:2px 0 12px; }
+  .meter .bar { flex:1; }
+  .bar { height:6px; background:rgba(255,255,255,.07); border-radius:6px; overflow:hidden; }
+  .bar i { display:block; height:100%; background:var(--accent); border-radius:6px; transition:width .4s; }
+  .bar.gold i { background:var(--gold); }
+  .hint { display:grid; grid-template-columns:1fr auto; gap:4px 10px; padding:11px 12px; border-radius:10px; background:var(--bg2); border:1px solid var(--line); }
+  .hint + .hint { margin-top:8px; }
+  .hint .item { font-weight:700; direction:ltr; text-align:right; }
+  .hint .item.imp { color:var(--gold); }
+  .hint .where { grid-column:1 / -1; color:var(--dim); font-size:14px; }
+  .hint .where b { color:var(--text); font-weight:600; }
+  .hint.found { opacity:.45; }
+  .hint.found .item { text-decoration:line-through; }
+  .hint.fresh { border-color:rgba(242,201,76,.6); box-shadow:0 0 0 3px rgba(242,201,76,.08); }
+  .hint .badge { font-size:11px; font-weight:700; color:#0b0d12; background:var(--gold); padding:1px 7px; border-radius:99px; align-self:start; }
+  .ask { display:flex; gap:8px; margin-bottom:10px; }
+  .ask input { flex:1; min-width:0; direction:ltr; text-align:right; }
+  .feed { max-height:520px; overflow-y:auto; margin:0 -6px; padding:0 6px; }
+  .ev { display:flex; gap:10px; padding:8px 6px; border-radius:8px; font-size:14px; align-items:flex-start; }
+  .ev + .ev { border-top:1px solid rgba(255,255,255,.04); }
+  .ev .ic { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none; background:var(--surface2); color:var(--dim); }
+  .ev .tx { flex:1; min-width:0; overflow-wrap:anywhere; }
+  .ev .tm { color:var(--faint); font-size:12px; direction:ltr; flex:none; padding-top:3px; font-variant-numeric:tabular-nums; }
+  .ev.death .ic { background:var(--bad-bg); color:var(--bad); }
+  .ev.hint .ic { background:rgba(242,201,76,.12); color:var(--gold); }
+  .ev.goal .ic { background:var(--ok-bg); color:var(--ok); } .ev.goal .tx { color:#c4f5dc; font-weight:600; }
+  .ev.item.me { background:var(--info-bg); } .ev.item.me .ic { background:var(--info); color:#0b0d12; }
+  .ev.item.prog .tx { font-weight:600; }
+  .ev.chat .ic { background:var(--surface2); color:var(--text); }
+  .ev.conn.lost .ic, .ev.conn.lost .tx { color:var(--bad); } .ev.conn.playing .ic { color:var(--ok); }
+  .ev.cmd .tx { font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; direction:ltr; text-align:left; color:#cfd6e4; }
+  .ev.sent .tx { color:var(--dim); direction:ltr; text-align:right; }
+  .ev details summary { cursor:pointer; list-style:none; }
+  .ev details summary::-webkit-details-marker { display:none; }
+  .ev details .sub { margin-top:6px; color:var(--dim); font-size:13px; }
+  .ev details .sub div { padding:2px 0; }
+  .chat { display:flex; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid var(--line); }
+  .chat input { flex:1; min-width:0; }
+  .newer { width:100%; margin-bottom:8px; }
+  .cmds { display:grid; gap:8px; }
+  .cmd { display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; background:var(--bg2); border:1px solid var(--line);
+         cursor:pointer; text-align:start; width:100%; color:var(--text); }
+  .cmd:hover { border-color:#45506a; background:var(--surface2); }
+  .cmd .ic { color:var(--dim); }
+  .cmd small { display:block; color:var(--dim); font-size:12.5px; font-weight:400; }
+  .cmd b { font-weight:600; font-size:14px; }
+  .cmd.danger b { color:var(--bad); }
+  .prog-row { margin:10px 0; }
+  .prog-row .lab { display:flex; justify-content:space-between; gap:8px; font-size:14px; margin-bottom:4px; }
+  .prog-row .lab b { direction:ltr; }
+  .prog-row.me .lab b { color:var(--accent2); }
+  .dchips { display:flex; flex-wrap:wrap; gap:6px; }
+  .dchip { display:inline-flex; gap:6px; align-items:center; padding:4px 10px; border-radius:99px; background:var(--bad-bg); color:#ffb3b6; font-size:13px; direction:ltr; }
+  .dchip.me { outline:1px solid rgba(255,99,105,.6); }
+  .tools { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .tools .btn { width:100%; }
+  .tools .btn.wide { grid-column:1 / -1; }
+  .relay { margin-top:10px; padding:10px 12px; border-radius:10px; font-size:14px; }
+  .relay.ok { background:var(--ok-bg); color:#c4f5dc; } .relay.wait { background:var(--warn-bg); color:#ffe2a8; } .relay.bad { background:var(--bad-bg); color:#ffc9cb; }
+  .relay code { background:var(--bg); padding:2px 8px; border-radius:6px; direction:ltr; display:inline-block; }
+
+  /* ---------- host ---------- */
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:10px 8px; border-bottom:1px solid var(--line); text-align:start; font-size:14px; }
+  th { color:var(--dim); font-weight:600; font-size:13px; }
+
+  /* ---------- toasts & dialog ---------- */
+  #toasts { position:fixed; bottom:20px; left:20px; display:flex; flex-direction:column; gap:10px; z-index:50; max-width:380px; }
+  .toast { display:flex; gap:12px; align-items:flex-start; background:var(--surface2); border:1px solid var(--line2); border-radius:12px; padding:12px 14px;
+           box-shadow:var(--shadow); animation:in .25s ease-out; cursor:pointer; }
+  .toast.bad { border-color:rgba(255,99,105,.6); } .toast.ok { border-color:rgba(61,214,140,.5); } .toast.gold { border-color:rgba(242,201,76,.6); }
+  .toast .t { flex:1; font-size:14px; } .toast b { display:block; font-size:14.5px; }
+  @keyframes in { from { opacity:0; transform:translateY(10px); } }
+  .scrim { position:fixed; inset:0; background:rgba(0,0,0,.55); display:flex; align-items:center; justify-content:center; z-index:60; padding:20px; }
+  .dialog { background:var(--surface); border:1px solid var(--line2); border-radius:16px; padding:22px 24px; max-width:480px; width:100%; box-shadow:var(--shadow); }
+  .dialog h3 { margin:0 0 8px; font-size:18px; }
+  .dialog p { margin:0 0 16px; color:var(--dim); white-space:pre-line; }
+  .dialog .row { justify-content:flex-start; }
+
+  @media (max-width: 1000px) {
+    .intro { grid-template-columns:1fr; }
+    .app { grid-template-columns:1fr; }
+    .side { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
+    .side .spacer, .me-box { display:none; }
+    .gp, .rgrid { grid-template-columns:1fr; }
+    .page { padding:20px 16px 50px; }
+    .hero-in { padding:0 16px 18px; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1 dir="ltr">My Ready AP</h1>
-  <div id="version" dir="ltr" title="نسخة البرنامج"></div>
-  <nav class="row">
-    <button id="tab-play" class="on" onclick="tab('play')">ألعب</button>
-    <button id="tab-host" onclick="tab('host')">أنا المستضيف</button>
-    <button id="tab-watch" onclick="tab('watch')">📡 الروم</button>
-  </nav>
-</header>
-<!-- death counter for everyone in the room, on every tab (free deaths included when they use My Ready AP) -->
-<div id="deathBar" class="hidden"></div>
-<main>
-  <!-- PLAYER -->
-  <section id="play">
-    <div class="row">
-      <label>اسمك في اللعبة:</label>
-      <input id="name" maxlength="16" placeholder="مثلاً Mishal" style="direction:ltr">
-      <button class="btn alt" onclick="saveName()">حفظ</button>
-      <span class="muted">إنجليزي وبدون مسافات، ١٦ حرف بالكثير</span>
-    </div>
-
-    <h3>١. اختر لعبتك</h3>
-    <p id="newGames" class="muted hidden"></p>
-    <div id="games" class="grid"></div>
-
-    <div id="gamePanel" class="panel hidden">
-      <h3 id="gTitle" dir="auto"></h3>
-      <p id="gNotes" class="muted"></p>
-      <details id="guideBox" class="guide" open>
-        <summary>📖 كيف أشغّلها</summary>
-        <ol id="guide"></ol>
-      </details>
-
-      <div class="dl" id="dlBox">
-        <div><strong>☠ Death Link</strong><br><span class="muted">لو مت أنت، يموت الكل. ولو مات أحد، تموت معه.</span></div>
-        <label class="switch"><input type="checkbox" id="deathlink" checked><span></span></label>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><img src="/icon.png" alt=""><b class="ltr">My Ready AP</b></div>
+    <button class="nav on" id="nav-library" onclick="go('library')"><svg class="i"><use href="#i-grid"/></svg>المكتبة</button>
+    <button class="nav" id="nav-room" onclick="go('room')"><svg class="i"><use href="#i-radio"/></svg>الروم<span class="dot" id="roomDot"></span></button>
+    <button class="nav" id="nav-host" onclick="go('host')"><svg class="i"><use href="#i-server"/></svg>أنا المستضيف</button>
+    <div class="spacer"></div>
+    <div class="me-box">
+      <label for="name">اسمك في الروم</label>
+      <div class="me-row">
+        <input id="name" maxlength="16" placeholder="مثلاً Mishal" class="ltr" autocomplete="off">
+        <button class="btn small" onclick="saveName(true)">حفظ</button>
       </div>
-      <div id="dlOpts" class="dlopts"></div>
-      <p id="noDl" class="muted hidden">⚠ هذي اللعبة ما تدعم Death Link</p>
-      <details id="checksBox" class="guide">
-        <summary>🎯 وش التشيكات وكيف ترسلها</summary>
-        <p id="checks"></p>
-        <p id="checksCount" class="muted"></p>
-      </details>
-      <details id="avoidBox" class="guide warn">
-        <summary>⚠ أشياء تجنبها</summary>
-        <ul id="avoid"></ul>
-      </details>
+      <div class="faint" style="margin-top:6px">حروف إنجليزية، ١٦ حرف بالكثير</div>
+    </div>
+    <div class="ver" id="version"></div>
+  </aside>
 
-      <div id="basicOpts"></div>
+  <main class="view">
+    <!-- LIBRARY -->
+    <section id="v-library">
+      <div class="page">
+        <div class="page-head">
+          <div><h1>المكتبة</h1><p>اختر لعبتك. البرنامج يركّبها ويوصلها بالروم.</p></div>
+          <div class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" placeholder="دوّر على لعبة" oninput="drawLibrary()" autocomplete="off"></div>
+        </div>
+        <div class="intro card" id="intro">
+          <div class="intro-t">
+            <h2>أول مرة تلعب Archipelago؟</h2>
+            <p>كل واحد يلعب لعبته على جهازه، بس أغراض لعبتك مخلوطة في ألعاب الشباب، وأغراضهم في لعبتك. تلقى سيف صديقك وهو يلقى مفتاحك. تتساعدون بدون ما تلعبون نفس اللعبة.</p>
+            <div class="row"><button class="btn primary" onclick="openPack('first')">ابدأ بمجموعة سهلة</button>
+              <button class="btn ghost" onclick="hideIntro()">فهمت</button></div>
+          </div>
+          <ol class="intro-s"><li><b>اختر لعبة</b><span>وطلّع ملفك للمستضيف</span></li><li><b>المستضيف يولّد الروم</b><span>ويرسل لكم الرابط</span></li><li><b>الكل يضغط العب</b><span>والبرنامج يوصلكم</span></li></ol>
+        </div>
+        <h2 class="sec">مجموعات جاهزة</h2>
+        <div class="packs" id="packs"></div>
+        <div id="packBar" class="notice hidden"></div>
+        <h2 class="sec">كل الألعاب</h2>
+        <div id="newGames" class="notice hidden"><svg class="i"><use href="#i-spark"/></svg><div id="newGamesText"></div></div>
+        <div class="chips" id="cats"></div>
+        <div class="grid" id="games"></div>
+        <div class="empty hidden" id="noGames">ما لقيت لعبة بهذا الاسم.</div>
+      </div>
+    </section>
 
-      <details id="adv">
-        <summary>⚙ خيارات متقدمة</summary>
-        <div id="advOpts"></div>
-        <p class="muted">تخصيص حر: اكتب أي خيار من خيارات اللعبة، كل واحد في سطر بالشكل <code>key: value</code>. اللي تكتبه هنا يغلب الخيارات اللي فوق، بس Death Link يمشي على الزر حقه.</p>
-        <textarea id="extra" placeholder="mirror_mode: true&#10;starting_items: 3"></textarea>
-      </details>
-
-      <h3>٢. جهّز وارسل ملفك</h3>
-      <div class="row">
-        <button class="btn alt" onclick="setup()">جهّز اللعبة (أول مرة بس)</button>
-        <button class="btn alt" onclick="makeYaml()">طلّع ملفي للمستضيف</button>
+    <!-- GAME -->
+    <section id="v-game" class="hidden">
+      <div class="hero" id="hero">
+        <button class="btn back" onclick="go('library')"><svg class="i"><use href="#i-arrow"/></svg>المكتبة</button>
+        <div class="hero-in"><div class="row" id="gTags"></div><h1 id="gTitle"></h1></div>
       </div>
-      <div id="yamlOut" class="hidden">
-        <p class="muted">انحفظ في: <span id="yamlFile" style="direction:ltr"></span>. ارسل الملف للمستضيف في ديسكورد.
-          <button class="btn alt" onclick="openFolder('mine')">افتح المجلد</button></p>
-      </div>
-
-      <h3>٣. العب</h3>
-      <div class="row">
-        <input id="room" placeholder="رابط الروم من archipelago.gg" style="direction:ltr; min-width:240px">
-        <input id="pass" placeholder="كلمة السر (لو فيه)" style="direction:ltr">
-        <button class="btn" onclick="play()">▶ العب</button>
-      </div>
-    </div>
-
-    <div id="taskBox" class="panel hidden">
-      <pre id="log" class="log"></pre>
-    </div>
-  </section>
-
-  <!-- HOST -->
-  <section id="host" class="hidden">
-    <div class="panel">
-      <h3>ملفات الشباب</h3>
-      <p class="muted">حط ملفات YAML اللي أرسلها لك الشباب (وملفك أنت) في مجلد اللاعبين.</p>
-      <div class="row">
-        <button class="btn alt" onclick="openFolder('players')">افتح مجلد اللاعبين</button>
-        <button class="btn alt" onclick="refresh()">تحديث</button>
-      </div>
-      <table id="players"></table>
-      <p class="muted" id="dlSummary"></p>
-      <button class="btn" onclick="generate()">ولّد السيد وجهّز الروم</button>
-      <p class="muted">البرنامج يثبّت الـ apworld حق كل لعبة، ويولّد السيد، ويفتح لك صفحة الرفع في archipelago.gg. ترفع الملف وترسل عنوان الروم للشباب.</p>
-    </div>
-    <div class="panel"><pre id="hlog" class="log"></pre></div>
-  </section>
-  <section id="watch" class="hidden">
-    <div class="panel">
-      <h3>📡 كل اللي يصير في الروم</h3>
-      <p class="muted">يتابع الروم وأنت تلعب: مين مات، مين أرسل وش لمين، وش وصلك، وتقدّم كل واحد. ما يلعب ولا يرسل شي، يتفرج بس. يشتغل لحاله لما تضغط العب.</p>
-      <div class="row">
-        <input id="wroom" placeholder="رابط الروم من archipelago.gg" style="direction:ltr; min-width:260px">
-        <input id="wpass" placeholder="كلمة السر (لو فيه)">
-        <button class="btn" onclick="watch()">تابع الروم</button>
-      </div>
-      <p id="wstatus" class="muted"></p>
-      <div class="row" id="trackerRow">
-        <button class="btn alt" id="btnMap" onclick="openMap()" disabled>🗺 افتح الخريطة</button>
-        <button class="btn alt" id="btnTrackMine" onclick="openTracker('mine')" disabled>🌐 تراكري</button>
-        <button class="btn alt" id="btnTrackAll" onclick="openTracker('all')" disabled>🌐 تراكر الكل</button>
-        <span id="trackerNote" class="muted"></span>
-      </div>
-      <pre id="maplog" class="log hidden"></pre>
-      <button class="btn release" onclick="releaseAll()">🎁 Release: أرسل كل أغراضي الباقية للشباب</button>
-    </div>
-    <div class="panel">
-      <h3>التقدّم</h3>
-      <div id="progress" class="muted">لسا ما فيه أرقام.</div>
-    </div>
-    <div class="panel">
-      <h3>☠ الموتات</h3>
-      <div id="deaths" class="muted">ما مات أحد لسا.</div>
-    </div>
-    <div class="panel">
-      <h3>💡 التلميحات</h3>
-      <p class="muted">اكتب اسم غرض تحتاجه من لعبتك (مفتاح، سلاح، قدرة…) والروم يقولك عند مين هو ووين. كل تلميح ياخذ من نقاطك، والنقاط تزيد كل ما سويت تشيكات.</p>
-      <div class="row">
-        <input id="hintItem" list="hintItems" placeholder="اسم الغرض (يكمّل لك وأنت تكتب)" style="direction:ltr; min-width:260px">
-        <datalist id="hintItems"></datalist>
-        <button class="btn" onclick="askHint()">اطلب تلميح</button>
-        <span id="hintPoints" class="muted"></span>
-      </div>
-      <h4>🔎 أغراضك وين</h4>
-      <div id="hintsMine" class="hints muted">ما فيه تلميحات لسا.</div>
-      <h4>📦 لازم تجيبها للشباب</h4>
-      <div id="hintsTheirs" class="hints muted">ما أحد طلب منك شي لسا.</div>
-    </div>
-    <div class="panel">
-      <div class="row chips">
-        <button class="chip on" data-f="important" onclick="setFilter('important')">⭐ المهم</button>
-        <button class="chip" data-f="all" onclick="setFilter('all')">الكل</button>
-        <button class="chip" data-f="death" onclick="setFilter('death')">☠ الموتات</button>
-        <button class="chip" data-f="item" onclick="setFilter('item')">📦 الأغراض</button>
-        <button class="chip" data-f="mine" onclick="setFilter('mine')">🎁 وصلتني</button>
-        <button class="chip" data-f="hint" onclick="setFilter('hint')">💡 تلميحات</button>
-      </div>
-      <button id="feedMore" class="btn alt small hidden" onclick="$('feed').scrollTop = 0; drawFeed(true)"></button>
-      <div id="feed" class="feed" onscroll="if (this.scrollTop < 5 && FEEDPENDING) drawFeed(true)"></div>
-    </div>
-  </section>
-  <div id="need" class="need hidden">
-        <p id="needText"></p>
-        <div class="row">
-          <button class="btn alt hidden" id="needUrl">افتح الرابط</button>
-          <button class="btn" onclick="needDone()">سويتها ✔</button>
+      <div class="page" style="padding-top:8px">
+        <p class="notes" id="gNotes"></p>
+        <div class="gp">
+          <div>
+            <div class="card step" id="step1">
+              <div class="num">1</div>
+              <div>
+                <h3>جهّز اللعبة</h3>
+                <p class="sub">مرة وحدة بس: ينزّل المود والأدوات من صفحاتها الرسمية ويركّبها. ما يلمس ملفات اللعبة نفسها.</p>
+                <div class="row"><button class="btn" onclick="setup()"><svg class="i"><use href="#i-download"/></svg>جهّز اللعبة</button>
+                  <span class="row" id="where"></span></div>
+              </div>
+            </div>
+            <div class="card step" id="step2">
+              <div class="num">2</div>
+              <div>
+                <h3>خياراتك وملفك للمستضيف</h3>
+                <p class="sub">اختر كيف تبي اللعبة، وبعدها طلّع ملفك وارسله للمستضيف.</p>
+                <div class="dlbox" id="dlBox">
+                  <svg class="i lg" style="color:var(--accent2)"><use href="#i-skull"/></svg>
+                  <div class="t"><strong>Death Link</strong><div class="muted" id="dlText">لو مت أنت، يموت الكل. ولو مات أحد، تموت معه.</div></div>
+                  <label class="switch" title="Death Link"><input type="checkbox" id="deathlink" checked><span></span></label>
+                </div>
+                <div class="dlsub hidden" id="dlOpts"></div>
+                <div id="basicOpts" style="margin-top:6px"></div>
+                <details class="more" id="adv">
+                  <summary><svg class="i sm"><use href="#i-chev"/></svg>خيارات متقدمة</summary>
+                  <div id="advOpts"></div>
+                  <p class="faint">تخصيص حر: أي خيار من خيارات اللعبة، كل واحد في سطر <span class="ltr">key: value</span>. يغلب اللي فوق، بس Death Link يمشي على الزر حقه.</p>
+                  <textarea id="extra" placeholder="mirror_mode: true"></textarea>
+                </details>
+                <div class="row" style="margin-top:14px">
+                  <button class="btn" onclick="makeYaml()"><svg class="i"><use href="#i-file"/></svg>طلّع ملفي للمستضيف</button>
+                  <span id="yamlOut" class="hidden row"><span class="pill ok"><svg class="i sm"><use href="#i-check"/></svg>انحفظ</span>
+                    <button class="btn ghost small" onclick="openFolder('mine')"><svg class="i sm"><use href="#i-folder"/></svg>افتح المجلد</button></span>
+                </div>
+              </div>
+            </div>
+            <div class="card step" id="step3">
+              <div class="num">3</div>
+              <div>
+                <h3>العب</h3>
+                <p class="sub">الصق رابط الروم اللي أرسله المستضيف، واضغط العب. البرنامج يكتب بياناتك ويفتح اللعبة ويتابع الروم معك.</p>
+                <div class="row">
+                  <input id="room" class="grow ltr" placeholder="https://archipelago.gg/room/..." autocomplete="off">
+                  <input id="pass" class="ltr" placeholder="كلمة السر (لو فيه)" style="width:170px" autocomplete="off">
+                  <button class="btn primary big" onclick="play()"><svg class="i"><use href="#i-play"/></svg>العب</button>
+                </div>
+              </div>
+            </div>
+            <div id="taskWrap"></div>
+          </div>
+          <div>
+            <div class="card info" id="tipsCard"><h3><svg class="i" style="color:var(--gold)"><use href="#i-bulb"/></svg>نصايح</h3>
+              <div id="dlFit" class="hidden" style="margin-bottom:12px"><div class="row" style="justify-content:space-between;margin-bottom:6px">
+                <b style="font-size:14px">Death Link في هذي اللعبة</b><span class="rate" id="dlRate"></span></div><p class="muted" id="dlFitText" style="font-size:14px"></p></div>
+              <ul id="tips"></ul></div>
+            <div class="card info" id="guideCard"><h3><svg class="i"><use href="#i-book"/></svg>كيف أشغّلها</h3><ol id="guide"></ol></div>
+            <div class="card info" id="checksCard"><h3><svg class="i"><use href="#i-target"/></svg>وش التشيكات</h3><p id="checks"></p><p class="faint" id="checksCount" style="margin-top:8px"></p></div>
+            <div class="card info warn" id="avoidCard"><h3><svg class="i"><use href="#i-alert"/></svg>تجنّب</h3><ul id="avoid"></ul></div>
+          </div>
         </div>
       </div>
-</main>
+    </section>
+
+    <!-- ROOM -->
+    <section id="v-room" class="hidden">
+      <div class="page">
+        <div class="page-head">
+          <div><h1>الروم</h1><p>كل اللي يخصك وأنت تلعب: تلميحاتك، مين مات، وش وصلك، وإذا لعبتك انفصلت.</p></div>
+          <span class="pill" id="roomPill">ما تتابع روم</span>
+        </div>
+        <div id="alerts"></div>
+        <div class="card" id="connectCard" style="margin-bottom:16px">
+          <div class="card-h"><svg class="i"><use href="#i-link"/></svg><h3>تابع روم</h3><span class="faint aside">يشتغل لحاله لما تضغط العب</span></div>
+          <div class="row">
+            <input id="wroom" class="grow ltr" placeholder="https://archipelago.gg/room/..." autocomplete="off">
+            <input id="wpass" class="ltr" placeholder="كلمة السر (لو فيه)" style="width:170px" autocomplete="off">
+            <button class="btn primary" onclick="watch()">تابع</button>
+          </div>
+          <p class="faint" id="wstatus" style="margin:8px 0 0"></p>
+        </div>
+        <div class="rgrid">
+          <div>
+            <div class="card" id="hintsCard">
+              <div class="card-h"><svg class="i" style="color:var(--gold)"><use href="#i-bulb"/></svg><h2>التلميحات</h2>
+                <span class="faint aside" id="hintPoints"></span></div>
+              <div class="meter hidden" id="hintMeter"><span id="hintMeterText"></span><div class="bar gold"><i id="hintMeterBar"></i></div></div>
+              <div class="ask">
+                <input id="hintItem" list="hintItems" placeholder="اسم الغرض اللي تحتاجه، يكمّل لك" autocomplete="off" onkeydown="if(event.key==='Enter')askHint()">
+                <datalist id="hintItems"></datalist>
+                <button class="btn primary" onclick="askHint()">اطلب تلميح</button>
+              </div>
+              <div class="tabs">
+                <button class="on" id="ht-mine" onclick="hintTab('mine')">أغراضي وين <span class="count" id="hc-mine">0</span></button>
+                <button id="ht-theirs" onclick="hintTab('theirs')">لازم أجيبها للشباب <span class="count" id="hc-theirs">0</span></button>
+              </div>
+              <div id="hintList"></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><svg class="i"><use href="#i-list"/></svg><h2>اللي يصير</h2></div>
+              <div class="chips" id="filters" style="margin-bottom:10px"></div>
+              <button id="feedMore" class="btn small newer hidden" onclick="$('feed').scrollTop=0; drawFeed(true)"></button>
+              <div id="feed" class="feed" onscroll="if (this.scrollTop < 5 && FEEDPENDING) drawFeed(true)"></div>
+              <div class="chat">
+                <input id="chatIn" placeholder="اكتب رسالة للروم" autocomplete="off" onkeydown="if(event.key==='Enter')sendChat()">
+                <button class="btn" onclick="sendChat()"><svg class="i"><use href="#i-send"/></svg>ارسل</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <div class="card-h"><svg class="i"><use href="#i-pulse"/></svg><h3>الحالة</h3></div>
+              <div class="stat"><span class="k">البرنامج والروم</span><span id="stWatch" class="pill">ما يتابع</span></div>
+              <div class="stat"><span class="k">لعبتك</span><span id="stGame" class="pill">ما ندري للحين</span></div>
+              <div id="relayBox"></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><svg class="i"><use href="#i-bolt"/></svg><h3>أوامر سريعة</h3></div>
+              <div class="cmds" id="cmds"></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><svg class="i"><use href="#i-map"/></svg><h3>تراكر وخريطة</h3></div>
+              <div class="tools">
+                <button class="btn wide" id="btnMap" onclick="openMap()" disabled><svg class="i"><use href="#i-map"/></svg>افتح الخريطة</button>
+                <button class="btn" id="btnTrackMine" onclick="openTracker('mine')" disabled>تراكري</button>
+                <button class="btn" id="btnTrackAll" onclick="openTracker('all')" disabled>تراكر الكل</button>
+              </div>
+              <p class="faint" id="trackerNote" style="margin:8px 0 0"></p>
+              <div id="mapTask"></div>
+            </div>
+            <div class="card">
+              <div class="card-h"><svg class="i"><use href="#i-chart"/></svg><h3>التقدّم</h3></div>
+              <div id="progress" class="muted">لسا ما فيه أرقام.</div>
+            </div>
+            <div class="card">
+              <div class="card-h"><svg class="i" style="color:var(--bad)"><use href="#i-skull"/></svg><h3>الموتات</h3></div>
+              <div id="deaths" class="muted">ما مات أحد لسا.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOST -->
+    <section id="v-host" class="hidden">
+      <div class="page">
+        <div class="page-head"><div><h1>أنا المستضيف</h1><p>تجمع ملفات الشباب، وتولّد العالم، وترفعه في archipelago.gg.</p></div></div>
+        <div class="card step"><div class="num">1</div><div>
+          <h3>ملفات الشباب</h3>
+          <p class="sub">حط ملفاتهم (وملفك أنت) في مجلد اللاعبين.</p>
+          <div class="row"><button class="btn" onclick="openFolder('players')"><svg class="i"><use href="#i-folder"/></svg>افتح مجلد اللاعبين</button>
+            <button class="btn ghost" onclick="refresh()"><svg class="i"><use href="#i-refresh"/></svg>تحديث</button></div>
+          <table style="margin-top:12px"><thead><tr><th>الملف</th><th>اللعبة</th><th>Death Link</th><th></th></tr></thead><tbody id="players"></tbody></table>
+        </div></div>
+        <div class="card step"><div class="num">2</div><div>
+          <h3>فحص المجموعة</h3>
+          <p class="sub">هل الألعاب اللي اختارها الشباب تمشي مع بعض؟ البرنامج يقولك قبل ما تولّد.</p>
+          <div class="groupchk" id="group"></div>
+        </div></div>
+        <div class="card step"><div class="num">3</div><div>
+          <h3>ولّد العالم</h3>
+          <p class="sub">البرنامج يركّب الـ apworld لكل لعبة، ويولّد العالم، ويفتح لك صفحة الرفع. ترفع الملف وترسل رابط الروم للشباب.</p>
+          <button class="btn primary" onclick="generate()"><svg class="i"><use href="#i-spark"/></svg>ولّد وجهّز الروم</button>
+          <div id="hostTask"></div>
+        </div></div>
+      </div>
+    </section>
+  </main>
+</div>
+<div id="toasts"></div>
+<div id="dialog" class="scrim hidden"><div class="dialog" role="dialog" aria-modal="true"><h3 id="dlgT"></h3><p id="dlgP"></p><div class="row" id="dlgB"></div></div></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></symbol>
+  <symbol id="i-radio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8a6 6 0 0 1 0 8.4M7.8 16.2a6 6 0 0 1 0-8.4M19 5a10 10 0 0 1 0 14M5 19A10 10 0 0 1 5 5"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z" fill="currentColor"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4M12 17h.01"/></symbol>
+  <symbol id="i-skull" viewBox="0 0 24 24"><path d="M12 3a8 8 0 0 0-5 14.2V20h10v-2.8A8 8 0 0 0 12 3z"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><path d="M10 20v-2M14 20v-2"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h7"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+  <symbol id="i-bulb" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.3 1 2.1h5c0-.8.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M20 4 3 11l7 2 2 7z"/><path d="m10 13 4-4"/></symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7z"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+  <symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13M12 8S10.5 3 8 4.5 9.5 8 12 8zM12 8s1.5-5 4-3.5S14.5 8 12 8z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5M12 12v9"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h12l-2 4 2 4H5"/></symbol>
+  <symbol id="i-chatb" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6 6 0 0 1 3.5 6"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+</svg>
 
 <script>
-let S = null, cur = null, lastTask = null;
+"use strict";
+let S = null, cur = null, VIEW = "library", CAT = "all";
 const $ = id => document.getElementById(id);
+const icon = (n, cls = "") => `<svg class="i ${cls}"><use href="#i-${n}"/></svg>`;
+function h(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") e.className = v; else if (k.startsWith("on")) e[k] = v; else if (k === "html") e.innerHTML = v; else e.setAttribute(k, v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k.nodeType ? k : String(k));
+  return e;
+}
+const svg = (n, cls = "") => { const t = document.createElement("template"); t.innerHTML = icon(n, cls); return t.content.firstChild; };
+
+// English words inside an Arabic sentence get reordered by the browser: keep each Latin run whole (LRI..PDI)
+const LATIN_RUN = /!?[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#!]*[A-Za-z0-9]|[A-Za-z]/g;
+function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
+const iso = t => "\u2066" + String(t ?? "") + "\u2069";
+// texts from recipes and from the app's logs may still carry old symbols: the page shows icons instead
+const EMOJI = /[\u25A0-\u25FF\u2600-\u27BF\u2B00-\u2BFF\u{1F000}-\u{1FAFF}\uFE0F]/gu;
+const clean = t => String(t ?? "").replace(EMOJI, "").replace(/\s{2,}/g, " ").trim();
 
 async function api(path, body) {
-  const r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
-  const j = await r.json();
-  if (!r.ok) throw new Error(j.error || "خطأ");
+  let r;
+  try { r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {}); }
+  catch (e) { throw new Error("البرنامج ما يرد. تأكد إنه شغّال."); }
+  let j = {};
+  try { j = await r.json(); } catch (e) {}
+  if (!r.ok) throw new Error(j.error || "صار خطأ");
   return j;
 }
 
-function tab(t) {
-  for (const x of ["play","host","watch"]) { $(x).classList.toggle("hidden", x!==t); $("tab-"+x).classList.toggle("on", x===t); }
-  if (t === "watch" && !$("wroom").value) $("wroom").value = $("room").value;
-  if (t === "host") refresh();
+// ---------- toasts, dialogs, sound ----------
+function toast(title, text = "", kind = "", ms = 6000) {
+  const t = h("div", {class: "toast " + kind}, svg(kind === "bad" ? "alert" : kind === "ok" ? "check" : kind === "gold" ? "bulb" : "info"),
+              h("div", {class: "t"}, h("b", {}, bidi(title)), text ? bidi(text) : ""));
+  t.onclick = () => t.remove();
+  $("toasts").prepend(t);
+  while ($("toasts").children.length > 4) $("toasts").lastChild.remove();
+  if (ms) setTimeout(() => t.remove(), ms);
+  return t;
 }
-
-// English words inside an Arabic sentence (button names, "Refresh Archipelago data", archipelago.gg:38281)
-// get reordered by the browser. Wrap every Latin run in Unicode isolates (LRI ... PDI) so it stays whole.
-const LATIN_RUN = /[A-Za-z][A-Za-z0-9 .:'’\-+\/&_#]*[A-Za-z0-9]|[A-Za-z]/g;
-function bidi(t) { return String(t ?? "").replace(LATIN_RUN, m => "\u2066" + m + "\u2069"); }
-
-// tells the app the window is still open (it quits a while after the window is closed)
-// It also says when new recipes arrived (the update runs in the background right after the app opens):
-// then the game list and the open game are drawn again, so the new options show without reopening.
-let recipesRev = null;
-function drawDeathBar(j) {
-  const bar = $("deathBar"), d = j.deaths || {}, names = Object.keys(d);
-  bar.classList.toggle("hidden", !names.length && !j.free);
-  bar.replaceChildren();
-  if (names.length) {
-    const t = document.createElement("span"); t.className = "muted"; t.textContent = "☠ عداد الموتات:"; bar.append(t);
-    for (const n of names) {
-      const c = document.createElement("span"); c.className = "death-chip" + (n === j.me ? " me" : "");
-      c.dir = "ltr"; c.textContent = `${n} ${d[n]}`; bar.append(c);
-    }
-  }
-  if (j.free) {
-    const f = document.createElement("span"); f.className = "free";
-    f.textContent = `🛟 باقي لك ${j.free.left} من ${j.free.of} موتات مجانية`; bar.append(f);
-    // the game must connect to the app (not to the room) for free deaths to work: say where it stands
-    const st = document.createElement("div"); st.className = "relay " + (j.free.bypass ? "bad" : j.free.connected ? "ok" : "wait");
-    const addr = document.createElement("code"); addr.dir = "ltr"; addr.textContent = j.free.address;
-    const copy = document.createElement("button"); copy.className = "btn alt small"; copy.textContent = "نسخ";
-    copy.onclick = () => navigator.clipboard.writeText(j.free.address).then(() => copy.textContent = "✔ انسخ");
-    if (j.free.bypass) st.append("⚠ لعبتك متصلة بالروم مباشرة، فالموتات المجانية ما تنحسب. اتصل من اللعبة على العنوان ", addr, " ", copy, " بدل عنوان الروم.");
-    else if (j.free.connected) st.append("✔ لعبتك متصلة عن طريق البرنامج، والموتات المجانية شغّالة.");
-    else st.append("⏳ لعبتك للحين ما اتصلت عن طريق البرنامج. لو تكتب العنوان في اللعبة بنفسك، اكتب ", addr, " ", copy, " (مو عنوان الروم).");
-    bar.append(st);
-  }
+function dialog(title, text, buttons) {
+  return new Promise(res => {
+    $("dlgT").textContent = title; $("dlgP").textContent = bidi(text);
+    $("dlgB").replaceChildren(...buttons.map(([label, val, cls]) => h("button", {class: "btn " + (cls || ""), onclick: () => { $("dialog").classList.add("hidden"); res(val); }}, label)));
+    $("dialog").classList.remove("hidden");
+    $("dlgB").firstChild.focus();
+  });
 }
-async function ping() {
+const confirmBox = (t, p, yes = "نعم", danger) => dialog(t, p, [[yes, true, danger ? "danger" : "primary"], ["لا", false, "ghost"]]);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("dialog").classList.contains("hidden")) $("dlgB").lastChild.click(); });
+let AUDIO = null;
+function beep(kind) {  // a short sound so you notice even while the game has the screen
   try {
-    const j = await (await fetch("/api/ping")).json();
-    drawDeathBar(j);
-    if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur) pick(cur.id); }
-    recipesRev = j.recipes;
+    AUDIO = AUDIO || new (window.AudioContext || window.webkitAudioContext)();
+    const notes = kind === "bad" ? [440, 330, 247] : kind === "gold" ? [660, 880] : [523, 784];
+    notes.forEach((f, i) => {
+      const o = AUDIO.createOscillator(), g = AUDIO.createGain();
+      o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(AUDIO.destination);
+      const t0 = AUDIO.currentTime + i * 0.16;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      o.start(t0); o.stop(t0 + 0.16);
+    });
   } catch (e) {}
 }
-setInterval(ping, 5000);
-setTimeout(ping, 1500);
+function notifyDesktop(title, body) {  // also a Windows notification when the window isn't in front
+  try {
+    if (document.hasFocus() || !("Notification" in window)) return;
+    if (Notification.permission === "granted") new Notification(title, {body, icon: "/icon.png"});
+  } catch (e) {}
+}
+function askNotify() { try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch (e) {} }
 
-async function refresh() {
-  S = await api("/api/state");
-  if (S.version) $("version").textContent = S.version.startsWith("dev") ? "dev" : S.version;
-  const u = S.update || {};
-  if (S.recipes_rev !== undefined && recipesRev === null) recipesRev = S.recipes_rev;
-  const notes = [];
-  if ((u.new || []).length) notes.push("✨ ألعاب جديدة وصلت: " + u.new.join("، "));
-  if ((u.updated || []).length) notes.push("🔄 تحدّثت: " + u.updated.join("، "));
-  if (notes.length) { $("newGames").textContent = bidi(notes.join("  ·  ")); $("newGames").classList.remove("hidden"); }
-  $("name").value = S.player_name || "";
-  $("games").innerHTML = S.games.map(g => `
-    <div class="game ${cur&&cur.id===g.id?'sel':''}" onclick="pick('${g.id}')">
-      <b dir="ltr">${g.name}</b>
-      <span class="tag ${g.installed?'':'no'}">${!g.steam?'مو من ستيم':g.installed?'موجودة في ستيم':'مو مثبتة'}</span><br>
-      ${g.verified?'':'<span class="tag no">وصفة تجريبية</span>'}
-    </div>`).join("");
-  $("players").innerHTML = S.players.length
-    ? S.players.map(p => `<tr><td style="direction:ltr">${p.file}</td><td>${p.game||'؟'}</td><td>${p.recipe?'✔':'⚠ ما لها وصفة'}</td></tr>`).join("")
-    : "<tr><td class='muted'>ما فيه ملفات لسا</td></tr>";
+// ---------- navigation ----------
+function go(v) {
+  VIEW = v;
+  for (const x of ["library", "game", "room", "host"]) $("v-" + x).classList.toggle("hidden", x !== v);
+  for (const x of ["library", "room", "host"]) $("nav-" + x).classList.toggle("on", x === v || (v === "game" && x === "library"));
+  if (v === "room" && !$("wroom").value) $("wroom").value = $("room").value;
+  if (v === "host") refresh();
+  if (v === "room") { askNotify(); drawFeed(true); }
+  window.scrollTo(0, 0);
 }
 
+// ---------- art (official store images, loaded from Steam; a drawn tile when there is none) ----------
+const STEAM_ART = "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/";
+function art(g, kind) {
+  const id = g.art_appid || g.steam_appid;
+  if (!id) return [];
+  return kind === "hero" ? [STEAM_ART + id + "/library_hero.jpg", STEAM_ART + id + "/header.jpg"]
+                         : [STEAM_ART + id + "/library_600x900.jpg", STEAM_ART + id + "/header.jpg"];
+}
+function artImg(urls, onfail, wide) {
+  if (!urls.length) { onfail(); return null; }
+  const im = h("img", {alt: "", loading: "lazy", decoding: "async"});
+  let k = 0;
+  im.onerror = () => { k++; if (k < urls.length) { im.src = urls[k]; if (wide) wide(); } else { im.remove(); onfail(); } };
+  im.src = urls[0];
+  return im;
+}
+
+// ---------- packs: games that go well together ----------
+const PACKS = [
+  {id: "first", t: "أول مرة Archipelago", s: "قصيرة وسهلة: تفهمون الفكرة في سهرة وحدة", g: ["a_short_hike", "doom_1993", "muse_dash", "brotato", "a_hat_in_time"]},
+  {id: "horror", t: "سهرة رعب مع الشباب", s: "تلعبون مع بعض، وDeath Link يخليها فوضى", g: ["lethal_company", "repo", "content_warning", "buckshot"]},
+  {id: "night", t: "ليلة وحدة", s: "تخلص في جلسة: أكشن سريع", g: ["doom_1993", "heretic", "brotato", "buckshot", "muse_dash", "a_short_hike"]},
+  {id: "re", t: "ماراثون Resident Evil", s: "رعب وأغراض الكل تتحكم فيك", g: ["re2", "re3", "re7", "re8", "re4r"]},
+  {id: "adventure", t: "مغامرة ومنصّات", s: "استكشاف وقدرات تنفتح بأغراض الشباب", g: ["hollow_knight", "celeste", "tunic", "cuphead", "blasphemous", "timespinner", "a_hat_in_time"]},
+  {id: "chill", t: "رايقة على جنب", s: "طويلة وهادية، تمشي معكم أسابيع", g: ["stardew", "terraria", "subnautica", "minecraft", "the_witness"]},
+  {id: "souls", t: "للمحترفين", s: "صعبة: شغّلوا الموتات المجانية", g: ["elden_ring", "dark_souls_3", "sekiro", "hollow_knight"]},
+  {id: "together", t: "نفس العالم مع بعض", s: "تلعبون نفس اللعبة في عالم واحد، كل واحد باسمه", g: ["terraria", "valheim", "dst", "peak", "risk_of_rain_2", "lethal_company"]},
+];
+let PACK = null;
+function drawPacks() {
+  const ids = new Set(S.games.map(g => g.id));
+  $("packs").replaceChildren(...PACKS.map(p => {
+    const games = p.g.filter(id => ids.has(id)).map(id => S.games.find(g => g.id === id));
+    const strip = h("div", {class: "strip"}, ...games.filter(g => art(g, "tile").length).slice(0, 4).map(g => artImg(art(g, "tile"), () => {})));
+    return h("button", {class: "pack" + (PACK === p.id ? " on" : ""), onclick: () => openPack(PACK === p.id ? null : p.id)}, strip,
+      h("div", {class: "pt"}, h("b", {}, p.t), h("small", {}, bidi(p.s)), h("small", {}, `${games.length} ألعاب`)));
+  }));
+}
+function openPack(id) {
+  PACK = id; CAT = "all"; $("q").value = "";
+  const p = PACKS.find(x => x.id === id);
+  $("packBar").classList.toggle("hidden", !p);
+  if (p) $("packBar").replaceChildren(svg("info"), h("div", {class: "grow"}, h("b", {}, p.t + ": "), bidi(p.s) + ". كل واحد يختار لعبة منها، أو أكثر من واحد نفس اللعبة."),
+                                       h("button", {class: "btn small", onclick: () => openPack(null)}, "كل الألعاب"));
+  drawPacks(); drawCats(); drawLibrary();
+  if (p) $("packBar").scrollIntoView({behavior: "smooth", block: "start"});
+}
+function hideIntro() { $("intro").classList.add("hidden"); try { localStorage.setItem("mrap.introSeen", "1"); } catch (e) {} }
+try { if (localStorage.getItem("mrap.introSeen")) $("intro").classList.add("hidden"); } catch (e) {}
+
+// ---------- library ----------
+const CATS = [["all", "الكل"], ["new", "للمبتدئين"], ["short", "قصيرة"], ["long", "طويلة"], ["coop", "مع الشباب في نفس العالم"],
+              ["action", "أكشن"], ["horror", "رعب"], ["puzzle", "ألغاز"], ["chill", "رايقة"]];
+function inCat(g, c) {
+  if (c === "all") return true;
+  if (c === "new") return !!g.beginner;
+  if (c === "short" || c === "long") return g.length === c;
+  return (g.genres || []).includes(c);
+}
+function drawCats() {
+  const games = S.games || [];
+  $("cats").replaceChildren(...CATS.filter(([c]) => c === "all" || games.some(g => inCat(g, c))).map(([c, l]) =>
+    h("button", {class: "chip" + (CAT === c ? " on" : ""), onclick: () => { CAT = c; drawCats(); drawLibrary(); }}, l,
+      h("span", {class: "n"}, String(games.filter(g => inCat(g, c)).length)))));
+}
+function drawLibrary() {
+  if (!S) return;
+  const q = $("q").value.trim().toLowerCase();
+  const pack = PACKS.find(x => x.id === PACK);
+  const list = S.games.filter(g => (!pack || pack.g.includes(g.id)) && inCat(g, CAT) && (!q || g.name.toLowerCase().includes(q) || (g.name_ar || "").includes(q) || (g.game || "").toLowerCase().includes(q)));
+  $("noGames").classList.toggle("hidden", list.length > 0);
+  $("games").replaceChildren(...list.map(g => {
+    const cover = h("div", {class: "cover"});
+    const tile = h("div", {class: "tile", tabindex: "0", role: "button", "aria-label": g.name,
+                           onclick: () => pick(g.id), onkeydown: e => { if (e.key === "Enter") pick(g.id); }}, cover);
+    const im = artImg(art(g, "tile"), () => cover.prepend(h("div", {class: "fallback"}, g.name)), () => tile.classList.add("wide"));
+    if (im) cover.append(im);
+    const meta = [];
+    if (g.beginner) meta.push(h("span", {class: "ok"}, "لأول مرة"));
+    if (g.length) meta.push(h("span", {}, lenLabel(g.length)));
+    if (!g.death_link) meta.push(h("span", {}, "بدون Death Link"));
+    if (g.steam && !g.installed) meta.push(h("span", {class: "no"}, "مو مثبتة"));
+    else if (g.store && g.store !== "steam") meta.push(h("span", {}, STORE_AR[g.store]));
+    if (!g.steam) meta.push(h("span", {}, "مو من ستيم"));
+    tile.append(h("div", {class: "name"}, g.name), meta.length ? h("div", {class: "meta"}, meta) : "");
+    return tile;
+  }));
+}
+
+// ---------- one game ----------
 function optRow(o, val) {
-  const label = `<div>${bidi(o.label_ar||o.key)}<small>${bidi(o.help_ar)}</small></div>`;
-  let input;
-  if (o.multi) {  // tick several (maps, levels, content, goals)
+  const label = h("div", {class: "l"}, bidi(clean(o.label_ar || o.key)), o.help_ar ? h("small", {}, bidi(clean(o.help_ar))) : "");
+  if (o.multi) {
     const picked = new Set(Array.isArray(val) ? val : []);
-    input = `<div class="multi">` + o.choices.map(c => {
-      const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
-      const sets = typeof c === "object" && c.sets ? ` data-sets='${JSON.stringify(c.sets)}'` : "";
-      return `<label dir="auto"><input type="checkbox" data-multi="${o.key}" value="${v}"${sets} ${picked.has(v)?'checked':''}> ${l}</label>`; }).join("") + `</div>`;
-    return `<div class="opt multi-opt">${label}${input}</div>`;
+    const box = h("div", {class: "multi"}, ...o.choices.map(c => {
+      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar || c.value) : c;
+      const cb = h("input", {type: "checkbox", "data-multi": o.key, value: v});
+      cb.checked = picked.has(v);
+      if (typeof c === "object" && c.sets) cb.dataset.sets = JSON.stringify(c.sets);
+      return h("label", {dir: "auto"}, cb, bidi(l));
+    }));
+    return h("div", {class: "opt multi-opt"}, label, box);
   }
+  let input;
   if (o.choices) {
-    input = `<select data-key="${o.key}">` + o.choices.map(c => {
-      const v = typeof c === "object" ? c.value : c, l = bidi(typeof c === "object" ? (c.label_ar||c.value) : c);
-      const sets = typeof c === "object" && c.sets ? ` data-sets='${JSON.stringify(c.sets)}'` : "";
-      return `<option value="${v}"${sets} ${String(v)===String(val)?'selected':''}>${l}</option>`; }).join("") + `</select>`;
+    input = h("select", {"data-key": o.key}, ...o.choices.map(c => {
+      const v = typeof c === "object" ? c.value : c, l = typeof c === "object" ? (c.label_ar || c.value) : c;
+      const op = h("option", {value: v}, bidi(l));
+      if (String(v) === String(val)) op.selected = true;
+      if (typeof c === "object" && c.sets) op.dataset.sets = JSON.stringify(c.sets);
+      return op;
+    }));
   } else if (typeof o.default === "boolean") {
-    input = `<label class="switch"><input type="checkbox" data-key="${o.key}" ${val?'checked':''}><span></span></label>`;
+    const cb = h("input", {type: "checkbox", "data-key": o.key, "aria-label": o.label_ar || o.key}); cb.checked = !!val;
+    input = h("label", {class: "switch"}, cb, h("span"));
   } else {
-    input = `<input type="number" data-key="${o.key}" value="${val}" ${o.min!=null?`min="${o.min}"`:''} ${o.max!=null?`max="${o.max}"`:''} style="width:110px">`;
+    input = h("input", {type: "number", "data-key": o.key, value: val ?? "", min: o.min, max: o.max, style: "width:110px", class: "ltr"});
   }
-  return `<div class="opt">${label}${input}</div>`;
+  return h("div", {class: "opt"}, label, input);
 }
-
+function lenLabel(l) { return l === "short" ? "قصيرة" : l === "long" ? "طويلة" : l === "medium" ? "متوسطة" : ""; }
 function pick(id) {
   cur = S.games.find(g => g.id === id);
-  const last = (S.last||{})[id] || {};
-  const vals = Object.assign({}, ...cur.options.map(o => ({[o.key]: o.default})), last.options||{});
-  $("gamePanel").classList.remove("hidden");
+  if (!cur) return;
+  const last = (S.last || {})[id] || {};
+  const vals = Object.assign({}, ...cur.options.map(o => ({[o.key]: o.default})), last.options || {});
+  // hero
+  const hero = $("hero");
+  hero.querySelectorAll("img").forEach(i => i.remove());
+  const im = artImg(art(cur, "hero"), () => {});
+  if (im) hero.prepend(im);
   $("gTitle").textContent = cur.name;
-  $("gNotes").textContent = bidi(cur.notes_ar);
+  const tags = [];
+  if (cur.length) tags.push(h("span", {class: "pill"}, svg("clock", "sm"), lenLabel(cur.length)));
+  if (cur.beginner) tags.push(h("span", {class: "pill ok"}, "حلوة لأول مرة"));
+  if (!cur.steam) tags.push(h("span", {class: "pill"}, "مو من ستيم"));
+  if (!cur.verified) tags.push(h("span", {class: "pill"}, "وصفة جديدة: ما انلعبت عندنا للحين"));
+  $("gTags").replaceChildren(...tags);
+  $("gNotes").textContent = bidi(clean(cur.notes_ar));
+  // side info
+  const tips = cur.tips_ar || [];
+  $("tips").replaceChildren(...tips.map(t => h("li", {}, bidi(clean(t)))));
+  $("dlFit").classList.toggle("hidden", !cur.dl_fit);
+  if (cur.dl_fit) {
+    $("dlRate").replaceChildren(...[1, 2, 3].map(n => h("i", {class: n <= cur.dl_fit ? "on" : ""})));
+    $("dlRate").title = ["", "يتعب الشباب", "حلو", "ممتع جداً"][cur.dl_fit];
+    $("dlFitText").textContent = bidi(clean(cur.dl_fit_ar));
+  }
+  $("tipsCard").classList.toggle("hidden", !tips.length && !cur.dl_fit);
   const steps = cur.guide_ar || [];
-  $("guideBox").classList.toggle("hidden", !steps.length);
-  $("guide").replaceChildren(...steps.map(t => { const li = document.createElement("li"); li.textContent = bidi(t); return li; }));
-  // games without Death Link keep the toggle on screen, greyed out and locked
+  $("guideCard").classList.toggle("hidden", !steps.length);
+  $("guide").replaceChildren(...steps.map(t => h("li", {}, bidi(clean(t)))));
+  $("checks").textContent = bidi(clean(cur.checks_ar));
+  $("checksCount").textContent = cur.checks_count_ar ? "كم تشيك: " + bidi(clean(cur.checks_count_ar)) : "";
+  $("checksCard").classList.toggle("hidden", !cur.checks_ar);
+  $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => h("li", {}, bidi(clean(t)))));
+  $("avoidCard").classList.toggle("hidden", !(cur.avoid_ar || []).length);
+  // Death Link: games without it keep the switch on screen, greyed out and locked
   $("dlBox").classList.toggle("off", !cur.death_link);
   $("deathlink").disabled = !cur.death_link;
-  $("noDl").classList.toggle("hidden", cur.death_link);
   $("deathlink").checked = cur.death_link ? (last.death_link !== undefined ? last.death_link : true) : false;
-  // Death Link settings (deaths before sending, what triggers it...) sit inside the Death Link box
-  $("dlOpts").innerHTML = cur.options.filter(o=>o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
-  $("basicOpts").innerHTML = cur.options.filter(o=>!o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
-  $("advOpts").innerHTML = cur.options.filter(o=>o.advanced && !o.deathlink).map(o=>optRow(o, vals[o.key])).join("");
+  $("dlText").textContent = cur.death_link ? "لو مت أنت، يموت الكل. ولو مات أحد، تموت معه." : "هذي اللعبة ما تدعم Death Link.";
+  $("dlOpts").replaceChildren(...cur.options.filter(o => o.deathlink).map(o => optRow(o, vals[o.key])));
+  $("basicOpts").replaceChildren(...cur.options.filter(o => !o.advanced && !o.deathlink).map(o => optRow(o, vals[o.key])));
+  $("advOpts").replaceChildren(...cur.options.filter(o => o.advanced && !o.deathlink).map(o => optRow(o, vals[o.key])));
+  $("adv").classList.toggle("hidden", false);
   showDlOpts();
-  $("checks").textContent = bidi(cur.checks_ar);
-  $("checksCount").textContent = cur.checks_count_ar ? "🔢 كم تشيك: " + bidi(cur.checks_count_ar) : "";
-  $("checksBox").classList.toggle("hidden", !cur.checks_ar);
-  $("avoid").replaceChildren(...(cur.avoid_ar || []).map(t => { const li = document.createElement("li"); li.textContent = bidi(t); return li; }));
-  $("avoidBox").classList.toggle("hidden", !(cur.avoid_ar || []).length);
   $("extra").value = last.extra || "";
   $("yamlOut").classList.add("hidden");
-  refresh();
+  $("step1").classList.toggle("done", !!cur.ready);
+  $("step2").classList.toggle("done", !!last.options);
+  $("taskWrap").replaceChildren();
+  drawWhere();
+  go("game");
 }
-
 function showDlOpts() {
   const on = cur && cur.death_link && $("deathlink").checked;
   $("dlOpts").classList.toggle("hidden", !on || !$("dlOpts").children.length);
 }
 document.addEventListener("change", e => {
   if (e.target.id === "deathlink") showDlOpts();
-  // a number box outside its range (or emptied) is put back in range right away, so what you see is used
-  if (e.target.type === "number" && e.target.dataset.key) {
+  if (e.target.type === "number" && e.target.dataset.key) {  // out of range or empty: put it back in range right away
     const el = e.target, o = cur && cur.options.find(x => x.key === el.dataset.key);
     if (o) {
       let n = el.value === "" ? o.default : Math.round(Number(el.value));
@@ -408,21 +856,20 @@ document.addEventListener("change", e => {
       el.value = n;
     }
   }
-  // a choice that needs another option (a Calamity goal) switches it on, so what you see is what you get
+  // a choice that needs another option (a DLC goal) switches it on, so what you see is what you get
   const o = e.target.tagName === "SELECT" ? e.target.selectedOptions[0] : (e.target.dataset.multi && e.target.checked ? e.target : null);
   if (o && o.dataset.sets) for (const [k, v] of Object.entries(JSON.parse(o.dataset.sets))) {
-    const el = document.querySelector(`#gamePanel [data-key="${k}"]`);
+    const el = document.querySelector(`#v-game [data-key="${k}"]`);
     if (el && el.type === "checkbox") el.checked = !!v; else if (el) el.value = v;
   }
 });
-
 function collect() {
   const options = {};
-  document.querySelectorAll("#gamePanel [data-key]").forEach(el => {
+  document.querySelectorAll("#v-game [data-key]").forEach(el => {
     const k = el.dataset.key;
     options[k] = el.type === "checkbox" ? el.checked : el.type === "number" ? (el.value === "" ? null : Number(el.value)) : el.value;
   });
-  document.querySelectorAll("#gamePanel [data-multi]").forEach(el => {
+  document.querySelectorAll("#v-game [data-multi]").forEach(el => {
     const k = el.dataset.multi;
     options[k] = options[k] || [];
     if (el.checked) options[k].push(el.value);
@@ -430,200 +877,453 @@ function collect() {
   return {game: cur.id, options, death_link: $("deathlink").checked, extra: $("extra").value};
 }
 
-async function saveName() {
-  try { const j = await api("/api/name", {name: $("name").value}); $("name").value = j.name; } catch(e) { alert(e.message); }
+// ---------- name ----------
+function needName() {
+  if ($("name").value.trim()) return false;
+  $("name").classList.add("bad"); $("name").focus();
+  toast("اكتب اسمك أول", "تحت يمين: اسمك في الروم بالإنجليزي", "bad");
+  return true;
+}
+$("name").addEventListener("input", () => $("name").classList.remove("bad"));
+$("name").addEventListener("keydown", e => { if (e.key === "Enter") saveName(true); });
+async function saveName(say) {
+  try {
+    const j = await api("/api/name", {name: $("name").value});
+    $("name").value = j.name;
+    if (say) toast("انحفظ اسمك", j.name, "ok", 2500);
+  } catch (e) { toast("ما انحفظ الاسم", e.message, "bad"); }
 }
 
+// ---------- tasks (setup, play, host, map) ----------
 async function makeYaml() {
-  if (!$("name").value) return alert("اكتب اسمك أول");
+  if (needName()) return;
   await saveName();
   try {
-    const j = await api("/api/yaml", collect());
-    $("yamlFile").textContent = j.file; $("yamlOut").classList.remove("hidden");
-  } catch(e) { alert(e.message); }
+    await api("/api/yaml", collect());
+    $("yamlOut").classList.remove("hidden"); $("step2").classList.add("done");
+    toast("ملفك جاهز", "افتح المجلد وارسله للمستضيف", "ok");
+    refresh();
+  } catch (e) { toast("ما طلع الملف", e.message, "bad"); }
 }
-
-async function runTask(path, body, logEl) {
-  $("taskBox").classList.remove("hidden"); $("need").classList.add("hidden");
-  lastTask = {path, body, logEl};
-  const el = $(logEl); el.textContent = "…";
+function taskBox() {
+  return h("div", {class: "task"}, h("div", {class: "lines"}));
+}
+const DL = /^\s*تحميل (.+): (\d+)%$/;
+function drawLog(box, t) {
+  const lines = box.querySelector(".lines");
+  const items = [], prog = {};
+  for (const raw of t.log) {
+    const m = raw.match(DL);
+    if (m) { prog[m[1]] = +m[2]; continue; }
+    const s = String(raw).trim();
+    let kind = "ok", ic = "check";
+    if (s.startsWith("…")) { kind = "run"; ic = "dots"; }
+    else if (s.startsWith("👉")) { kind = "do"; ic = "arrow"; }
+    else if (s.startsWith("⚠")) { kind = "do"; ic = "alert"; }
+    else if (s.startsWith("✖")) { kind = "err"; ic = "x"; }
+    items.push([kind, ic, clean(s.replace(/^[…\s]+/, ""))]);
+  }
+  // a step that finished replaces its "…" line
+  const out = [];
+  for (const it of items) {
+    if (it[0] !== "run" && out.length && out[out.length - 1][0] === "run") out.pop();
+    out.push(it);
+  }
+  lines.replaceChildren(...out.map(([k, ic, s]) => h("div", {class: "ln " + k}, svg(ic, "sm"), h("span", {}, bidi(s)))));
+  const live = Object.entries(prog).filter(([, p]) => p < 100);
+  if (!t.done && live.length) {
+    const [name, p] = live[live.length - 1];
+    lines.append(h("div", {class: "ln run"}, svg("download", "sm"), h("span", {class: "grow"}, "تحميل ", h("span", {class: "ltr"}, name), ` ${p}%`)),
+                 h("div", {class: "prog"}, h("i", {style: `width:${p}%`})));
+  }
+  if (t.error) lines.append(h("div", {class: "ln err"}, svg("x", "sm"), h("span", {}, bidi(clean(t.error)))));
+  if (t.done && !t.error && !t.needs_user) lines.append(h("div", {class: "done-line"}, svg("check"), "تم"));
+}
+async function runTask(path, body, where, onDone) {
+  const box = taskBox();
+  $(where).replaceChildren(box);
+  box.scrollIntoView({behavior: "smooth", block: "nearest"});
   let j;
-  try { j = await api(path, body); } catch(e) { el.innerHTML = `<span class="err">${e.message}</span>`; return; }
+  try { j = await api(path, body); }
+  catch (e) { box.querySelector(".lines").replaceChildren(h("div", {class: "ln err"}, svg("x", "sm"), h("span", {}, bidi(e.message)))); return; }
   const poll = async () => {
-    const t = await api("/api/task/" + j.task);
-    el.textContent = t.log.map(bidi).join("\n");
-    if (t.error) el.innerHTML += `\n<span class="err">✖ ${bidi(t.error)}</span>`;
+    let t;
+    try { t = await api("/api/task/" + j.task); } catch (e) { setTimeout(poll, 1500); return; }
+    drawLog(box, t);
+    box.querySelector(".need")?.remove();
     if (t.needs_user) {
-      $("need").classList.remove("hidden");
-      $("needText").textContent = bidi(t.needs_user.text);
-      $("need").dataset.step = t.needs_user.id; $("need").dataset.game = t.needs_user.game;
-      const u = $("needUrl");
-      if (t.needs_user.url) { u.classList.remove("hidden"); u.onclick = () => api("/api/link", {url: t.needs_user.url}); } else u.classList.add("hidden");
+      const nu = t.needs_user;
+      const btns = h("div", {class: "row"});
+      if (nu.kind === "folder") {  // the game isn't where we look: install it, or show us its folder
+        btns.append(h("button", {class: "btn primary", onclick: async () => {
+          if (await chooseFolder(nu.game)) runTask(path, body, where, onDone); }}, svg("folder", "sm"), "اختر مجلد اللعبة"));
+        if (nu.url) btns.append(h("button", {class: "btn", onclick: () => api("/api/link", {url: nu.url})}, svg("download", "sm"), "ثبّتها من ستيم"));
+      } else {
+        if (nu.url) btns.append(h("button", {class: "btn", onclick: () => api("/api/link", {url: nu.url})}, svg("link", "sm"), "افتح الرابط"));
+        btns.append(h("button", {class: "btn primary", onclick: async () => {
+          await api("/api/done", {game: nu.game, step: nu.id}); runTask(path, body, where, onDone); }}, svg("check", "sm"), "سويتها"));
+      }
+      box.append(h("div", {class: "need"}, h("p", {}, bidi(clean(nu.text))), btns));
+      box.scrollIntoView({behavior: "smooth", block: "nearest"});
     }
     if (!t.done) setTimeout(poll, 700);
-    else if (!t.error && !t.needs_user) el.textContent += "\n\n✅ تم";
+    else if (onDone && !t.error && !t.needs_user) onDone();
   };
   poll();
 }
-
-async function needDone() {
-  await api("/api/done", {game: $("need").dataset.game, step: $("need").dataset.step});
-  runTask(lastTask.path, lastTask.body, lastTask.logEl);
+async function chooseFolder(game) {
+  toast("اختر مجلد اللعبة", "المجلد اللي فيه ملف تشغيلها. ينفتح لك شباك ويندوز", "", 4000);
+  try {
+    const j = await api("/api/game_folder", {game});
+    if (!j.ok) return false;
+    toast("حفظت مجلد اللعبة", j.path, "ok"); await refresh(); if (cur && cur.id === game && VIEW === "game") drawWhere();
+    return true;
+  } catch (e) { toast("ما ضبط المجلد", e.message, "bad"); return false; }
 }
-
-function setup() { if (cur) runTask("/api/setup", {game: cur.id, options: collect().options}, "log"); }
+const STORE_AR = {steam: "ستيم", gog: "GOG", epic: "Epic", folder: "مجلد اخترته"};
+function drawWhere() {
+  const g = S.games.find(x => x.id === cur.id) || cur;
+  const box = $("where");
+  if (!g.stores || !g.stores.length) { box.replaceChildren(); return; }
+  const found = g.store ? h("span", {class: "pill ok"}, svg("check", "sm"), "لقيتها في " + STORE_AR[g.store]) : h("span", {class: "pill warn"}, "ما لقيتها في جهازك");
+  const other = g.stores.filter(x => x !== "steam").map(x => STORE_AR[x]);
+  box.replaceChildren(found,
+    h("button", {class: "btn ghost small", onclick: () => chooseFolder(g.id)}, svg("folder", "sm"), g.store ? "غيّر المجلد" : "عندي اللعبة في مكان ثاني"),
+    g.store === "folder" ? h("button", {class: "btn ghost small", onclick: async () => { await api("/api/game_folder", {game: g.id, clear: true}); await refresh(); drawWhere(); }}, "رجّعه تلقائي") : "",
+    other.length ? h("span", {class: "faint"}, "تشتغل كمان مع " + other.join(" و ")) : "");
+}
+function setup() { if (cur) runTask("/api/setup", {game: cur.id, options: collect().options}, "taskWrap", () => { $("step1").classList.add("done"); refresh(); }); }
 async function play() {
-  if (!$("name").value) return alert("اكتب اسمك أول");
-  if (!$("room").value) return alert("الصق عنوان الروم اللي أرسله المستضيف");
+  if (needName()) return;
+  const room = $("room").value.trim();
+  if (!room) { $("room").classList.add("bad"); $("room").focus(); return toast("الصق رابط الروم", "اللي أرسله المستضيف من archipelago.gg", "bad"); }
   await saveName();
-  runTask("/api/play", {game: cur.id, room: $("room").value, password: $("pass").value, options: collect().options}, "log");
+  $("wroom").value = room; $("wpass").value = $("pass").value;
+  runTask("/api/play", {game: cur.id, room, password: $("pass").value, options: collect().options}, "taskWrap");
+  toast("البرنامج يتابع الروم معك", "صفحة الروم فيها تلميحاتك والموتات وتنبيه لو انفصلت لعبتك", "", 7000);
 }
-function generate() { runTask("/api/host/generate", {}, "hlog"); }
-function openFolder(what) { api("/api/open", {what}).catch(e => alert(e.message)); }
+$("room").addEventListener("input", () => $("room").classList.remove("bad"));
+function generate() { runTask("/api/host/generate", {}, "hostTask"); }
+function openFolder(what) { api("/api/open", {what}).catch(e => toast("ما انفتح المجلد", e.message, "bad")); }
 
-// ---------- 📡 room watcher ----------
-let FEEDEV = [], FEEDNEXT = 0, FILTER = "important";
-const STATUS = {connecting: "… يتصل", reconnecting: "… انقطع، يعيد الاتصال", connected: "✔ متصل",
-                refused: "✖ الروم رفض الاتصال", off: "ما يتابع روم للحين"};
-async function watch() {
-  if (!$("name").value) return alert("اكتب اسمك أول");
-  if (!$("wroom").value) return alert("الصق رابط الروم");
-  try { await saveName(); await api("/api/watch", {room: $("wroom").value, password: $("wpass").value}); FEEDEV = []; FEEDNEXT = 0; }
-  catch (e) { alert(e.message); }
+// ---------- state ----------
+let recipesRev = null;
+async function refresh() {
+  try { S = await api("/api/state"); } catch (e) { return; }
+  if (S.version) $("version").textContent = S.version.startsWith("dev") ? "dev" : S.version;
+  if (S.recipes_rev !== undefined && recipesRev === null) recipesRev = S.recipes_rev;
+  const u = S.update || {}, notes = [];
+  if ((u.new || []).length) notes.push("ألعاب جديدة وصلت: " + u.new.join("، "));
+  if ((u.updated || []).length) notes.push("تحدّثت: " + u.updated.join("، "));
+  $("newGames").classList.toggle("hidden", !notes.length);
+  $("newGamesText").textContent = bidi(notes.join("  ·  "));
+  if (document.activeElement !== $("name")) $("name").value = S.player_name || "";
+  drawPacks(); drawCats(); drawLibrary(); drawGroup();
+  $("players").replaceChildren(...(S.players.length ? S.players.map(p => h("tr", {},
+      h("td", {class: "ltr"}, p.file), h("td", {class: "ltr"}, p.game || "؟"),
+      h("td", {}, p.death_link ? h("span", {class: "pill bad"}, svg("skull", "sm"), "شغّال") : h("span", {class: "pill"}, "طافي")),
+      h("td", {}, p.recipe ? h("span", {class: "pill ok"}, "جاهزة") : h("span", {class: "pill warn"}, "ما لها وصفة"))))
+    : [h("tr", {}, h("td", {class: "muted", colspan: "4"}, "ما فيه ملفات للحين"))]));
 }
-async function releaseAll() {
-  if (!confirm("متأكد؟ Release يرسل كل الأغراض الباقية في عالمك للاعبين الثانيين على طول.\nما ينفع تتراجع بعدها.\nعادة تسويه بعد ما تخلّص هدفك.")) return;
-  if (!confirm("آخر تأكيد: أسوي Release الحين؟")) return;
-  try { await api("/api/watch/release", {}); }
-  catch (e) { alert(e.message); }
+function drawGroup() {
+  const g = S.group || [];
+  $("group").replaceChildren(...(g.length ? g.map(a => h("div", {class: "gc " + a.level}, svg(a.level === "ok" ? "check" : "alert"),
+      h("div", {}, h("b", {}, bidi(a.title)), h("span", {}, bidi(a.text)))))
+    : [h("div", {class: "muted"}, "حط ملفات الشباب في المجلد واضغط تحديث.")]));
 }
-function setFilter(f) {
-  FILTER = f;
-  document.querySelectorAll(".chip").forEach(c => c.classList.toggle("on", c.dataset.f === f));
-  $("feed").scrollTop = 0; drawFeed(true);
+async function ping() {
+  try {
+    const j = await api("/api/ping");
+    drawRelay(j);
+    if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur && VIEW === "game") pick(cur.id); }
+    recipesRev = j.recipes;
+  } catch (e) {}
 }
+setInterval(ping, 5000);
+setTimeout(ping, 1200);
+
+// ---------- room ----------
+let FEEDEV = [], FEEDNEXT = 0, FILTER = "mine", FEEDPENDING = 0, LASTF = {}, FIRSTPOLL = true;
+const FILTERS = [["mine", "يخصني"], ["all", "الكل"], ["death", "الموتات"], ["item", "الأغراض"], ["hint", "التلميحات"], ["chat", "الشات"]];
+function drawFilters() {
+  $("filters").replaceChildren(...FILTERS.map(([f, l]) => h("button", {class: "chip" + (FILTER === f ? " on" : ""), onclick: () => { FILTER = f; drawFilters(); $("feed").scrollTop = 0; drawFeed(true); }}, l)));
+}
+drawFilters();
 function keep(e) {
-  if (FILTER === "all") return true;
-  // what matters: deaths, goals/releases, items that are progression or concern me, hints, chat, my commands
-  if (FILTER === "important") return e.kind === "death" || e.kind === "goal" || e.kind === "hint" || e.kind === "chat"
-    || e.kind === "system" || (e.kind === "item" && (e.to_me || e.from_me || (e.flags & 1)));
-  if (FILTER === "mine") return e.kind === "item" && e.to_me;
+  if (FILTER === "all") return e.kind !== "join";
+  if (FILTER === "mine") return e.kind === "death" || e.kind === "goal" || e.kind === "chat" || e.kind === "conn" || e.kind === "cmd" || e.kind === "sent"
+    || e.kind === "system" || ((e.kind === "item" || e.kind === "hint") && (e.to_me || e.from_me));
+  if (FILTER === "item") return e.kind === "item";
   return e.kind === FILTER;
 }
-let FEEDPENDING = 0;
+const KIND_ICON = {death: "skull", hint: "bulb", goal: "flag", item: "box", chat: "chatb", conn: "plug", cmd: "info", sent: "send", system: "info"};
+// items and hints said in Arabic (the room sends them in English); names stay whole
+function say(e) {
+  if (!e.item) return clean(e.text);
+  const I = iso(e.item), L = iso(e.location), S = iso(e.sender), R = iso(e.receiver);
+  if (e.kind === "hint") return e.to_me ? `${I} حقك عند ${S} في ${L}` + (e.found ? " (انلقى)" : "")
+                               : `${R} يحتاج ${I} من عالمك، في ${L}` + (e.found ? " (انلقى)" : "");
+  if (e.to_me && e.from_me) return `لقيت ${I} حقك في ${L}`;
+  if (e.to_me) return `وصلك ${I} من ${S}`;
+  if (e.from_me) return `أرسلت ${I} لـ ${R} (من ${L})`;
+  return `${S} أرسل ${I} لـ ${R}`;
+}
+function evRow(e) {
+  const cls = "ev " + e.kind + (e.to_me ? " me" : "") + ((e.flags & 1) ? " prog" : "") + (e.state ? " " + e.state : "");
+  const txt = say(e);
+  const tx = h("div", {class: "tx", dir: /[\u0600-\u06FF]/.test(txt) ? "rtl" : "auto"}, e.item ? txt : bidi(txt));
+  return h("div", {class: cls}, h("div", {class: "ic"}, svg(e.to_me && e.kind === "item" ? "gift" : KIND_ICON[e.kind] || "info", "sm")), tx, h("div", {class: "tm"}, e.t.slice(0, 5)));
+}
+function grouped(rows) {
+  // a release / collect floods the log: items from one sender to others within seconds become one line
+  const out = [];
+  for (const e of rows) {
+    const g = out[out.length - 1];
+    if (e.kind === "item" && !e.to_me && !e.from_me && g && g.group && g.sender === e.sender && Math.abs(g.n0 - e.i) < 60) { g.items.push(e); continue; }
+    if (e.kind === "item" && !e.to_me && !e.from_me) out.push({group: true, sender: e.sender, n0: e.i, items: [e]});
+    else out.push(e);
+  }
+  return out.map(x => {
+    if (!x.group) return evRow(x);
+    if (x.items.length < 4) return x.items.map(evRow);
+    const d = h("details", {}, h("summary", {}, bidi(`${x.sender} أرسل ${x.items.length} غرض للشباب`)),
+                h("div", {class: "sub"}, ...x.items.map(e => h("div", {dir: "rtl"}, say(e)))));
+    return h("div", {class: "ev item"}, h("div", {class: "ic"}, svg("box", "sm")), h("div", {class: "tx"}, d), h("div", {class: "tm"}, x.items[0].t.slice(0, 5)));
+  }).flat();
+}
 function drawFeed(force) {
   const box = $("feed");
-  // newest is on top: if the reader scrolled down into older lines, keep the log still and say how
-  // many new ones wait (shown when they press the button or scroll back to the top)
-  if (!force && box.scrollTop > 30 && box.children.length) {
-    $("feedMore").textContent = `⬆ ${FEEDPENDING} رسائل جديدة`;
+  if (!force && box.scrollTop > 30 && box.children.length) {  // reading older lines: don't move them, say how many wait
+    $("feedMore").textContent = `${FEEDPENDING} رسائل جديدة، اضغط عشان تشوفها`;
     $("feedMore").classList.toggle("hidden", !FEEDPENDING);
     return;
   }
   FEEDPENDING = 0; $("feedMore").classList.add("hidden");
   const rows = FEEDEV.filter(keep).slice(-400).reverse();
-  box.replaceChildren(...rows.map(e => {
-    const d = document.createElement("div");
-    d.className = "ev " + e.kind + (e.to_me ? " me" : "") + ((e.flags & 1) ? " prog" : "") + ((e.flags & 4) ? " trap" : "");
-    const t = document.createElement("span"); t.className = "t"; t.textContent = e.t;
-    const x = document.createElement("span"); // a line with Arabic in it (deaths) is right-to-left; the English names inside stay whole
-    x.dir = /[\u0600-\u06FF]/.test(e.text) ? "rtl" : "auto"; x.textContent = bidi(e.text);
-    d.append(t, x); return d;
-  }));
-  if (!rows.length) box.innerHTML = '<p class="muted">ما فيه شي هنا لسا.</p>';
+  box.replaceChildren(...grouped(rows));
+  if (!rows.length) box.replaceChildren(h("div", {class: "empty"}, LASTF.status === "connected" ? "هادي للحين." : "تابع روم عشان تشوف اللي يصير."));
 }
+async function sendChat() {
+  const v = $("chatIn").value.trim();
+  if (!v) return;
+  try { await api("/api/say", {text: v}); $("chatIn").value = ""; } catch (e) { toast("ما انرسلت", e.message, "bad"); }
+}
+const CMDS = [
+  ["missing", "وش باقي علي", "التشيكات اللي ما سويتها في لعبتك", "!missing"],
+  ["status", "وين وصل الكل", "كل لاعب كم تشيك سوّى", "!status"],
+  ["players", "مين في الروم", "اللاعبين وألعابهم", "!players"],
+  ["hint_location", "وش في مكان معيّن", "اكتب اسم مكان في لعبتك ويقولك وش فيه (ياخذ نقاط)", "location"],
+  ["collect", "Collect: خذ أغراضي", "بعد ما تخلص: كل أغراضك اللي عند الشباب توصلك", "collect"],
+  ["release", "Release: عطهم أغراضهم", "بعد ما تخلص: كل اللي في عالمك للشباب يوصلهم", "release"],
+];
+function drawCmds() {
+  $("cmds").replaceChildren(...CMDS.map(([id, t, sub, what]) => h("button", {class: "cmd" + (what === "release" ? " danger" : ""), onclick: () => runCmd(what)},
+    h("span", {class: "ic"}, svg(what === "release" ? "gift" : what === "collect" ? "download" : what === "location" ? "pin" : what === "!players" ? "users" : "list")),
+    h("span", {}, h("b", {}, bidi(t)), h("small", {}, sub)))));
+}
+drawCmds();
+async function runCmd(what) {
+  if (LASTF.status !== "connected") return toast("تابع الروم أول", "الصق رابط الروم واضغط تابع، أو اضغط العب من صفحة اللعبة", "bad");
+  try {
+    if (what === "release") {
+      if (!await confirmBox("Release", "يرسل كل الأغراض الباقية في عالمك للشباب على طول.\nما تقدر تتراجع. عادة تسويه بعد ما تخلص هدفك.", "أرسلها", true)) return;
+      await api("/api/watch/release", {});
+    } else if (what === "collect") {
+      if (!await confirmBox("Collect", "يجيب لك كل أغراضك اللي في عوالم الشباب. عادة بعد ما تخلص هدفك.", "خذها")) return;
+      await api("/api/say", {text: "!collect"});
+    } else if (what === "location") {
+      const loc = await askText("وش في هذا المكان؟", "اكتب اسم المكان في لعبتك بالإنجليزي، مثل اسمه في التراكر");
+      if (!loc) return;
+      await api("/api/say", {text: "!hint_location " + loc});
+    } else await api("/api/say", {text: what});
+    FILTER = "mine"; drawFilters(); drawFeed(true);
+  } catch (e) { toast("ما انرسل الأمر", e.message, "bad"); }
+}
+function askText(title, text) {
+  return new Promise(res => {
+    const inp = h("input", {class: "ltr", style: "width:100%;margin-bottom:14px", autocomplete: "off"});
+    $("dlgT").textContent = title; $("dlgP").textContent = text;
+    const done = v => { $("dialog").classList.add("hidden"); inp.remove(); res(v); };
+    inp.onkeydown = e => { if (e.key === "Enter") done(inp.value.trim()); };
+    $("dlgB").replaceChildren(h("button", {class: "btn primary", onclick: () => done(inp.value.trim())}, "ارسل"), h("button", {class: "btn ghost", onclick: () => done("")}, "إلغاء"));
+    $("dlgP").after(inp);
+    $("dialog").classList.remove("hidden"); inp.focus();
+  });
+}
+async function watch() {
+  if (needName()) return;
+  const room = $("wroom").value.trim();
+  if (!room) { $("wroom").classList.add("bad"); return toast("الصق رابط الروم", "", "bad"); }
+  try { await saveName(); await api("/api/watch", {room, password: $("wpass").value}); FEEDEV = []; FEEDNEXT = 0; FIRSTPOLL = true; askNotify(); }
+  catch (e) { toast("ما قدرت أتابع الروم", e.message, "bad"); }
+}
+$("wroom").addEventListener("input", () => $("wroom").classList.remove("bad"));
+
+// hints
+let HINTTAB = "mine", HINTS = {mine: [], theirs: []}, HINTITEMS_LOADED = false;
+const SEEN_KEY = "mrap.seenHints";
+let SEEN = new Set(); try { SEEN = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || "[]")); } catch (e) {}
+const hkey = r => [r.item, r.location, r.finder, r.receiver].join("|");
+function markSeen(list) {
+  let changed = false;
+  for (const r of list) { const k = hkey(r); if (!SEEN.has(k)) { SEEN.add(k); changed = true; } }
+  if (changed) try { localStorage.setItem(SEEN_KEY, JSON.stringify([...SEEN].slice(-2000))); } catch (e) {}
+}
+function hintTab(t) { HINTTAB = t; drawHints(); }
+function drawHints(hh) {
+  if (hh) HINTS = hh;
+  const hs = HINTS;
+  $("ht-mine").classList.toggle("on", HINTTAB === "mine"); $("ht-theirs").classList.toggle("on", HINTTAB === "theirs");
+  for (const t of ["mine", "theirs"]) {
+    const open = (hs[t] || []).filter(r => !r.found), fresh = open.filter(r => !SEEN.has(hkey(r))).length;
+    const c = $("hc-" + t); c.textContent = fresh ? `${fresh} جديد` : String(open.length); c.classList.toggle("new", !!fresh);
+  }
+  const rows = hs[HINTTAB] || [];
+  if (!rows.length) {
+    $("hintList").replaceChildren(h("div", {class: "empty"}, HINTTAB === "mine" ? "ما طلبت تلميح للحين. اكتب اسم غرض فوق واضغط اطلب." : "ما أحد يحتاج شي من عالمك للحين."));
+  } else {
+    $("hintList").replaceChildren(...rows.map(r => {
+      const isNew = !r.found && !SEEN.has(hkey(r));
+      const who = HINTTAB === "mine" ? ["عند ", h("b", {class: "ltr"}, r.finder)] : ["لـ ", h("b", {class: "ltr"}, r.receiver)];
+      const where = r.location + (r.entrance && r.entrance !== "Vanilla" ? ` (${r.entrance})` : "");
+      const copy = h("button", {class: "btn ghost small", title: "انسخ اسم المكان", onclick: () => navigator.clipboard.writeText(r.location).then(() => toast("انسخ", r.location, "ok", 1800))}, svg("copy", "sm"));
+      return h("div", {class: "hint" + (r.found ? " found" : "") + (isNew ? " fresh" : "")},
+        h("div", {class: "item" + (r.important ? " imp" : "")}, iso(r.item)),
+        isNew ? h("span", {class: "badge"}, "جديد") : r.found ? h("span", {class: "pill ok"}, "انلقى") : copy,
+        h("div", {class: "where"}, ...who, " في ", h("b", {class: "ltr"}, where)));
+    }));
+  }
+  if (VIEW === "room" && document.hasFocus()) setTimeout(() => { markSeen(HINTS[HINTTAB] || []); }, 4000);
+  const pts = hs.points, cost = hs.cost;
+  $("hintPoints").textContent = pts == null ? "" : `نقاطك ${pts}` + (cost ? ` · التلميح بـ ${cost}` : "");
+  $("hintMeter").classList.toggle("hidden", pts == null || !cost);
+  if (pts != null && cost) {
+    const can = Math.floor(pts / cost);
+    $("hintMeterText").textContent = can ? `تقدر تطلب ${can} تلميح الحين` : `باقي ${cost - pts} نقطة للتلميح الجاي`;
+    $("hintMeterBar").style.width = Math.min(100, Math.round(pts * 100 / cost)) + "%";
+  }
+  if (!HINTITEMS_LOADED && pts != null) {
+    HINTITEMS_LOADED = true;
+    api("/api/hint_items").then(j => $("hintItems").replaceChildren(...j.items.map(n => h("option", {value: n})))).catch(() => { HINTITEMS_LOADED = false; });
+  }
+}
+async function askHint() {
+  const item = $("hintItem").value.trim();
+  if (!item) { $("hintItem").focus(); return toast("اكتب اسم الغرض", "يكمّل لك من أغراض لعبتك وأنت تكتب", "bad"); }
+  try { await api("/api/hint", {item}); $("hintItem").value = ""; HINTTAB = "mine"; drawHints(); toast("طلبت التلميح", item, "", 3000); }
+  catch (e) { toast("ما انطلب التلميح", e.message, "bad"); }
+}
+
+// status, alerts, side cards
+const WATCH = {connecting: ["يتصل", "warn"], reconnecting: ["انقطع، يرجع يتصل", "bad"], connected: ["متصل", "ok"], refused: ["الروم رفضه", "bad"], off: ["ما يتابع", ""]};
+function ago(sec) { const m = Math.max(0, Math.round((Date.now() / 1000 - sec) / 60)); return m < 1 ? "الحين" : m === 1 ? "قبل دقيقة" : `قبل ${m} دقايق`; }
+function drawStatus(f) {
+  const [wt, wk] = WATCH[f.status] || [f.status, ""];
+  $("stWatch").className = "pill " + wk; $("stWatch").textContent = wt;
+  $("roomPill").className = "pill " + wk; $("roomPill").textContent = f.status === "off" ? "ما تتابع روم" : (f.room ? f.room + " · " : "") + wt;
+  $("roomPill").classList.add("ltr");
+  const gl = f.game_link || {state: "unknown"};
+  const gs = gl.state === "playing" ? ["متصلة", "ok"] : gl.state === "lost" ? ["انفصلت " + ago(gl.since), "bad"] : ["ما ندري للحين", ""];
+  $("stGame").className = "pill " + gs[1]; $("stGame").textContent = gs[0];
+  // the dot in the sidebar: red when something is wrong, green when all is fine
+  const bad = f.status === "reconnecting" || f.status === "refused" || gl.state === "lost";
+  $("roomDot").className = "dot " + (bad ? "bad" : f.status === "connected" ? "ok" : f.status === "connecting" ? "warn" : "");
+  const al = [];
+  if (gl.state === "lost") al.push(h("div", {class: "alert bad"}, svg("plug", "lg"), h("div", {class: "t"}, "لعبتك انفصلت عن الروم",
+    h("small", {}, `من ${ago(gl.since)}. اللي تسويه الحين ما ينرسل. ارجع اتصل من داخل اللعبة (أو سكّرها واضغط العب مرة ثانية).`))));
+  if (f.status === "reconnecting") al.push(h("div", {class: "alert warn"}, svg("refresh", "lg"), h("div", {class: "t"}, "البرنامج انقطع عن الروم ويرجع يتصل لحاله",
+    h("small", {}, bidi(f.error ? "السبب: " + clean(f.error) : "غالباً النت أو الروم نام. ما يأثر على لعبتك لو هي متصلة.")))));
+  if (f.status === "refused") al.push(h("div", {class: "alert bad"}, svg("x", "lg"), h("div", {class: "t"}, "الروم رفض الاتصال",
+    h("small", {}, bidi("تأكد من اسمك وكلمة السر. " + clean(f.error || ""))))));
+  $("alerts").replaceChildren(...al);
+  $("connectCard").classList.toggle("hidden", f.status === "connected");
+  $("wstatus").textContent = f.status === "off" ? "" : bidi(wt + (f.error && f.status !== "connected" ? " · " + clean(f.error) : ""));
+}
+function drawRelay(j) {
+  const box = $("relayBox");
+  if (!j.free) { box.replaceChildren(); return; }
+  const fr = j.free;
+  const addr = h("code", {}, fr.address);
+  const copy = h("button", {class: "btn small", onclick: () => navigator.clipboard.writeText(fr.address).then(() => toast("انسخ العنوان", fr.address, "ok", 1800))}, svg("copy", "sm"), "نسخ");
+  const head = h("div", {class: "stat"}, h("span", {class: "k"}, "موتات مجانية"), h("span", {class: "pill ok"}, `باقي ${fr.left} من ${fr.of}`));
+  const st = h("div", {class: "relay " + (fr.bypass ? "bad" : fr.connected ? "ok" : "wait")});
+  if (fr.bypass) st.append("لعبتك متصلة بالروم مباشرة، فالموتات المجانية ما تنحسب. في اللعبة اتصل على ", addr, " ", copy);
+  else if (fr.connected) st.append("لعبتك متصلة عن طريق البرنامج، والموتات المجانية شغّالة.");
+  else st.append("لو تكتب العنوان في اللعبة بنفسك، اكتب ", addr, " ", copy, " بدل عنوان الروم.");
+  box.replaceChildren(head, st);
+}
+const pct = p => p && p.total ? Math.floor(p.done * 100 / p.total) : 0;
 function drawProgress(prog, me) {
   const names = Object.keys(prog || {});
   if (!names.length) { $("progress").textContent = "لسا ما فيه أرقام."; return; }
   names.sort((a, b) => pct(prog[b]) - pct(prog[a]));
   $("progress").replaceChildren(...names.map(n => {
     const p = prog[n], v = pct(p);
-    const row = document.createElement("div"); row.className = "prog-row" + (n === me ? " me" : "");
-    const label = document.createElement("div"); label.className = "prog-label";
-    const nm = document.createElement("b"); nm.dir = "ltr"; nm.textContent = n + (p.goal ? " 🏁" : "");
-    const num = document.createElement("span"); num.className = "muted"; num.textContent = `${p.done} / ${p.total} (${v}%)`;
-    label.append(nm, num);
-    const bar = document.createElement("div"); bar.className = "bar";
-    const fill = document.createElement("i"); fill.style.width = v + "%"; bar.append(fill);
-    row.append(label, bar); return row;
+    return h("div", {class: "prog-row" + (n === me ? " me" : "")},
+      h("div", {class: "lab"}, h("b", {}, n), h("span", {class: "muted"}, p.goal ? "خلّص" : `${p.done} / ${p.total}`)),
+      h("div", {class: "bar"}, h("i", {style: `width:${p.goal ? 100 : v}%` + (p.goal ? ";background:var(--ok)" : "")})));
   }));
 }
-const pct = p => p && p.total ? Math.floor(p.done * 100 / p.total) : 0;
-// trackers: archipelago.gg's pages for every game, and a PopTracker map for games that have a map pack
-let TRACKERS = {}, MYGAME = "";
+function drawDeaths(d, me) {
+  const names = Object.keys(d || {});
+  if (!names.length) { $("deaths").textContent = "ما مات أحد لسا."; $("deaths").className = "muted"; return; }
+  $("deaths").className = "dchips";
+  $("deaths").replaceChildren(...names.map(n => h("span", {class: "dchip" + (n === me ? " me" : "")}, n, h("b", {}, String(d[n])))));
+}
+let TRACKERS = {};
 function drawTrackers(f) {
-  TRACKERS = f.trackers || {}; MYGAME = f.game || "";
-  const g = (S && S.games || []).find(x => x.game === MYGAME);
+  TRACKERS = f.trackers || {};
+  const g = (S && S.games || []).find(x => x.game === f.game);
   $("btnTrackMine").disabled = !TRACKERS.mine; $("btnTrackAll").disabled = !TRACKERS.all;
   $("btnMap").disabled = !(g && g.has_map) || f.status !== "connected";
-  $("trackerNote").textContent = !MYGAME ? "تابع الروم عشان تشتغل" :
-    (g && g.has_map ? "" : "لعبتك ما لها خريطة للحين، بس التراكر يشتغل") + (TRACKERS.mine ? "" : " · التراكر لرومات archipelago.gg");
+  $("trackerNote").textContent = !f.game ? "تشتغل لما تتابع الروم." :
+    (g && g.has_map ? "" : "لعبتك ما لها خريطة للحين. ") + (TRACKERS.mine ? "" : "التراكر لرومات archipelago.gg (الصق الرابط كامل).");
 }
 function openTracker(which) { if (TRACKERS[which]) api("/api/link", {url: TRACKERS[which]}); }
-function openMap() { $("maplog").classList.remove("hidden"); runTask("/api/map", {}, "maplog"); }
+function openMap() { runTask("/api/map", {}, "mapTask"); }
 
-let HINTITEMS_LOADED = false;
-const iso = t => "\u2066" + String(t ?? "") + "\u2069";  // a whole English name kept in one piece
-function drawHints(h) {
-  if (!h) return;
-  const pts = h.points == null ? "" : `نقاطك: ${h.points}` + (h.cost ? ` · التلميح بـ ${h.cost}` : "");
-  $("hintPoints").textContent = pts;
-  const line = (r, mine) => {
-    const d = document.createElement("div"); d.className = "h" + (r.found ? " found" : "");
-    d.dir = "rtl";
-    const item = document.createElement("b"); item.textContent = iso(r.item);
-    if (r.important) item.className = "imp";
-    const where = iso(r.location) + (r.entrance && r.entrance !== "Vanilla" ? ` (${iso(r.entrance)})` : "");
-    d.append(r.found ? "✔ " : "", item,
-      mine ? ` عند ${iso(r.finder)} في: ${where}` : ` لـ ${iso(r.receiver)} في: ${where}`);
-    return d;
-  };
-  const fill = (el, rows, mine, empty) => {
-    if (!rows.length) { el.textContent = empty; el.classList.add("muted"); return; }
-    el.classList.remove("muted"); el.replaceChildren(...rows.map(r => line(r, mine)));
-  };
-  fill($("hintsMine"), h.mine, true, "ما فيه تلميحات لسا.");
-  fill($("hintsTheirs"), h.theirs, false, "ما أحد طلب منك شي لسا.");
-  if (!HINTITEMS_LOADED && h.points != null) {
-    HINTITEMS_LOADED = true;
-    api("/api/hint_items").then(j => $("hintItems").replaceChildren(...j.items.map(n => {
-      const o = document.createElement("option"); o.value = n; return o; }))).catch(() => { HINTITEMS_LOADED = false; });
+// what pops up while you play: your game dropping, hints about you, items for you, the room's goals
+function announce(events) {
+  for (const e of events) {
+    if (e.kind === "conn" && e.state === "lost") { toast("لعبتك انفصلت عن الروم", "ارجع اتصل من داخل اللعبة", "bad", 0); beep("bad"); notifyDesktop("لعبتك انفصلت عن الروم", "ارجع اتصل من داخل اللعبة"); }
+    else if (e.kind === "conn" && e.state === "playing") { toast("لعبتك متصلة بالروم", "", "ok", 3000); }
+    else if (e.kind === "hint" && (e.to_me || e.from_me) && !e.found) {
+      const t = e.to_me ? "تلميح جديد عن غرضك" : "أحد يحتاج غرض من عالمك";
+      toast(t, say(e), "gold", 10000); beep("gold"); notifyDesktop(t, say(e).replace(/[\u2066-\u2069]/g, ""));
+    } else if (e.kind === "item" && e.to_me && (e.flags & 1) && !e.from_me) toast("وصلك غرض مهم", say(e), "", 5000);
+    else if (e.kind === "cmd") { /* shown in the feed */ }
   }
 }
-async function askHint() {
-  const item = $("hintItem").value.trim();
-  if (!item) return alert("اكتب اسم الغرض");
-  try { await api("/api/hint", {item}); $("hintItem").value = ""; } catch (e) { alert(e.message); }
-}
-
-function drawDeaths(d) {
-  const names = Object.keys(d || {});
-  if (!names.length) { $("deaths").textContent = "ما مات أحد لسا."; return; }
-  $("deaths").replaceChildren(...names.map(n => {
-    const s = document.createElement("span"); s.className = "death-chip"; s.dir = "ltr"; s.textContent = `${n} ☠ ${d[n]}`; return s;
-  }));
-}
+let lostTitle = null;
 async function pollFeed() {
   try {
     const f = await api("/api/feed?since=" + FEEDNEXT);
+    LASTF = f;
     if (f.events && f.events.length) {
       FEEDEV = FEEDEV.concat(f.events).slice(-3000);
+      if (!FIRSTPOLL) announce(f.events);
       FEEDPENDING += f.events.filter(keep).length;
       FEEDNEXT = f.events[f.events.length - 1].i + 1;
       drawFeed();
-    }
-    $("wstatus").textContent = (STATUS[f.status] || f.status) + (f.room ? "  ·  " + f.room : "") + (f.error && f.status !== "connected" ? "  ·  " + f.error : "");
+    } else if (!$("feed").children.length) drawFeed(true);
+    FIRSTPOLL = false;
+    drawStatus(f);
     drawProgress(f.progress, f.me);
-    drawDeaths(f.deaths);
-    drawHints(f.hints);
+    drawDeaths(f.deaths, f.me);
+    if (f.hints) drawHints(f.hints);
     drawTrackers(f);
-    $("tab-watch").textContent = "📡 الروم" + (f.status === "connected" ? " ●" : "");
+    // the window title blinks while your game is disconnected (seen in the taskbar)
+    const lost = (f.game_link || {}).state === "lost";
+    if (lost && !lostTitle) lostTitle = setInterval(() => { document.title = document.title.startsWith("!") ? "My Ready AP" : "! لعبتك انفصلت"; }, 1000);
+    if (!lost && lostTitle) { clearInterval(lostTitle); lostTitle = null; document.title = "My Ready AP"; }
   } catch (e) {}
   setTimeout(pollFeed, 2000);
 }
-pollFeed();
+window.addEventListener("focus", () => { if (VIEW === "room") setTimeout(() => { markSeen(HINTS[HINTTAB] || []); drawHints(); }, 4000); });
 
+drawHints();
 refresh();
+pollFeed();
 </script>
 </body>
 </html>

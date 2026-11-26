@@ -176,7 +176,7 @@
     "للهنت: افتح الكونسول (~ أو TAB) واكتب ap_say !hint اسم الغرض."
   ],
   "checks_ar": "الـ Time Pieces، وصناديق وأغراض المراحل، وصفحات الكتب في Time Rifts، والعقود، وأماكن ثانية حسب الخيارات. ينرسل لحاله.",
-  "checks_count_ar": "يعتمد على الخيارات والإضافات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "يعتمد على الخيارات والإضافات، ويطلع العدد بالضبط في صفحة الروم بعد التوليد.",
   "avoid_ar": [
     "خذ نسخة احتياط من سيفاتك قبل ما تغيّر لـ tcplink.",
     "خل A Hat in Time Client مفتوح وأنت تلعب.",
@@ -187,5 +187,18 @@
     "variant": "standard",
     "download": "https://github.com/Mysteryem/ahit-poptracker/archive/refs/tags/v1.8.0.zip"
   },
-  "death_link_key": "death_link"
+  "death_link_key": "death_link",
+  "length": "medium",
+  "genres": [
+    "action",
+    "chill"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "ابدأ بـ Mafia Town: سهلة وفيها تشيكات كثير.",
+    "الـ Compass Badge يأشر على أقرب تشيك، استخدمه.",
+    "الإضافات تزيد الطول كثير، خلها لجولة ثانية."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت نادر، فلما يصير يضحّك وما يخرّب كثير."
 }

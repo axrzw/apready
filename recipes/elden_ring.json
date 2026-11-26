@@ -5,7 +5,7 @@
   "game": "EldenRing",
   "steam_appid": 1245620,
   "verified": false,
-  "notes_ar": "⚠ ألفا غير مستقرة. نسخة thefifthmatt (صاحب راندومايزر Elden Ring المشهور) من GitHub، والبرنامج يركّبها كلها. تحتاج Elden Ring 1.17.2، وتستخدم سيف منفصل (سيفك العادي ما ينلمس). لو الويندوز طلب تنزيل .NET وافق.",
+  "notes_ar": "ألفا غير مستقرة. نسخة thefifthmatt (صاحب راندومايزر Elden Ring المشهور) من GitHub، والبرنامج يركّبها كلها. تحتاج Elden Ring 1.17.2، وتستخدم سيف منفصل (سيفك العادي ما ينلمس). لو الويندوز طلب تنزيل .NET وافق.",
   "sources": [
     "https://github.com/thefifthmatt/SoulsRandomizers/releases",
     "https://github.com/fswap/Archipelago/blob/er/worlds/eldenring/docs/en_setup_guide.md",
@@ -56,7 +56,7 @@
     "اضغط Launch Elden Ring (مو من ستيم). سوّ شخصية جديدة لكل روم."
   ],
   "checks_ar": "الأغراض في الخريطة، والبوسات، والمحلات، حسب الخيارات. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك (Shadow of the Erdtree يزيد كثير، و Tarnished Edition يزيد 28)، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك (Shadow of the Erdtree يزيد كثير، و Tarnished Edition يزيد 28)، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "avoid_ar": [
     "شغّلها من زر Launch Elden Ring في الراندومايزر بس. ستيم يشغّل اللعبة بدون Archipelago.",
     "لا تشغّل زر إضافة (Shadow of the Erdtree أو Tarnished Edition) وأنت ما عندك: أغراضها ما تطلع لك وتعلقون.",
@@ -157,5 +157,16 @@
         }
       ]
     }
-  ]
+  ],
+  "length": "long",
+  "genres": [
+    "action"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "العب أوفلاين، ولا تشغّل اللعبة من ستيم.",
+    "شخصية جديدة لكل روم."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "تموت كثير، فاستخدم موتات مجانية. بدونها يتعب الشباب."
 }

@@ -137,10 +137,21 @@
     "العب من بروفايل Archipelago بس.",
     "انسخ سيفاتك احتياط قبل أول مرة (ما المفروض تتأثر، بس احتياط)."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
     "uid": "balatroap",
     "variant": "standard",
     "download": "https://github.com/graygooglitch/balatroap_poptracker/archive/refs/tags/v1.2.0.0.zip"
-  }
+  },
+  "length": "medium",
+  "genres": [
+    "chill"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "الجوكرات والبطاقات تنفتح بأغراض: أول ساعة خيارك محدود، عادي.",
+    "ركّز على الـ stakes اللي تنفتح لك أول."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "تخسر جولة = موتة. ممتع بس لا يكون معك ناس يلعبون ألعاب صعبة."
 }

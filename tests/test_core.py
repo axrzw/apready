@@ -558,3 +558,54 @@ def test_new_famous_games_death_link():
     assert R["minecraft"]["steam_appid"] is None
     y = rec.build_yaml(R["a_hat_in_time"], "P", {"EndGoal": "rush_hour"}, True)
     assert "EnableDLC2: true" in y                                                   # the DLC goal turns its DLC on
+
+
+def test_group_check_warns_about_a_bad_mix(tmp_path, monkeypatch):
+    from app import groupcheck, host
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    R = rec.load_all()
+    pdir = host.players_dir()
+    pdir.mkdir(parents=True, exist_ok=True)
+    for name, rid, dl in (("Mishal", "celeste", True), ("Fahad", "doom_1993", True), ("Saad", "stardew", False),
+                          ("Nasser", "minecraft", True), ("Ali", "minecraft", True)):
+        (pdir / f"{name}.yaml").write_text(rec.build_yaml(R[rid], name, {}, dl), encoding="utf-8")
+    players = host.scan_players(R)
+    assert {p["name"]: p["death_link"] for p in players} == {"Ali": True, "Fahad": True, "Mishal": True, "Nasser": True, "Saad": False}
+    advice = groupcheck.check(players, R)
+    titles = [a["title"] for a in advice]
+    assert "Death Link بيتعب الشباب" in titles and "Mishal" in advice[titles.index("Death Link بيتعب الشباب")]["text"]
+    assert "أطوال مختلفة كثير" in titles and "أكثر من ماين كرافت" in titles and "مو الكل في Death Link" in titles
+    assert "المجموعة حلوة" not in titles
+    ok = groupcheck.check([p for p in players if p["name"] == "Fahad"], R)
+    assert ok[0]["title"] == "المجموعة حلوة"
+
+
+def test_room_commands_are_whitelisted(tmp_path, monkeypatch):
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+    from app import server
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    said = []
+
+    class F:
+        def say(self, t):
+            said.append(t)
+    monkeypatch.setitem(server.FEED, "feed", F())
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def post(text):
+        req = urllib.request.Request(f"http://127.0.0.1:{srv.server_address[1]}/api/say", json.dumps({"text": text}).encode(),
+                                     {"Content-Type": "application/json"})
+        try:
+            return urllib.request.urlopen(req).status
+        except urllib.error.HTTPError as e:
+            return e.code
+    try:
+        assert post("hello all") == 200 and post("!missing") == 200 and post("!hint_location Big Chest") == 200
+        assert post("!admin /forfeit") == 400 and post("!getitem Sword") == 400 and post("   ") == 400
+        assert said == ["hello all", "!missing", "!hint_location Big Chest"]
+    finally:
+        srv.shutdown()

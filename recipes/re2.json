@@ -189,5 +189,17 @@
     "uid": "resident evil 2 remake_ap",
     "variant": "Map Tracker",
     "download": "https://github.com/TheRealSolidusSnake/RE2R-Poptracker-Pack/archive/refs/tags/0.0.1.zip"
-  }
+  },
+  "length": "medium",
+  "genres": [
+    "horror",
+    "action"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "خلّ الصعوبة عادية أول مرة.",
+    "الخريطة تبيّن وين الأغراض."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت متوقع بس مو كثير: Death Link يزيد الرعب."
 }

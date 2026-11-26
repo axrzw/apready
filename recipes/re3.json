@@ -108,7 +108,7 @@
     "سيّف كثير، وبعد ما تخلص راندومايزر أعد تشغيل اللعبة قبل اللي بعده.",
     "فيه أماكن تفوت لو تقدمت (missable)، فدوّر قبل ما تكمل."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "fixed_options": {
     "difficulty": "standard"
   },
@@ -116,5 +116,16 @@
     "uid": "resident evil 3 remake_ap",
     "variant": "Map Tracker",
     "download": "https://github.com/TheRealSolidusSnake/RE3R_Poptracker/archive/refs/tags/0.2.6.zip"
-  }
+  },
+  "length": "medium",
+  "genres": [
+    "horror",
+    "action"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "الخريطة تبيّن وين الأغراض."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت متوقع بس مو كثير."
 }

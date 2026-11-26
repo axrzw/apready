@@ -255,3 +255,42 @@ def test_hints_from_the_rooms_data_storage():
     assert h["points"] == 4 and h["cost"] == 1   # 50% of my 2 locations
     assert f.hint_items() == ["Button Activation", "Feeling of Satisfaction"]
     assert f.my_checked == {69696968}             # a RoomUpdate with points still updates checks
+
+
+def _pj(t, slot, text, tags=None):
+    p = {"cmd": "PrintJSON", "type": t, "team": 0, "slot": slot, "data": [{"text": text}]}
+    if tags is not None:
+        p["tags"] = tags
+    return [p]
+
+
+def test_my_game_connecting_and_dropping_is_noticed():
+    """The server's Join/Part lines for my slot say when MY GAME (not this watcher) comes and goes."""
+    room = ROOM[:3] + [
+        _pj("Join", 1, "Mishal (Team #1) viewing Clique has joined. Client(0.6.0), ['TextOnly'].", ["TextOnly"]),
+        _pj("Join", 2, "Fahad (Team #1) playing Clique has joined. Client(0.6.0), ['AP'].", ["AP"]),
+    ]
+    f, _ = _feed(room)
+    assert f.snapshot()["game_link"]["state"] == "unknown"       # only the watcher and somebody else so far
+    f._handle(_pj("Join", 1, "Mishal (Team #1) playing Clique has joined. Client(0.6.0), ['AP', 'DeathLink'].", ["AP", "DeathLink"])[0])
+    assert f.snapshot()["game_link"]["state"] == "playing"
+    f._handle(_pj("Part", 1, "Mishal (Team #1) has stopped viewing the game. Client(0.6.0), ['TextOnly'].")[0])
+    assert f.snapshot()["game_link"]["state"] == "playing"       # a viewer leaving is not the game
+    f._handle(_pj("Part", 1, "Mishal (Team #1) has left the game. Client(0.6.0), ['AP'].")[0])
+    snap = f.snapshot()
+    assert snap["game_link"]["state"] == "lost" and snap["game_link"]["since"] > 0
+    conn = [e for e in snap["events"] if e["kind"] == "conn"]
+    assert [e["state"] for e in conn] == ["playing", "lost"]
+    assert not any("has joined" in e["text"] or "has left" in e["text"] for e in snap["events"])  # still no chatter
+
+
+def test_hints_and_command_results_are_marked():
+    hint = [{"cmd": "PrintJSON", "type": "Hint", "receiving": 1, "found": False,
+             "item": {"item": 69696968, "location": 69696969, "player": 2, "flags": 1},
+             "data": [{"text": "[Hint]: Mishal's Button Activation is at The Big Red Button in Fahad's World."}]}]
+    res = [{"cmd": "PrintJSON", "type": "CommandResult", "data": [{"text": "You have 2 missing locations."}]}]
+    f, _ = _feed(ROOM[:3] + [hint, res])
+    ev = f.snapshot()["events"]
+    h = next(e for e in ev if e["kind"] == "hint")
+    assert h["to_me"] and not h["from_me"] and h["found"] is False
+    assert any(e["kind"] == "cmd" and "missing" in e["text"] for e in ev)

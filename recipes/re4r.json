@@ -110,5 +110,17 @@
     "جهّز الباتش من الـ Wizard لكل سيد جديد.",
     "لا تشغّل زر Treasure Map وأنت ما عندك الإضافة: أغراضها ما تطلع لك وتعلقون."
   ],
-  "checks_count_ar": "456 check في قصة Leon (455 على Hardcore و Professional)."
+  "checks_count_ar": "456 check في قصة Leon (455 على Hardcore و Professional).",
+  "length": "long",
+  "genres": [
+    "horror",
+    "action"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "لازم إضافة Separate Ways.",
+    "طويلة: خطط لكذا جلسة."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت متوقع بس مو كثير."
 }
