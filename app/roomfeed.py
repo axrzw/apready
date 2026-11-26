@@ -56,7 +56,10 @@ def resolve_room_link(text: str, get_json=_get_json, wake=None):
     if not status.get("last_port"):
         raise ConnectionError("الروم ما اشتغل. افتح رابطه في المتصفح وجرب مرة ثانية")
     tracker = str(status.get("tracker", "")).rstrip("/").split("/")[-1]
-    return {"host": "archipelago.gg", "port": str(status["last_port"]), "room": room, "tracker": tracker}
+    players = [{"name": str(p[0]), "game": str(p[1])} for p in status.get("players") or []
+               if isinstance(p, (list, tuple)) and len(p) >= 2]
+    return {"host": "archipelago.gg", "port": str(status["last_port"]), "room": room, "tracker": tracker,
+            "players": players}
 
 
 # ---------- a minimal WebSocket client (RFC 6455) ----------
@@ -192,6 +195,7 @@ class RoomFeed:
         self.game_clients = 0
         self.game_state = "unknown"
         self.game_since = 0.0
+        self.game_checks0 = None  # my checks when my game joined: more than that = the game really sends checks
         self.my_slot = None
         self.players = {}         # slot number -> name
         self.games = {}           # slot number -> game
@@ -413,13 +417,10 @@ class RoomFeed:
         elif cmd == "RoomUpdate" and isinstance(p.get("hint_points"), int):
             self.hint_points = p["hint_points"]
             if self.my_checked is not None:
-                new = set(p.get("checked_locations", []))
-                self.my_checked |= new
-                self.my_missing -= new
+                self._my_new_checks(set(p.get("checked_locations", [])))
         elif cmd == "RoomUpdate" and self.my_checked is not None:
             new = set(p.get("checked_locations", []))
-            self.my_checked |= new
-            self.my_missing -= new
+            self._my_new_checks(new)
         elif cmd == "PrintJSON":
             self._print(p)
         elif cmd == "Bounced" and "DeathLink" in p.get("tags", []):
@@ -434,6 +435,19 @@ class RoomFeed:
             self._add("death", death_text(who, cause), who=who)
         elif cmd == "Bounced" and SHARE_TAG in p.get("tags", []) and isinstance(p.get("data"), dict):
             self._shared(p["data"])
+
+    def _my_new_checks(self, new: set):
+        """Checks of my slot reached the room: my game is connected and randomized, whatever we saw before."""
+        fresh = new - self.my_checked
+        self.my_checked |= new
+        self.my_missing -= new
+        if not fresh:
+            return
+        if self.game_state != "playing":  # the game connected before this watcher: now we know it plays
+            self.game_state, self.game_since = "playing", time.time()
+            self.game_checks0 = len(self.my_checked) - len(fresh)
+        if self.game_checks0 is not None and len(self.my_checked) - len(fresh) == self.game_checks0:
+            self._add("conn", "أول تشيك من لعبتك وصل: كل شي تمام", state="checked")
 
     # -- rendering --
     def _name(self, slot) -> str:
@@ -485,6 +499,7 @@ class RoomFeed:
             self.game_clients += 1
             if self.game_state != "playing":
                 self.game_state, self.game_since = "playing", time.time()
+                self.game_checks0 = len(self.my_checked or ())
                 self._add("conn", "لعبتك اتصلت بالروم", state="playing")
         elif p.get("type") == "Part" and "has left the game" in text:
             self.game_clients = max(0, self.game_clients - 1)
@@ -606,6 +621,7 @@ class RoomFeed:
                 why = "loading" if not self.progress_error else "error"
             return {"id": self.id, "status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
                     "progress_why": why,
-                    "game_link": {"state": self.game_state, "since": self.game_since},
+                    "game_link": {"state": self.game_state, "since": self.game_since,
+                                  "checks": (len(self.my_checked or ()) - self.game_checks0) if self.game_checks0 is not None else None},
                     "deaths": None,
                     "room": f"{self.host}:{self.port}", "slot": self.slot}

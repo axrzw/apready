@@ -102,6 +102,15 @@
   .chip:hover { color:var(--text); border-color:#45506a; }
   .chip.on { background:var(--text); color:#0b0d12; border-color:var(--text); font-weight:600; }
   .chip .n { opacity:.6; margin-inline-start:4px; font-size:12px; }
+  .joinbar { display:grid; grid-template-columns:auto 1fr; gap:20px; align-items:center; margin-bottom:18px; border-color:rgba(229,72,77,.45);
+             background:linear-gradient(90deg,rgba(229,72,77,.14),rgba(229,72,77,.03)),var(--surface); }
+  .joinbar h2 { margin:0; font-size:19px; } .joinbar p { margin:2px 0 0; font-size:14px; }
+  .qrows { display:grid; gap:8px; }
+  .qrow { display:grid; grid-template-columns:1fr 1.4fr auto auto; gap:8px; align-items:center; }
+  .qrow input, .qrow select { width:100%; }
+  .qrow .dl { display:flex; gap:6px; align-items:center; font-size:13px; color:var(--dim); white-space:nowrap; }
+  .roomlink { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .roomlink code { font-size:16px; background:var(--bg); padding:10px 14px; border-radius:10px; direction:ltr; flex:1; min-width:0; overflow-wrap:anywhere; border:1px solid var(--line2); }
   .intro { display:grid; grid-template-columns:1.3fr 1fr; gap:24px; align-items:center; margin-bottom:26px;
            background:radial-gradient(120% 140% at 100% 0,rgba(229,72,77,.18),transparent 55%),var(--surface); }
   .intro h2 { margin:0 0 8px; font-size:20px; } .intro p { margin:0 0 14px; color:var(--dim); max-width:560px; }
@@ -251,7 +260,7 @@
   .ev.item.me { background:var(--info-bg); } .ev.item.me .ic { background:var(--info); color:#0b0d12; }
   .ev.item.prog .tx { font-weight:600; }
   .ev.chat .ic { background:var(--surface2); color:var(--text); }
-  .ev.conn.lost .ic, .ev.conn.lost .tx { color:var(--bad); } .ev.conn.playing .ic { color:var(--ok); }
+  .ev.conn.lost .ic, .ev.conn.lost .tx { color:var(--bad); } .ev.conn.playing .ic, .ev.conn.checked .ic { color:var(--ok); }
   .ev.cmd .tx { font-family:Consolas,monospace; font-size:13px; white-space:pre-wrap; direction:ltr; text-align:left; color:#cfd6e4; }
   .ev.sent .tx { color:var(--dim); direction:ltr; text-align:right; }
   .ev details summary { cursor:pointer; list-style:none; }
@@ -302,6 +311,8 @@
   .dialog .row { justify-content:flex-start; }
 
   @media (max-width: 1000px) {
+    .joinbar { grid-template-columns:1fr; }
+    .qrow { grid-template-columns:1fr 1fr; }
     .intro { grid-template-columns:1fr; }
     .app { grid-template-columns:1fr; }
     .side { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; }
@@ -320,6 +331,11 @@
     <button class="nav" id="nav-room" onclick="go('room')"><svg class="i"><use href="#i-radio"/></svg>الروم<span class="dot" id="roomDot"></span></button>
     <button class="nav" id="nav-host" onclick="go('host')"><svg class="i"><use href="#i-server"/></svg>أنا المستضيف</button>
     <div class="spacer"></div>
+    <div class="me-box hidden" id="appUpd" style="border-color:rgba(61,214,140,.45)">
+      <b style="font-size:14px">نسخة جديدة جاهزة <span class="ltr" id="appUpdTag"></span></b>
+      <div class="faint" style="margin:4px 0 8px">نزلت لحالها. اضغط بعد ما تخلصون اللعب: يقفل ويفتح بالجديد، وإعداداتك تبقى.</div>
+      <button class="btn primary small" style="width:100%" onclick="appUpdate()"><svg class="i sm"><use href="#i-refresh"/></svg>حدّث الحين</button>
+    </div>
     <div class="me-box">
       <label for="name">اسمك في الروم</label>
       <div class="me-row">
@@ -328,6 +344,7 @@
       </div>
       <div class="faint" style="margin-top:6px">حروف إنجليزية، ١٦ حرف بالكثير</div>
     </div>
+    <button class="nav" onclick="copyReport()" title="ينسخ تقرير فيه وش صار، تلصقه في الديسكورد"><svg class="i"><use href="#i-alert"/></svg>وش خرب؟</button>
     <div class="ver" id="version"></div>
   </aside>
 
@@ -339,6 +356,14 @@
           <div><h1>المكتبة</h1><p>اختر لعبتك. البرنامج يركّبها ويوصلها بالروم.</p></div>
           <div class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" placeholder="دوّر على لعبة" oninput="drawLibrary()" autocomplete="off"></div>
         </div>
+        <div class="card joinbar">
+          <div class="jt"><h2>عندك رابط روم؟</h2><p class="muted">الصقه واضغط يلا: البرنامج يعرف لعبتك، يجهّزها ويفتحها.</p></div>
+          <div class="row">
+            <input id="jroom" class="grow ltr" placeholder="https://archipelago.gg/room/..." autocomplete="off" onkeydown="if(event.key==='Enter')joinRoom()">
+            <input id="jpass" class="ltr" placeholder="كلمة السر (لو فيه)" style="width:160px" autocomplete="off">
+            <button class="btn primary big" onclick="joinRoom()"><svg class="i"><use href="#i-play"/></svg>يلا</button>
+          </div>
+        </div>
         <div class="intro card" id="intro">
           <div class="intro-t">
             <h2>أول مرة تلعب Archipelago؟</h2>
@@ -346,7 +371,7 @@
             <div class="row"><button class="btn primary" onclick="openPack('first')">ابدأ بمجموعة سهلة</button>
               <button class="btn ghost" onclick="hideIntro()">فهمت</button></div>
           </div>
-          <ol class="intro-s"><li><b>اختر لعبة</b><span>وطلّع ملفك للمستضيف</span></li><li><b>المستضيف يولّد الروم</b><span>ويرسل لكم الرابط</span></li><li><b>الكل يضغط العب</b><span>والبرنامج يوصلكم</span></li></ol>
+          <ol class="intro-s"><li><b>المستضيف يختار ألعابكم</b><span>من «أنا المستضيف» ويضغط زر واحد</span></li><li><b>يرسل لكم رابط الروم</b><span>في القروب</span></li><li><b>كل واحد يلصقه ويضغط يلا</b><span>والبرنامج يجهّز ويفتح لعبته</span></li></ol>
         </div>
         <h2 class="sec">مجموعات جاهزة</h2>
         <div class="packs" id="packs"></div>
@@ -512,25 +537,30 @@
     <!-- HOST -->
     <section id="v-host" class="hidden">
       <div class="page">
-        <div class="page-head"><div><h1>أنا المستضيف</h1><p>تجمع ملفات الشباب، وتولّد العالم، وترفعه في archipelago.gg.</p></div></div>
-        <div class="card step"><div class="num">1</div><div>
-          <h3>ملفات الشباب</h3>
-          <p class="sub">حط ملفاتهم (وملفك أنت) في مجلد اللاعبين.</p>
+        <div class="page-head"><div><h1>أنا المستضيف</h1><p>تختار لعبة كل واحد، تضغط زر واحد، وتاخذ رابط الروم. البرنامج يولّده ويرفعه ويفتح الروم.</p></div></div>
+        <div class="card" id="roomResult" style="display:none;margin-bottom:16px"></div>
+        <div class="card">
+          <div class="card-h"><svg class="i" style="color:var(--accent2)"><use href="#i-bolt"/></svg><h2>جولة سريعة</h2><span class="pill ok aside">الأسرع</span></div>
+          <p class="sub muted" style="margin-top:-4px">اكتب اسم كل واحد (نفس اسمه في البرنامج حقه) واختار لعبته. ما يحتاج أحد يرسل لك ملف.</p>
+          <div id="quickRows" class="qrows"></div>
+          <div class="row" style="margin-top:12px">
+            <button class="btn ghost" onclick="addQuick()"><svg class="i"><use href="#i-users"/></svg>أضف لاعب</button>
+            <span class="grow"></span>
+            <button class="btn primary big" onclick="quickGo()"><svg class="i"><use href="#i-spark"/></svg>ولّد وافتح الروم</button>
+          </div>
+          <div id="quickTask"></div>
+        </div>
+        <details class="more card" style="margin-top:16px">
+          <summary><svg class="i sm"><use href="#i-chev"/></svg>أو: كل واحد يرسل ملفه بخياراته</summary>
+          <p class="sub muted">لو أحد يبي خيارات معيّنة: يطلّع ملفه من صفحة لعبته ويرسله لك، وتحطه في مجلد اللاعبين.</p>
           <div class="row"><button class="btn" onclick="openFolder('players')"><svg class="i"><use href="#i-folder"/></svg>افتح مجلد اللاعبين</button>
             <button class="btn ghost" onclick="refresh()"><svg class="i"><use href="#i-refresh"/></svg>تحديث</button></div>
           <table style="margin-top:12px"><thead><tr><th>الملف</th><th>اللعبة</th><th>Death Link</th><th></th></tr></thead><tbody id="players"></tbody></table>
-        </div></div>
-        <div class="card step"><div class="num">2</div><div>
-          <h3>فحص المجموعة</h3>
-          <p class="sub">هل الألعاب اللي اختارها الشباب تمشي مع بعض؟ البرنامج يقولك قبل ما تولّد.</p>
+          <h3 style="margin-top:18px;font-size:15px">فحص المجموعة</h3>
           <div class="groupchk" id="group"></div>
-        </div></div>
-        <div class="card step"><div class="num">3</div><div>
-          <h3>ولّد العالم</h3>
-          <p class="sub">البرنامج يركّب الـ apworld لكل لعبة، ويولّد العالم، ويفتح لك صفحة الرفع. ترفع الملف وترسل رابط الروم للشباب.</p>
-          <button class="btn primary" onclick="generate()"><svg class="i"><use href="#i-spark"/></svg>ولّد وجهّز الروم</button>
+          <button class="btn primary" style="margin-top:14px" onclick="generate()"><svg class="i"><use href="#i-spark"/></svg>ولّد من الملفات وافتح الروم</button>
           <div id="hostTask"></div>
-        </div></div>
+        </details>
       </div>
     </section>
   </main>
@@ -967,7 +997,7 @@ async function runTask(path, body, where, onDone) {
       box.scrollIntoView({behavior: "smooth", block: "nearest"});
     }
     if (!t.done) setTimeout(poll, 700);
-    else if (onDone && !t.error && !t.needs_user) onDone();
+    else if (onDone && !t.error && !t.needs_user) onDone(t);
   };
   poll();
 }
@@ -1003,7 +1033,82 @@ async function play() {
   toast("البرنامج يتابع الروم معك", "صفحة الروم فيها تلميحاتك والموتات وتنبيه لو انفصلت لعبتك", "", 7000);
 }
 $("room").addEventListener("input", () => $("room").classList.remove("bad"));
-function generate() { runTask("/api/host/generate", {}, "hostTask"); }
+function generate() { runTask("/api/host/generate", {}, "hostTask", t => showRoom(t.result)); }
+
+// quick session: the host types names and picks games, the app writes everyone's file
+let QUICK = [];
+try { QUICK = JSON.parse(localStorage.getItem("mrap.quick") || "[]"); } catch (e) {}
+function saveQuick() { try { localStorage.setItem("mrap.quick", JSON.stringify(QUICK)); } catch (e) {} }
+function drawQuick() {
+  if (!S) return;
+  if (!QUICK.length) QUICK = [{name: $("name").value || "", game: "", dl: true}, {name: "", game: "", dl: true}];
+  const games = [...S.games].sort((a, b) => a.name.localeCompare(b.name));
+  $("quickRows").replaceChildren(...QUICK.map((q, i) => {
+    const name = h("input", {class: "ltr", placeholder: "الاسم (بالإنجليزي)", value: q.name, maxlength: "16"});
+    name.oninput = () => { q.name = name.value; saveQuick(); };
+    const sel = h("select", {}, h("option", {value: ""}, "اختار لعبته"), ...games.map(g => { const o = h("option", {value: g.id}, g.name); if (g.id === q.game) o.selected = true; return o; }));
+    sel.onchange = () => { q.game = sel.value; saveQuick(); };
+    const cb = h("input", {type: "checkbox"}); cb.checked = q.dl !== false; cb.onchange = () => { q.dl = cb.checked; saveQuick(); };
+    const del = h("button", {class: "btn ghost small", title: "احذف", onclick: () => { QUICK.splice(i, 1); saveQuick(); drawQuick(); }}, svg("x", "sm"));
+    return h("div", {class: "qrow"}, name, sel, h("label", {class: "dl"}, cb, "Death Link"), del);
+  }));
+}
+function addQuick() { QUICK.push({name: "", game: "", dl: true}); saveQuick(); drawQuick(); }
+async function quickGo() {
+  const rows = QUICK.filter(q => q.name.trim() && q.game);
+  if (!rows.length) return toast("اكتب الأسماء واختار الألعاب", "كل سطر: اسم ولعبة", "bad");
+  if (rows.length < QUICK.filter(q => q.name.trim() || q.game).length) return toast("فيه سطر ناقص", "كل واحد يحتاج اسم ولعبة", "bad");
+  try { await api("/api/host/quick", {players: rows.map(q => ({name: q.name.trim(), game: q.game, death_link: q.dl !== false}))}); }
+  catch (e) { return toast("ما قدرت أجهّز الملفات", e.message, "bad"); }
+  await refresh();
+  const bad = (S.group || []).filter(a => a.level === "bad");
+  if (bad.length && !await confirmBox("تنبيه قبل التوليد", bad.map(a => a.title + ": " + a.text).join("\n\n"), "ولّد كذا", false)) return;
+  runTask("/api/host/generate", {}, "quickTask", t => showRoom(t.result));
+}
+function showRoom(res) {
+  const room = res && res.room;
+  const box = $("roomResult");
+  if (!room) return;
+  navigator.clipboard.writeText(room).catch(() => {});
+  box.style.display = "";
+  box.replaceChildren(
+    h("div", {class: "card-h"}, svg("check", "lg"), h("h2", {}, "الروم جاهز"), h("span", {class: "pill ok aside"}, "الرابط انتسخ لحاله")),
+    h("p", {class: "muted", style: "margin:0 0 10px"}, "ارسل الرابط للشباب في القروب. كل واحد يلصقه في المكتبة ويضغط يلا."),
+    h("div", {class: "roomlink"}, h("code", {}, room),
+      h("button", {class: "btn", onclick: () => navigator.clipboard.writeText(room).then(() => toast("انسخ الرابط", "", "ok", 1800))}, svg("copy", "sm"), "نسخ"),
+      h("button", {class: "btn primary", onclick: () => { $("jroom").value = room; go("library"); joinRoom(); }}, svg("play", "sm"), "العب أنا بعد")));
+  box.scrollIntoView({behavior: "smooth", block: "start"});
+  toast("الروم جاهز والرابط منسوخ", "الصقه للشباب في القروب", "ok", 8000);
+}
+
+// a friend pastes the room link: the app finds their name and game in the room, sets it up and starts it
+async function joinRoom(slot) {
+  const room = $("jroom").value.trim();
+  if (!room) { $("jroom").classList.add("bad"); $("jroom").focus(); return toast("الصق رابط الروم", "اللي أرسله المستضيف", "bad"); }
+  const busy = toast("أدوّر على لعبتك في الروم", "", "", 0);
+  let j;
+  try { j = await api("/api/join", {room, password: $("jpass").value, slot}); }
+  catch (e) { busy.remove(); return toast("ما قدرت أدخل الروم", e.message, "bad"); }
+  busy.remove();
+  if (j.choose) {
+    const pickName = await dialog("مين أنت في هذا الروم؟", "اختار اسمك (البرنامج يتذكره).", [...j.choose.map(n => [n, n, "ltr"]), ["إلغاء", null, "ghost"]]);
+    if (pickName) joinRoom(pickName);
+    return;
+  }
+  $("name").value = j.slot;
+  pick(j.game);
+  $("room").value = room; $("pass").value = $("jpass").value;
+  toast("لقيت لعبتك", "أجهّزها وأفتحها لك الحين", "ok", 4000);
+  play();
+}
+$("jroom").addEventListener("input", () => $("jroom").classList.remove("bad"));
+async function copyReport() {
+  try {
+    const j = await api("/api/report");
+    await navigator.clipboard.writeText("```\n" + j.text + "\n```");
+    toast("انسخ التقرير", "الصقه في الديسكورد للي يصلّح البرنامج. ما فيه كلمات سر.", "ok", 6000);
+  } catch (e) { toast("ما قدرت أنسخ التقرير", e.message, "bad"); }
+}
 function openFolder(what) { api("/api/open", {what}).catch(e => toast("ما انفتح المجلد", e.message, "bad")); }
 
 // ---------- state ----------
@@ -1018,7 +1123,7 @@ async function refresh() {
   $("newGames").classList.toggle("hidden", !notes.length);
   $("newGamesText").textContent = bidi(notes.join("  ·  "));
   if (document.activeElement !== $("name")) $("name").value = S.player_name || "";
-  drawPacks(); drawCats(); drawLibrary(); drawGroup();
+  drawPacks(); drawCats(); drawLibrary(); drawGroup(); drawQuick();
   $("players").replaceChildren(...(S.players.length ? S.players.map(p => h("tr", {},
       h("td", {class: "ltr"}, p.file), h("td", {class: "ltr"}, p.game || "؟"),
       h("td", {}, p.death_link ? h("span", {class: "pill bad"}, svg("skull", "sm"), "شغّال") : h("span", {class: "pill"}, "طافي")),
@@ -1031,9 +1136,16 @@ function drawGroup() {
       h("div", {}, h("b", {}, bidi(a.title)), h("span", {}, bidi(a.text)))))
     : [h("div", {class: "muted"}, "حط ملفات الشباب في المجلد واضغط تحديث.")]));
 }
+async function appUpdate() {
+  if (LASTF.status === "connected" && !await confirmBox("تحدّث الحين؟", "البرنامج يقفل ثواني ويفتح بالجديد. لو لعبتك متصلة عن طريق البرنامج (الموتات المجانية) بتنفصل لحظة.", "حدّث")) return;
+  try { await api("/api/app_update", {}); toast("يحدّث الحين", "البرنامج يقفل ويفتح بالنسخة الجديدة", "ok", 0); }
+  catch (e) { toast("ما قدرت أحدّث", e.message, "bad"); }
+}
 async function ping() {
   try {
     const j = await api("/api/ping");
+    $("appUpd").classList.toggle("hidden", !j.app_update);
+    $("appUpdTag").textContent = j.app_update || "";
     drawRelay(j);
     if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur && VIEW === "game") pick(cur.id); }
     recipesRev = j.recipes;
@@ -1223,7 +1335,9 @@ function drawStatus(f) {
   $("roomPill").className = "pill " + wk; $("roomPill").textContent = f.status === "off" ? "ما تتابع روم" : (f.room ? f.room + " · " : "") + wt;
   $("roomPill").classList.add("ltr");
   const gl = f.game_link || {state: "unknown"};
-  const gs = gl.state === "playing" ? ["متصلة", "ok"] : gl.state === "lost" ? ["انفصلت " + ago(gl.since), "bad"] : ["ما ندري للحين", ""];
+  const quiet = gl.state === "playing" && gl.checks === 0 && Date.now() / 1000 - gl.since > 480;  // 8 min, no check
+  const gs = gl.state === "playing" ? (gl.checks > 0 ? ["متصلة ومخلوطة", "ok"] : quiet ? ["ما أرسلت تشيك للحين", "warn"] : ["متصلة", "ok"])
+           : gl.state === "lost" ? ["انفصلت " + ago(gl.since), "bad"] : ["ما ندري للحين", ""];
   $("stGame").className = "pill " + gs[1]; $("stGame").textContent = gs[0];
   // the dot in the sidebar: red when something is wrong, green when all is fine
   const bad = f.status === "reconnecting" || f.status === "refused" || gl.state === "lost";
@@ -1231,6 +1345,8 @@ function drawStatus(f) {
   const al = [];
   if (gl.state === "lost") al.push(h("div", {class: "alert bad"}, svg("plug", "lg"), h("div", {class: "t"}, "لعبتك انفصلت عن الروم",
     h("small", {}, `من ${ago(gl.since)}. اللي تسويه الحين ما ينرسل. ارجع اتصل من داخل اللعبة (أو سكّرها واضغط العب مرة ثانية).`))));
+  if (quiet) al.push(h("div", {class: "alert warn"}, svg("alert", "lg"), h("div", {class: "t"}, "لعبتك متصلة بس ما أرسلت ولا تشيك",
+    h("small", {}, "لو سويت شي المفروض يرسل (صندوق، غرض، مرحلة) وما طلع هنا، ممكن اللعبة شغالة بدون الراندو. شيك «كيف أشغّلها» في صفحة لعبتك (مثلاً سيف Archipelago أو وضع Archipelago)."))));
   if (f.status === "reconnecting") al.push(h("div", {class: "alert warn"}, svg("refresh", "lg"), h("div", {class: "t"}, "البرنامج انقطع عن الروم ويرجع يتصل لحاله",
     h("small", {}, bidi(f.error ? "السبب: " + clean(f.error) : "غالباً النت أو الروم نام. ما يأثر على لعبتك لو هي متصلة.")))));
   if (f.status === "refused") al.push(h("div", {class: "alert bad"}, svg("x", "lg"), h("div", {class: "t"}, "الروم رفض الاتصال",
@@ -1291,6 +1407,7 @@ function announce(events) {
   for (const e of events) {
     if (e.kind === "conn" && e.state === "lost") { toast("لعبتك انفصلت عن الروم", "ارجع اتصل من داخل اللعبة", "bad", 0); beep("bad"); notifyDesktop("لعبتك انفصلت عن الروم", "ارجع اتصل من داخل اللعبة"); }
     else if (e.kind === "conn" && e.state === "playing") { toast("لعبتك متصلة بالروم", "", "ok", 3000); }
+    else if (e.kind === "conn" && e.state === "checked") { toast("أول تشيك وصل", "لعبتك متصلة ومخلوطة، كل شي تمام", "ok", 5000); }
     else if (e.kind === "hint" && (e.to_me || e.from_me) && !e.found) {
       const t = e.to_me ? "تلميح جديد عن غرضك" : "أحد يحتاج غرض من عالمك";
       toast(t, say(e), "gold", 10000); beep("gold"); notifyDesktop(t, say(e).replace(/[\u2066-\u2069]/g, ""));

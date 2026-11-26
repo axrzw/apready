@@ -609,3 +609,40 @@ def test_room_commands_are_whitelisted(tmp_path, monkeypatch):
         assert said == ["hello all", "!missing", "!hint_location Big Chest"]
     finally:
         srv.shutdown()
+
+
+def test_join_by_link_and_quick_session(tmp_path, monkeypatch):
+    """A friend pastes the room link: the app finds their slot and game. The host picks everyone's game."""
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+    from app import host, server
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    server.reload_recipes()
+    room = {"host": "archipelago.gg", "port": "40000", "tracker": "T",
+            "players": [{"name": "Mishal", "game": "Celeste (Open World)"}, {"name": "Fahad", "game": "DOOM 1993"}]}
+    monkeypatch.setattr(server.roomfeed, "resolve_room_link", lambda text: room)
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def post(path, body):
+        req = urllib.request.Request(f"http://127.0.0.1:{srv.server_address[1]}{path}", json.dumps(body).encode(),
+                                     {"Content-Type": "application/json"})
+        try:
+            return json.loads(urllib.request.urlopen(req).read())
+        except urllib.error.HTTPError as e:
+            return {"status": e.code, **json.loads(e.read())}
+    link = "https://archipelago.gg/room/abc"
+    try:
+        assert post("/api/join", {"room": link}) == {"choose": ["Mishal", "Fahad"]}          # no name yet: pick yours
+        j = post("/api/join", {"room": link, "slot": "fahad"})
+        assert j["game"] == "doom_1993" and j["slot"] == "Fahad"
+        assert post("/api/join", {"room": link})["game"] == "doom_1993"                     # remembered
+        r = post("/api/host/quick", {"players": [{"name": "Mishal", "game": "celeste"}, {"name": "Saad", "game": "stardew"}]})
+        assert r == {"ok": True, "count": 2}
+        players = host.scan_players(server.RECIPES)
+        assert {(p["name"], p["recipe"], p["death_link"]) for p in players} == {("Mishal", "celeste", True), ("Saad", "stardew", True)}
+        assert post("/api/host/quick", {"players": [{"name": "A", "game": "celeste"}, {"name": "a", "game": "doom_1993"}]})["status"] == 400
+    finally:
+        srv.shutdown()
