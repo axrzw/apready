@@ -42,7 +42,7 @@
       "type": "manual",
       "id": "connect_noita",
       "every_time": true,
-      "text_ar": "أول مرة أو روم جديد: Options > Mod Settings > Archipelago: اكتب Server = {host} و Port = {port} و Slot = {slot} (والباسورد لو فيه). بعدها ابدأ New Game، ويطلع شعار Archipelago تحت يمين."
+      "text_ar": "أول مرة أو روم جديد: Options > Mod Settings > Archipelago: اكتب Server = {host} و Port = {port} و Slot = {slot} (والباسورد لو فيه)، وخل Allow Death Link على On قبل ما تبدأ (لو غيرته وسط الجولة ما يشتغل). بعدها ابدأ New Game، ويطلع شعار Archipelago تحت يمين."
     }
   ],
   "options": [
@@ -154,7 +154,8 @@
   "checks_count_ar": "يعتمد على الخيارات، ويطلع العدد بالضبط في صفحة الروم بعد التوليد.",
   "avoid_ar": [
     "اسمك في الروم بحروف إنجليزية وأرقام (اللعبة ما تكتب عربي).",
-    "التشيكات ما تضيع لو متّ: الدورة الجاية تكمل."
+    "التشيكات ما تضيع لو متّ: الدورة الجاية تكمل.",
+    "Death Link لازم يكون شغّال في إعدادات المود قبل ما تبدأ الجولة: تغييره وسطها ما يشتغل."
   ],
   "map_tracker": {
     "uid": "noita_scipiowright",
