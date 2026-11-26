@@ -578,3 +578,34 @@ def test_group_check_warns_about_a_bad_mix(tmp_path, monkeypatch):
     assert "المجموعة حلوة" not in titles
     ok = groupcheck.check([p for p in players if p["name"] == "Fahad"], R)
     assert ok[0]["title"] == "المجموعة حلوة"
+
+
+def test_room_commands_are_whitelisted(tmp_path, monkeypatch):
+    import threading
+    import urllib.error
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+    from app import server
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    said = []
+
+    class F:
+        def say(self, t):
+            said.append(t)
+    monkeypatch.setitem(server.FEED, "feed", F())
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def post(text):
+        req = urllib.request.Request(f"http://127.0.0.1:{srv.server_address[1]}/api/say", json.dumps({"text": text}).encode(),
+                                     {"Content-Type": "application/json"})
+        try:
+            return urllib.request.urlopen(req).status
+        except urllib.error.HTTPError as e:
+            return e.code
+    try:
+        assert post("hello all") == 200 and post("!missing") == 200 and post("!hint_location Big Chest") == 200
+        assert post("!admin /forfeit") == 400 and post("!getitem Sword") == 400 and post("   ") == 400
+        assert said == ["hello all", "!missing", "!hint_location Big Chest"]
+    finally:
+        srv.shutdown()

@@ -21,6 +21,13 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
 - Friends never see YAML, ports or folder paths unless they open the advanced section.
 
 ## How it works
+- `ui/index.html` (one file, no framework): sidebar (المكتبة / الروم / أنا المستضيف, name box, room dot). Library:
+  official store art per game (Steam `library_600x900` / `library_hero`, `art_appid` overrides; a drawn tile when
+  there's none), search, filters from recipe `length`/`genres`/`beginner`, a "first time?" card and ready-made
+  packs (PACKS in the page). Game page: hero art, 3 steps, tips + Death Link fit. Room page: hints first, a quiet
+  log, chat, quick commands, status (watcher + MY GAME), trackers, progress, deaths. No emoji anywhere (drawn SVG
+  icons; `clean()` strips symbols from recipe/log texts) and no alert()/confirm(): toasts and dialogs. Note: this
+  sandbox's tooling turns `\u` escapes typed in commands into literal characters; build backslashes with chr(92).
 - `app/server.py`: stdlib HTTP server on 127.0.0.1. Opens the browser to `ui/index.html`.
   No third-party dependencies, so the PyInstaller exe stays small.
 - `app/window.py`: the app's own window: Edge (else Chrome/Brave) with `--app=` and its own profile in
@@ -84,7 +91,16 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   heard in the room, and real totals My Ready AP apps share with a Bounce tagged `MyReadyAP`
   ({"kind": "deaths", "source", "deaths"}; "deaths?" asks the others). Shown = max of both per player;
   a remote app can't set my own number. Kept per seed in `%APPDATA%/APReady/deaths.json` (last 20).
-- Hints (📡 tab card): the feed reads the room's hint storage `_read_hints_<team>_<slot>` (Get + SetNotify):
+- My game connected? `roomfeed` follows the server's Join/Part PrintJSON for my slot (a game's Part says "has left
+  the game", the watcher's "stopped viewing"): `game_link` {state unknown|playing|lost, since}. Lost = red banner,
+  sound, blinking title, Windows notification. Hints and items carry item/location/sender/receiver so the page
+  says them in Arabic; CommandResult -> kind "cmd". `/api/say`: chat + SAFE_COMMANDS (!hint, !missing, !status...).
+- `app/groupcheck.py`: the host page's "فحص المجموعة" from the players' YAMLs (name, game, Death Link): a harsh
+  Death Link game (`dl_fit` 1) next to others, short next to long, two Minecraft files, no recipe; co-op lobbies.
+- `app/stores.py`: where the game is: a folder the player picked (`game_dirs`, checked with recipe `exe`), Steam,
+  GOG (registry), Epic (launcher manifests) for recipes with `stores`. Not found -> the task asks to install it or
+  pick the folder (PowerShell folder picker). Launch: Epic via its launcher link, GOG/folder via `exe`.
+- Hints (الروم page card): the feed reads the room's hint storage `_read_hints_<team>_<slot>` (Get + SetNotify):
   «أغراضك وين» and «لازم تجيبها للشباب», found ones struck through; `/api/hint` sends `!hint <item>`
   (suggestions from `/api/hint_items`, my game's item names); points from Connected/RoomUpdate, cost =
   hint_cost % of my locations.
@@ -279,7 +295,10 @@ run), ULTRAKILL (Thunderstore packages exist; check them), Supermarket Simulator
 GitHub releases), Silksong (.rar release), WEBFISHING (GDWeave, not BepInEx), TF2 MvM (server plugin), Deep Rock Galactic (mod.io).
 
 ## Adding a game
-See ADDING_GAMES.md. Copy the closest recipe, fill in the fields, run `pytest`, and test it.
+See ADDING_GAMES.md. For a game with NO Archipelago support yet, the project skill
+`.claude/skills/archipelago-port` (engine detection, apworld + mod templates for any engine, wiring the recipe).
+Recipe page fields: `length` short|medium|long, `genres` [action horror puzzle chill coop], `beginner`, `dl_fit` 1-3
++ `dl_fit_ar`, `tips_ar`, `art_appid`, `stores` + `exe`. Copy the closest recipe, fill in the fields, run `pytest`, and test it.
 
 ## Commands
 - Run: `python -m app`
