@@ -161,6 +161,7 @@ options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
                  written as a flow mapping, e.g. random_enemy_preset). Writing exclude_locations replaces the
                  apworld's default list, so repeat its defaults (Sekiro: Hidden, Headless; DS3: 5 groups). RE4R: "I own
                  Treasure Map: Expansion" off -> exclude_locations ["T.DLC"] (its 36 checks get filler).
+                 A choice can carry `yaml` {apworld option: value}: written as is when picked (enemy shuffle modes).
                  A choice can carry `sets` {key: value}: picking it switches that option too (in the page
                  and in `effective_options`; Terraria's Calamity goals set calamity: true).
 not_equal [[a, b]] options the apworld refuses to see equal (Hitman goal/starting level): `a` moves.
@@ -319,7 +320,12 @@ pack's uid/variant against its manifest.json. Options were checked against the c
   don't unlock): smods pinned to tag 1.0.0-beta-1814a with `clean` (github_release `clean`: wipe the mod's own
   folder before extracting, so a pinned older version doesn't sit on top of newer files).
 - Sekiro: enemy randomizer off by default (client #1/#2: boss swaps that can't be killed / fights that never end).
-- Dark Souls III: enemy randomization off by default (official guide: crashes, impossible seeds).
+- Enemy shuffle (owner: "keep it, but not impossible"): Sekiro and DS3 have an app_only choice «خلط الأعداء»
+  off / safe (default) / full, whose choices carry `yaml` {option: value} (written as they are). Safe = bosses stay
+  in place (Sekiro randomize_bosses false: the reported softlocks were boss swaps, client #1/#2; DS3
+  random_enemy_preset DontRandomize "Bosses"), Sekiro also RemoveSource Shichimen Warrior; Headless; Mist Noble;
+  Folding Screen Monkey; Divine Dragon and Old Dragons (names checked in SoulsRandomizers dists/Base/enemy.txt).
+  fixed_options writes the shuffle off, so an older app (no choice `yaml`) never gets the apworld's default (on).
 - Skipping bosses (owner, Nov 2026): a story boss can't be removed, but optional ones can be made worthless.
   Sekiro «تجاهل الـ Headless والـ Shichimen» (app_only, on): exclude_locations Headless group + the three
   Shichimen Warriors' drops and arena items, random_enemy_preset RemoveSource Shichimen Warrior (only matters with
