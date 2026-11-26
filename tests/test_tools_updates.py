@@ -148,3 +148,18 @@ def test_background_update_reports_only_real_changes(tmp_path, monkeypatch):
     server.update_recipes_in_background()
     assert server.UPDATE["new"] == [] and server.UPDATE["updated"] == ["Cuphead"]
     assert server.RECIPES_REV["n"] == rev0 + 1
+
+
+def test_app_update_downloads_only_a_newer_real_exe(tmp_path, monkeypatch):
+    from app import updates
+    monkeypatch.setenv("APPDATA", str(tmp_path))
+    exe = b"MZ" + b"\0" * 2_000_000
+    rel = {"tag_name": "v1.2.0", "assets": [{"name": "MyReadyAP.exe", "browser_download_url": "u"},
+                                             {"name": "APReady.exe", "browser_download_url": "x"}]}
+    got = updates.check_app_update("v1.0.1", lambda url: rel, lambda url: exe)
+    assert got["tag"] == "v1.2.0" and open(got["path"], "rb").read(2) == b"MZ"
+    assert updates.check_app_update("v1.2.0", lambda url: rel, lambda url: exe) is None        # same version
+    assert updates.check_app_update("dev", lambda url: rel, lambda url: exe) is None           # running from source
+    assert updates.check_app_update("v1.0.1", lambda url: dict(rel, tag_name="v1.3.0"), lambda url: b"<html>") is None
+    assert updates.check_app_update("v1.0.1", lambda url: dict(rel, tag_name="v1.1.0-test"), lambda url: exe) is None
+    assert updates.version_tuple("v1.10.0") > updates.version_tuple("v1.9.9")

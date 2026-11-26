@@ -168,9 +168,11 @@ def test_progress_for_everyone_from_the_archipelago_tracker():
 
 def test_room_link_finds_the_port_and_wakes_the_room():
     woke = []
-    api = {"https://archipelago.gg/api/room_status/AbC-123": {"last_port": 51234, "tracker": "/tracker/TrK9"}}
+    api = {"https://archipelago.gg/api/room_status/AbC-123": {"last_port": 51234, "tracker": "/tracker/TrK9",
+                                                              "players": [["Mishal", "Celeste (Open World)"], ["Fahad", "DOOM 1993"]]}}
     room = roomfeed.resolve_room_link("https://archipelago.gg/room/AbC-123", api.__getitem__, woke.append)
-    assert room == {"host": "archipelago.gg", "port": "51234", "room": "AbC-123", "tracker": "TrK9"}
+    assert room == {"host": "archipelago.gg", "port": "51234", "room": "AbC-123", "tracker": "TrK9",
+                    "players": [{"name": "Mishal", "game": "Celeste (Open World)"}, {"name": "Fahad", "game": "DOOM 1993"}]}
     assert woke == ["https://archipelago.gg/room/AbC-123"]
     assert parse_room("  https://archipelago.gg/room/AbC-123 ", resolve=lambda t: {"host": "h", "port": "1"}) == {"host": "h", "port": "1"}
     assert parse_room("archipelago.gg:38281") == {"host": "archipelago.gg", "port": "38281"}
@@ -332,3 +334,23 @@ def test_each_feed_has_its_own_id():
     a, _ = _feed(ROOM[:3])
     b, _ = _feed(ROOM[:3])
     assert a.snapshot()["id"] and a.snapshot()["id"] != b.snapshot()["id"]
+
+
+def test_first_check_after_the_game_connects_is_noticed():
+    """'Connected but not randomized' (the Cuphead bug) shows as: playing, 0 checks. The first check says all is well."""
+    f, _ = _feed(ROOM[:3])
+    f._handle(_pj("Join", 1, "Mishal (Team #1) playing Clique has joined. Client(0.6.0), ['AP'].", ["AP"])[0])
+    assert f.snapshot()["game_link"]["checks"] == 0
+    f._handle({"cmd": "RoomUpdate", "checked_locations": [69696968]})
+    f._handle({"cmd": "RoomUpdate", "checked_locations": [69696969]})
+    snap = f.snapshot()
+    assert snap["game_link"]["checks"] == 2
+    assert [e["text"] for e in snap["events"] if e.get("state") == "checked"] == ["أول تشيك من لعبتك وصل: كل شي تمام"]
+
+
+def test_checks_reveal_a_game_that_connected_before_the_watcher():
+    f, _ = _feed(ROOM[:3])
+    assert f.snapshot()["game_link"]["state"] == "unknown"
+    f._handle({"cmd": "RoomUpdate", "checked_locations": [69696968]})
+    gl = f.snapshot()["game_link"]
+    assert gl["state"] == "playing" and gl["checks"] == 1

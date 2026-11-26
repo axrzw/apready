@@ -20,6 +20,13 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   (`app/updates.py`, default axrzw/apready@main). Never let users add a recipe or repo URL.
 - Friends never see YAML, ports or folder paths unless they open the advanced section.
 
+## The goal (owner, Nov 2026)
+"When we feel like playing, we play": from deciding to everyone in-game in under 15 minutes, no prep the day
+before, no reports, no files to pass around. Fixes reach everyone as an update, not a new download.
+The fast path: host page «جولة سريعة» (names + games, one button: writes everyone's YAML, generates, uploads to
+archipelago.gg and opens the room, link copied) -> friends paste the link in «عندك رابط روم؟» and press يلا (the
+app reads room_status players, finds their slot by name or asks once, opens their game and presses Play).
+
 ## How it works
 - `ui/index.html` (one file, no framework): sidebar (المكتبة / الروم / أنا المستضيف, name box, room dot). Library:
   official store art per game (Steam `library_600x900` / `library_hero`, `art_appid` overrides; a drawn tile when
@@ -99,6 +106,16 @@ one button to generate the seed. UI is Arabic (RTL); talk to the owner in Saudi 
   the game", the watcher's "stopped viewing"): `game_link` {state unknown|playing|lost, since}. Lost = red banner,
   sound, blinking title, Windows notification. Hints and items carry item/location/sender/receiver so the page
   says them in Arabic; CommandResult -> kind "cmd". `/api/say`: chat + SAFE_COMMANDS (!hint, !missing, !status...).
+- Host upload (`host.upload_and_open_room`): POST the seed zip to archipelago.gg/uploads (302 /seed/<id>), then
+  GET /new_room/<id> with the same session cookie (302 /room/<id>), like the website's buttons; on any refusal it
+  falls back to opening the upload page. `explain_failure` names the friend whose file broke generation.
+- `/api/join` {room}: finds my slot and game in the room (room_status players); `/api/host/quick` writes YAMLs.
+- «متصلة ومخلوطة»: roomfeed counts my checks after my game joins (`game_link.checks`; checks also reveal a game
+  that connected before the watcher). 8 min connected with 0 checks -> warning (the "connected but not
+  randomized" Cuphead case). «وش خرب؟» (`/api/report`): one text for Discord, password masked.
+- App updates (`updates.check_app_update`, exe only): the latest release of DEFAULT_REPO (never a setting),
+  newer semver, real MZ exe, downloaded to %APPDATA%/APReady/update; the sidebar offers «حدّث الحين», which
+  starts that exe (install.relocate closes this copy and installs it). Recipes keep updating without that.
 - `app/groupcheck.py`: the host page's "فحص المجموعة" from the players' YAMLs (name, game, Death Link): a harsh
   Death Link game (`dl_fit` 1) next to others, short next to long, two Minecraft files, no recipe; co-op lobbies.
 - `app/stores.py`: where the game is: a folder the player picked (`game_dirs`, checked with recipe `exe`), Steam,

@@ -71,3 +71,48 @@ def update(listing_fn=http_json, get_fn=_get) -> dict:
             index.pop(f.name, None)
     index_file.write_text(json.dumps(index, indent=1), encoding="utf-8")
     return result
+
+
+# ---------- the app itself: a newer release downloads quietly, the player presses one button to switch ----------
+
+RELEASES = "https://api.github.com/repos/{repo}/releases/latest"
+APP_ASSET = "MyReadyAP.exe"
+
+
+def version_tuple(v: str):
+    """'v1.0.1' -> (1, 0, 1); anything else (dev builds, test tags) -> None (never compared)."""
+    import re
+    m = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", (v or "").strip())
+    return tuple(int(x) for x in m.groups()) if m else None
+
+
+def check_app_update(current: str, listing_fn=http_json, get_fn=_get):
+    """Download the latest release's exe when it is newer than this one. Only the project's own repo
+    (DEFAULT_REPO, never a setting). Returns {"tag", "path"} or None."""
+    cur = version_tuple(current)
+    if not cur:
+        return None
+    rel = listing_fn(RELEASES.format(repo=DEFAULT_REPO))
+    tag = rel.get("tag_name", "")
+    new = version_tuple(tag)
+    if not new or new <= cur or rel.get("prerelease") or rel.get("draft"):
+        return None
+    asset = next((a for a in rel.get("assets", []) if a.get("name") == APP_ASSET), None)
+    if not asset:
+        return None
+    dest = data_dir() / "update" / f"MyReadyAP-{tag}.exe"
+    if not dest.exists():
+        data = get_fn(asset["browser_download_url"])
+        if not data.startswith(b"MZ") or len(data) < 1_000_000:  # a Windows program, not an error page
+            return None
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        tmp = dest.with_suffix(".part")
+        tmp.write_bytes(data)
+        tmp.replace(dest)
+        for old in dest.parent.glob("MyReadyAP-*.exe"):  # keep only the newest download
+            if old != dest:
+                try:
+                    old.unlink()
+                except OSError:
+                    pass
+    return {"tag": tag, "path": str(dest)}

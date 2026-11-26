@@ -97,6 +97,7 @@ class Handler(BaseHTTPRequestHandler):
             window.ping()
             f, relay = FEED["feed"], dlproxy.ACTIVE["proxy"]
             return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"],
+                                   "app_update": APP_UPDATE.get("tag", ""),
                                    "deaths": f.death_counts() if f else {}, "me": f.slot if f else "",
                                    "free": dlproxy.status(f.my_death_heard_at if f else 0.0) if relay else None})
         if self.path == "/icon.png":
@@ -112,6 +113,8 @@ class Handler(BaseHTTPRequestHandler):
             since = int((re.search(r"since=(\d+)", self.path) or [0, 0])[1])
             f = FEED["feed"]
             return self.send(200, f.snapshot(since) if f else {"status": "off", "events": [], "progress": {}, "deaths": {}})
+        if self.path == "/api/report":  # «وش خرب؟»: one text to paste in Discord (never passwords)
+            return self.send(200, {"text": problem_report()})
         if self.path == "/api/hint_items":  # my game's item names, for the hint box's suggestions
             f = FEED["feed"]
             return self.send(200, {"items": f.hint_items() if f else []})
@@ -177,6 +180,50 @@ class Handler(BaseHTTPRequestHandler):
                 t = runner.start(runner.run_phases, r, ["apworld", "install", "connect", "launch"], session,
                                  _options(r, b, yaml_first=True))
                 return self.send(200, {"task": self._keep(t)})
+            if p == "/api/app_update":  # start the downloaded exe: it closes this copy, installs itself, opens again
+                path = APP_UPDATE.get("path")
+                if not path or not Path(path).exists():
+                    raise ValueError("ما فيه تحديث جاهز")
+                env = {k: v for k, v in os.environ.items() if not k.startswith("_PYI") and k != "_MEIPASS2"}
+                env["PYINSTALLER_RESET_ENVIRONMENT"] = "1"
+                subprocess.Popen([path], cwd=str(Path(path).parent), env=env, close_fds=True,
+                                 creationflags=0x00000008 if os.name == "nt" else 0)
+                return self.send(200, {"ok": True})
+            if p == "/api/join":  # paste the room link, the app finds your slot and your game in it
+                room = parse_room(b["room"])
+                slots = room.get("players") or []
+                if not slots:
+                    raise ValueError("الصق رابط الروم الكامل من archipelago.gg (مو العنوان والبورت بس)، عشان البرنامج يعرف لعبتك.")
+                s = load_settings()
+                want = (b.get("slot") or s.get("player_name") or "").strip()
+                me = next((x for x in slots if x["name"].lower() == want.lower()), None) if want else None
+                if not me:  # not sure who you are in this room: let the player pick their name
+                    return self.send(200, {"choose": [x["name"] for x in slots]})
+                if b.get("slot"):
+                    s["player_name"] = rec.safe_slot(me["name"])
+                    save_settings(s)
+                r = next((x for x in RECIPES.values() if x.get("game") == me["game"]), None)
+                if not r:
+                    raise ValueError(f"لعبتك في هذا الروم ({me['game']}) ما لها وصفة في البرنامج.")
+                return self.send(200, {"game": r["id"], "slot": me["name"],
+                                       "others": [x for x in slots if x["name"] != me["name"]]})
+            if p == "/api/host/quick":  # the host picks everyone's game: no settings files to send around
+                rows = [x for x in b.get("players", []) if str(x.get("name", "")).strip() and x.get("game") in RECIPES]
+                if not rows:
+                    raise ValueError("اكتب اسم كل واحد واختار لعبته")
+                names = [rec.safe_slot(x["name"]).lower() for x in rows]
+                if len(set(names)) != len(names):
+                    raise ValueError("فيه اسمين متشابهين: كل واحد لازم يكون له اسم مختلف")
+                pdir = players_dir()
+                pdir.mkdir(parents=True, exist_ok=True)
+                if b.get("replace", True):
+                    for old in pdir.glob("*.y*ml"):
+                        old.unlink()
+                for x in rows:
+                    name = rec.safe_slot(x["name"])
+                    text = rec.build_yaml(RECIPES[x["game"]], name, {}, bool(x.get("death_link", True)))
+                    (pdir / f"{name}.yaml").write_text(text, encoding="utf-8")
+                return self.send(200, {"ok": True, "count": len(rows)})
             if p == "/api/watch":
                 s = load_settings()
                 f = watch_room(parse_room(b["room"]), rec.safe_slot(s.get("player_name") or "Player"), b.get("password", ""))
@@ -266,6 +313,30 @@ class Handler(BaseHTTPRequestHandler):
         return tid
 
 
+def problem_report() -> str:
+    import platform
+    s = load_settings()
+    lines = [f"My Ready AP {VERSION} | {platform.platform()} | name: {s.get('player_name', '')}",
+             f"installed: {', '.join(sorted(s.get('installed', {}))[-30:])}",
+             f"game folders picked: {', '.join(s.get('game_dirs', {}))}"]
+    for tid, t in list(TASKS.items())[-3:]:
+        lines.append(f"--- task {tid}: done={t.done} error={t.error} needs={(t.needs_user or {}).get('id')}")
+        lines += [str(x) for x in t.log[-25:] if "تحميل" not in str(x)]
+    f = FEED["feed"]
+    if f:
+        snap = f.snapshot(max(0, f.seq - 30))
+        lines.append(f"--- room {f.host}:{f.port} slot={f.slot} status={snap['status']} error={snap['error']} "
+                     f"game={snap['game_link']} game_name={f.my_game()} why={snap.get('progress_why')}")
+        lines += [f"{e['t']} {e['kind']}: {e['text']}" for e in snap["events"]]
+    log = data_dir() / "error.log"
+    if log.exists():
+        lines.append("--- error.log")
+        lines += log.read_text(encoding="utf-8", errors="ignore").splitlines()[-30:]
+    text = "\n".join(lines)
+    pw = f.password if f else ""
+    return text.replace(pw, "***") if pw else text
+
+
 # room commands the page can send for the player (release has its own endpoint, asked twice)
 SAFE_COMMANDS = {"!hint", "!hint_location", "!missing", "!checked", "!status", "!players", "!remaining",
                  "!collect", "!countdown", "!help"}
@@ -278,6 +349,21 @@ def reload_recipes():
     RECIPES.update(fresh)
     if changed:
         RECIPES_REV["n"] += 1
+
+
+APP_UPDATE = {}
+
+
+def update_app_in_background():
+    """A newer My Ready AP: download it quietly; the page offers «حدّث الحين» (never in the middle of a game)."""
+    def run():
+        try:
+            res = updates.check_app_update(VERSION)
+        except Exception:
+            return
+        if res:
+            APP_UPDATE.update(res)
+    threading.Thread(target=run, daemon=True).start()
 
 
 def update_recipes_in_background():
@@ -350,6 +436,8 @@ def main(open_browser=True, port=0):
             return
     reload_recipes()
     update_recipes_in_background()
+    if getattr(sys, "frozen", False):  # the exe checks for a newer exe; running from source never does
+        update_app_in_background()
     srv = SERVER["srv"] = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     url = f"http://127.0.0.1:{srv.server_address[1]}/"
     print("My Ready AP:", url)
