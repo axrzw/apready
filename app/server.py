@@ -8,10 +8,11 @@ import threading
 import time
 import uuid
 import webbrowser
+from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from ._version import VERSION
-from . import groupcheck, dlproxy, host, install, maptracker, recipes as rec, roomfeed, runner, steam, updates, window
+from . import groupcheck, stores, dlproxy, host, install, maptracker, recipes as rec, roomfeed, runner, steam, updates, window
 from .paths import base_dir, data_dir, load_settings, players_dir, save_settings
 
 TASKS = {}
@@ -52,9 +53,11 @@ def game_list():
     s = load_settings()
     out = []
     for r in sorted(RECIPES.values(), key=lambda r: r["name"].lower()):  # A to Z by the game's own name
+        loc = stores.locate(r, s)
         out.append({
             "id": r["id"], "name": r["name"], "name_ar": r.get("name_ar", r["name"]),
-            "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
+            "installed": bool(loc) or not stores.stores(r),
+            "store": loc["store"] if loc else "", "stores": stores.stores(r),
             "steam": bool(r.get("steam_appid")),  # Minecraft: not a Steam game
             # the page's art (official store images) and library filters
             "steam_appid": r.get("steam_appid"), "art_appid": r.get("art_appid"),
@@ -218,6 +221,21 @@ class Handler(BaseHTTPRequestHandler):
                     FEED["feed"].stop()
                 FEED["feed"] = None
                 return self.send(200, {"ok": True})
+            if p == "/api/game_folder":  # the game is somewhere we don't look: the player shows us the folder
+                r = RECIPES[b["game"]]
+                s = load_settings()
+                if b.get("clear"):
+                    s.setdefault("game_dirs", {}).pop(r["id"], None)
+                    save_settings(s)
+                    return self.send(200, {"ok": True})
+                path = b.get("path") or stores.pick_folder()
+                if not path:
+                    return self.send(200, {"ok": False})
+                if not stores.folder_ok(r, Path(path)):
+                    return self.send(400, {"error": f"هذا مو مجلد {r['name']}: ما فيه {r.get('exe', 'ملف اللعبة')}. اختر المجلد اللي فيه ملف تشغيل اللعبة."})
+                s.setdefault("game_dirs", {})[r["id"]] = str(path)
+                save_settings(s)
+                return self.send(200, {"ok": True, "path": str(path)})
             if p == "/api/done":
                 runner.mark_done(b["game"], b["step"])
                 return self.send(200, {"ok": True})

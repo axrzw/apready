@@ -11,7 +11,7 @@ import webbrowser
 import zipfile
 from pathlib import Path
 
-from . import recipes, steam
+from . import recipes, steam, stores
 from .paths import ap_dir, documents_dir, load_settings, save_settings, tools_dir
 
 GITHUB_API = "https://api.github.com/repos/{repo}/releases"
@@ -54,7 +54,7 @@ def start(fn, *args) -> Task:
             t.result = fn(t, *args)
         except NeedsUser as e:
             t.needs_user = {"id": e.step.get("id"), "game": e.recipe_id,
-                            "text": e.text, "url": e.step.get("url")}
+                            "text": e.text, "url": e.step.get("url"), "kind": e.step.get("kind", "")}
         except Exception as e:  # shown to the player in Arabic + raw error
             t.error = f"{type(e).__name__}: {e}"
         finally:
@@ -67,7 +67,8 @@ def start(fn, *args) -> Task:
 # ---------- helpers ----------
 
 def context(recipe: dict, settings: dict, session: dict = None) -> dict:
-    gd = steam.game_dir(recipe["steam_appid"]) if recipe.get("steam_appid") else None
+    loc = stores.locate(recipe, settings)
+    gd = loc["dir"] if loc else None
     apd = ap_dir(settings)
     session = session or {}
     host = session.get("host", "archipelago.gg")
@@ -79,6 +80,8 @@ def context(recipe: dict, settings: dict, session: dict = None) -> dict:
         "steam": str(sr) if sr else "",
         "sourcemods": str(sr / "steamapps" / "sourcemods") if sr else "",
         "game_dir": str(gd) if gd else "",
+        "store": loc["store"] if loc else "",
+        "epic_app": loc["epic_app"] if loc else "",
         "ap_dir": str(apd),
         "custom_worlds": str(apd / "custom_worlds"),
         "tools": str(tools_dir() / recipe["id"]),
@@ -425,6 +428,8 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
             task.say(f"✔ {full} جاهز ({version})")
 
     elif t == "workshop":
+        if ctx.get("store") not in ("steam", "folder", ""):
+            raise RuntimeError(f"مود {recipe['name']} من ورشة ستيم: يحتاج نسخة ستيم من اللعبة.")
         sid = step["id"]
         appid = s.get("appid", recipe["steam_appid"])
         if steam.workshop_item_dir(appid, s["workshop_id"]):
@@ -558,6 +563,20 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         webbrowser.open(s["url"])
         task.say(f"✔ فتحت {s['url']}")
 
+    elif t == "steam_launch" and ctx.get("store") == "epic" and ctx.get("epic_app"):
+        webbrowser.open(f"com.epicgames.launcher://apps/{ctx['epic_app']}?action=launch&silent=true")
+        task.say("✔ شغّلت اللعبة من Epic")
+
+    elif t == "steam_launch" and ctx.get("store") in ("gog", "folder", "epic") and recipe.get("exe"):
+        hits = sorted(Path(ctx["game_dir"]).glob(recipe["exe"]))
+        if not hits:
+            raise RuntimeError(f"ما لقيت {recipe['exe']} في مجلد اللعبة")
+        subprocess.Popen([str(hits[0])] + list(s.get("args", [])), cwd=str(hits[0].parent))
+        task.say(f"✔ شغّلت {hits[0].name}")
+
+    elif t == "steam_launch" and ctx.get("store") in ("gog", "epic"):
+        task.say("👉 شغّل اللعبة بنفسك من " + stores.STORE_AR[ctx["store"]])
+
     elif t == "steam_launch":
         args = " ".join(s.get("args", []))
         url = f"steam://run/{s.get('appid', recipe['steam_appid'])}" + (f"//{args}" if args else "")
@@ -617,9 +636,14 @@ def _start_after(name: str, cmd: list, cwd: str, timeout: float = 600, poll: flo
 def run_phases(task: Task, recipe: dict, phases: list, session: dict = None, options: dict = None):
     """options: the player's choices (effective_options); steps with "when" run only if they match."""
     settings = load_settings()
-    if recipe.get("steam_appid") and not steam.game_dir(recipe["steam_appid"]):
-        webbrowser.open(f"steam://install/{recipe['steam_appid']}")
-        raise RuntimeError(f"ما لقيت {recipe['name']} في ستيم. ثبّتها من ستيم أول (لو بالفاميلي: من مكتبة العائلة)")
+    if stores.stores(recipe) and not stores.locate(recipe, settings):
+        # not found anywhere we look: install it, or show us the folder (another drive, GOG, Epic, Xbox...)
+        where = " أو ".join(stores.STORE_AR[x] for x in stores.stores(recipe))
+        text = (f"ما لقيت {recipe['name']} في جهازك. ثبّتها من {where}، "
+                "ولو هي مثبتة في مكان ثاني (قرص ثاني، أو من متجر ثاني) اضغط «اختر مجلد اللعبة».")
+        raise NeedsUser({"id": "_game_folder", "kind": "folder",
+                         "url": f"steam://install/{recipe['steam_appid']}" if recipe.get("steam_appid") else None},
+                        text, recipe["id"])
     ensure_archipelago(task, settings)
     ctx = context(recipe, settings, session)
     if options is None:

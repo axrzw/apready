@@ -374,7 +374,8 @@
               <div>
                 <h3>جهّز اللعبة</h3>
                 <p class="sub">مرة وحدة بس: ينزّل المود والأدوات من صفحاتها الرسمية ويركّبها. ما يلمس ملفات اللعبة نفسها.</p>
-                <button class="btn" onclick="setup()"><svg class="i"><use href="#i-download"/></svg>جهّز اللعبة</button>
+                <div class="row"><button class="btn" onclick="setup()"><svg class="i"><use href="#i-download"/></svg>جهّز اللعبة</button>
+                  <span class="row" id="where"></span></div>
               </div>
             </div>
             <div class="card step" id="step2">
@@ -746,6 +747,7 @@ function drawLibrary() {
     if (g.length) meta.push(h("span", {}, lenLabel(g.length)));
     if (!g.death_link) meta.push(h("span", {}, "بدون Death Link"));
     if (g.steam && !g.installed) meta.push(h("span", {class: "no"}, "مو مثبتة"));
+    else if (g.store && g.store !== "steam") meta.push(h("span", {}, STORE_AR[g.store]));
     if (!g.steam) meta.push(h("span", {}, "مو من ستيم"));
     tile.append(h("div", {class: "name"}, g.name), meta.length ? h("div", {class: "meta"}, meta) : "");
     return tile;
@@ -754,7 +756,7 @@ function drawLibrary() {
 
 // ---------- one game ----------
 function optRow(o, val) {
-  const label = h("div", {class: "l"}, bidi(o.label_ar || o.key), o.help_ar ? h("small", {}, bidi(o.help_ar)) : "");
+  const label = h("div", {class: "l"}, bidi(clean(o.label_ar || o.key)), o.help_ar ? h("small", {}, bidi(clean(o.help_ar))) : "");
   if (o.multi) {
     const picked = new Set(Array.isArray(val) ? val : []);
     const box = h("div", {class: "multi"}, ...o.choices.map(c => {
@@ -798,7 +800,7 @@ function pick(id) {
   const tags = [];
   if (cur.length) tags.push(h("span", {class: "pill"}, svg("clock", "sm"), lenLabel(cur.length)));
   if (cur.beginner) tags.push(h("span", {class: "pill ok"}, "حلوة لأول مرة"));
-  tags.push(cur.steam ? h("span", {class: "pill" + (cur.installed ? "" : " warn")}, cur.installed ? "موجودة في ستيم" : "مو مثبتة في ستيم") : h("span", {class: "pill"}, "مو من ستيم"));
+  if (!cur.steam) tags.push(h("span", {class: "pill"}, "مو من ستيم"));
   if (!cur.verified) tags.push(h("span", {class: "pill"}, "وصفة جديدة: ما انلعبت عندنا للحين"));
   $("gTags").replaceChildren(...tags);
   $("gNotes").textContent = bidi(clean(cur.notes_ar));
@@ -835,6 +837,7 @@ function pick(id) {
   $("step1").classList.toggle("done", !!cur.ready);
   $("step2").classList.toggle("done", !!last.options);
   $("taskWrap").replaceChildren();
+  drawWhere();
   go("game");
 }
 function showDlOpts() {
@@ -951,9 +954,15 @@ async function runTask(path, body, where, onDone) {
     if (t.needs_user) {
       const nu = t.needs_user;
       const btns = h("div", {class: "row"});
-      if (nu.url) btns.append(h("button", {class: "btn", onclick: () => api("/api/link", {url: nu.url})}, svg("link", "sm"), "افتح الرابط"));
-      btns.append(h("button", {class: "btn primary", onclick: async () => {
-        await api("/api/done", {game: nu.game, step: nu.id}); runTask(path, body, where, onDone); }}, svg("check", "sm"), "سويتها"));
+      if (nu.kind === "folder") {  // the game isn't where we look: install it, or show us its folder
+        btns.append(h("button", {class: "btn primary", onclick: async () => {
+          if (await chooseFolder(nu.game)) runTask(path, body, where, onDone); }}, svg("folder", "sm"), "اختر مجلد اللعبة"));
+        if (nu.url) btns.append(h("button", {class: "btn", onclick: () => api("/api/link", {url: nu.url})}, svg("download", "sm"), "ثبّتها من ستيم"));
+      } else {
+        if (nu.url) btns.append(h("button", {class: "btn", onclick: () => api("/api/link", {url: nu.url})}, svg("link", "sm"), "افتح الرابط"));
+        btns.append(h("button", {class: "btn primary", onclick: async () => {
+          await api("/api/done", {game: nu.game, step: nu.id}); runTask(path, body, where, onDone); }}, svg("check", "sm"), "سويتها"));
+      }
       box.append(h("div", {class: "need"}, h("p", {}, bidi(clean(nu.text))), btns));
       box.scrollIntoView({behavior: "smooth", block: "nearest"});
     }
@@ -961,6 +970,27 @@ async function runTask(path, body, where, onDone) {
     else if (onDone && !t.error && !t.needs_user) onDone();
   };
   poll();
+}
+async function chooseFolder(game) {
+  toast("اختر مجلد اللعبة", "المجلد اللي فيه ملف تشغيلها. ينفتح لك شباك ويندوز", "", 4000);
+  try {
+    const j = await api("/api/game_folder", {game});
+    if (!j.ok) return false;
+    toast("حفظت مجلد اللعبة", j.path, "ok"); await refresh(); if (cur && cur.id === game && VIEW === "game") drawWhere();
+    return true;
+  } catch (e) { toast("ما ضبط المجلد", e.message, "bad"); return false; }
+}
+const STORE_AR = {steam: "ستيم", gog: "GOG", epic: "Epic", folder: "مجلد اخترته"};
+function drawWhere() {
+  const g = S.games.find(x => x.id === cur.id) || cur;
+  const box = $("where");
+  if (!g.stores || !g.stores.length) { box.replaceChildren(); return; }
+  const found = g.store ? h("span", {class: "pill ok"}, svg("check", "sm"), "لقيتها في " + STORE_AR[g.store]) : h("span", {class: "pill warn"}, "ما لقيتها في جهازك");
+  const other = g.stores.filter(x => x !== "steam").map(x => STORE_AR[x]);
+  box.replaceChildren(found,
+    h("button", {class: "btn ghost small", onclick: () => chooseFolder(g.id)}, svg("folder", "sm"), g.store ? "غيّر المجلد" : "عندي اللعبة في مكان ثاني"),
+    g.store === "folder" ? h("button", {class: "btn ghost small", onclick: async () => { await api("/api/game_folder", {game: g.id, clear: true}); await refresh(); drawWhere(); }}, "رجّعه تلقائي") : "",
+    other.length ? h("span", {class: "faint"}, "تشتغل كمان مع " + other.join(" و ")) : "");
 }
 function setup() { if (cur) runTask("/api/setup", {game: cur.id, options: collect().options}, "taskWrap", () => { $("step1").classList.add("done"); refresh(); }); }
 async function play() {

@@ -122,5 +122,10 @@
     "اكتب عنوان الروم أول ما تسوي المزرعة."
   ],
   "dl_fit": 3,
-  "dl_fit_ar": "الموت نادر جداً: Death Link هنا مفاجأة مضحكة."
+  "dl_fit_ar": "الموت نادر جداً: Death Link هنا مفاجأة مضحكة.",
+  "stores": [
+    "steam",
+    "gog"
+  ],
+  "exe": "Stardew Valley.exe"
 }
