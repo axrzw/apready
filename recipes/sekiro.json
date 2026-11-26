@@ -64,10 +64,62 @@
       ]
     },
     {
+      "key": "enemy_mode",
+      "app_only": true,
+      "label_ar": "خلط الأعداء",
+      "help_ar": "الآمن: الأعداء العاديين والميني بوسات يتخلطون، والبوسات الأساسية تبقى مكانها (هذا اللي كان يقفل الجولة). وما يطلع لك عدو ما ينذبح إلا بأغراض (Shichimen و Headless و Mist Noble والقرود والتنين).",
+      "default": "safe",
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "مطفي",
+          "yaml": {
+            "enemy_randomizer": false
+          }
+        },
+        {
+          "value": "safe",
+          "label_ar": "آمن (البوسات مكانها)",
+          "yaml": {
+            "enemy_randomizer": true,
+            "randomize_minibosses": true,
+            "randomize_headless": false,
+            "randomize_regular_enemies": true,
+            "similar_boss_phases": true,
+            "balanced_endgame_boss_phases": true,
+            "simple_early_minibosses": true,
+            "scale_enemies": true,
+            "random_enemy_preset": {
+              "RemoveSource": "Shichimen Warrior; Headless; Mist Noble; Folding Screen Monkey; Divine Dragon and Old Dragons"
+            },
+            "randomize_bosses": false
+          }
+        },
+        {
+          "value": "full",
+          "label_ar": "كل شي حتى البوسات (فيه بلاغات قفل)",
+          "yaml": {
+            "enemy_randomizer": true,
+            "randomize_minibosses": true,
+            "randomize_headless": false,
+            "randomize_regular_enemies": true,
+            "similar_boss_phases": true,
+            "balanced_endgame_boss_phases": true,
+            "simple_early_minibosses": true,
+            "scale_enemies": true,
+            "random_enemy_preset": {
+              "RemoveSource": "Shichimen Warrior; Headless; Mist Noble; Folding Screen Monkey; Divine Dragon and Old Dragons"
+            },
+            "randomize_bosses": true
+          }
+        }
+      ]
+    },
+    {
       "key": "skip_nasty_minibosses",
       "app_only": true,
       "label_ar": "تجاهل الـ Headless والـ Shichimen",
-      "help_ar": "الزعماء اللي ما ينذبحون إلا بأغراض معينة (Divine Confetti): ما يكون عندهم ولا عند اللي حولهم شي مهم، فتقدر تتجاهلهم وتكمل. ولو شغّلت خلط الأعداء ما يطلعون مكان زعيم لازم.",
+      "help_ar": "الزعماء اللي ما ينذبحون إلا بأغراض معينة (Divine Confetti): ما يكون عندهم ولا عند اللي حولهم شي مهم، فتقدر تتجاهلهم وتكمل.",
       "default": true,
       "if_on": {
         "exclude_locations": [
@@ -81,23 +133,13 @@
           "FP1: Bundled Jizo Statue - behind waterfall miniboss",
           "PP: Malcontent's Ring - Guardian Ape's Burrow, miniboss drop",
           "DT: Valley Apparitions Memo - Fujioka after boss killed in Guardian Ape's Burrow"
-        ],
-        "random_enemy_preset": {
-          "RemoveSource": "Shichimen Warrior"
-        }
+        ]
       },
       "if_off": {
         "exclude_locations": [
           "Hidden"
         ]
       }
-    },
-    {
-      "key": "enemy_randomizer",
-      "label_ar": "خلط الأعداء",
-      "help_ar": "مطفي لأن فيه بلاغات إنه يقفل الجولة (زعيم ما ينذبح أو قتال ما يخلص)",
-      "default": false,
-      "advanced": true
     },
     {
       "key": "randomize_skills_and_prosthetics",
@@ -127,7 +169,8 @@
     "إصدار 1.06 بس.",
     "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة امسحه.",
     "اختيار النهاية تسويه انت داخل اللعبة.",
-    "الزعماء الأساسيين (Genichiro و Owl و Isshin وغيرهم) ما ينشالون: لازمين عشان تكمل القصة."
+    "الزعماء الأساسيين (Genichiro و Owl و Isshin وغيرهم) ما ينشالون: لازمين عشان تكمل القصة.",
+    "خلط الأعداء «كل شي حتى البوسات»: فيه بلاغات إن بوس بمكان بوس ثاني ما يكمّل القصة. خلّه على «آمن»."
   ],
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
@@ -143,8 +186,12 @@
   "tips_ar": [
     "لازم إصدار 1.06 وأوفلاين.",
     "استخدم موتات مجانية أو طفّي Death Link.",
-    "الـ Headless والـ Shichimen تقدر تتجاهلهم: ما عندهم شي مهم (لو ما طفّيت خيارهم)."
+    "الـ Headless والـ Shichimen تقدر تتجاهلهم: ما عندهم شي مهم (لو ما طفّيت خيارهم).",
+    "خلط الأعداء على «آمن»: كل منطقة فيها أعداء جدد بس البوسات مكانها، فما تنقفل الجولة."
   ],
   "dl_fit": 1,
-  "dl_fit_ar": "أصعب لعبة في المكتبة: Death Link بدون موتات مجانية يعذّب الكل."
+  "dl_fit_ar": "أصعب لعبة في المكتبة: Death Link بدون موتات مجانية يعذّب الكل.",
+  "fixed_options": {
+    "enemy_randomizer": false
+  }
 }

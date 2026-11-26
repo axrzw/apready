@@ -64,6 +64,43 @@
       "default": false
     },
     {
+      "key": "enemy_mode",
+      "app_only": true,
+      "label_ar": "خلط الأعداء",
+      "help_ar": "الآمن: الأعداء العاديين والميني بوسات يتخلطون، والزعماء يبقون مكانهم. أغلب المشاكل اللي تقفل الجولة من خلط الزعماء. نادراً عدو يعلق أو اللعبة تطيح.",
+      "default": "safe",
+      "choices": [
+        {
+          "value": "off",
+          "label_ar": "مطفي",
+          "yaml": {
+            "randomize_enemies": false
+          }
+        },
+        {
+          "value": "safe",
+          "label_ar": "آمن (الزعماء مكانهم)",
+          "yaml": {
+            "randomize_enemies": true,
+            "simple_early_bosses": true,
+            "scale_enemies": true,
+            "random_enemy_preset": {
+              "DontRandomize": "Bosses"
+            }
+          }
+        },
+        {
+          "value": "full",
+          "label_ar": "كل شي حتى الزعماء (ممكن يقفل)",
+          "yaml": {
+            "randomize_enemies": true,
+            "simple_early_bosses": true,
+            "scale_enemies": true
+          }
+        }
+      ]
+    },
+    {
       "key": "skip_optional_bosses",
       "app_only": true,
       "label_ar": "الزعماء الاختيارية الصعبة ما يلزمونك",
@@ -87,13 +124,6 @@
           "RC: Blood of the Dark Soul - end boss drop"
         ]
       }
-    },
-    {
-      "key": "randomize_enemies",
-      "label_ar": "خلط الأعداء والزعماء",
-      "help_ar": "الدليل الرسمي ينصح تطفيه: أحياناً يطيّح اللعبة أو يحط عدو ما ينذبح ويقفل الجولة",
-      "default": false,
-      "advanced": true
     },
     {
       "key": "auto_equip",
@@ -130,7 +160,7 @@
     "لا تلعب أونلاين بالمود: ممكن تنحظر. خل اللعبة أوفلاين.",
     "لا تشغّلها من ستيم مباشرة: شغّلها من ▶ العب عشان يشتغل المود.",
     "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة، احذفه.",
-    "خلط الأعداء مطفي: الدليل الرسمي يقول ممكن يطيّح اللعبة أو يخلي الجولة مستحيلة."
+    "خلط الأعداء «كل شي حتى الزعماء»: الدليل الرسمي يقول ممكن يطيّح اللعبة أو يخلي الجولة مستحيلة. خلّه على «آمن»."
   ],
   "map_tracker": {
     "uid": "ds3_tvv1gk_2-0",
@@ -149,5 +179,8 @@
     "الزعماء الاختيارية الصعبة ما يلزمونك (الخيار شغّال من البداية): لا تضيع وقت الشباب عندهم."
   ],
   "dl_fit": 2,
-  "dl_fit_ar": "الموت في سولز طبيعي: مع موتات مجانية يصير ممتع ومتوتر."
+  "dl_fit_ar": "الموت في سولز طبيعي: مع موتات مجانية يصير ممتع ومتوتر.",
+  "fixed_options": {
+    "randomize_enemies": false
+  }
 }

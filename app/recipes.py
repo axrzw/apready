@@ -219,6 +219,10 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
         # DLC's locations; Sekiro "skip the nasty minibosses" on -> exclude their drops
         for k, x in ((o.get("if_on") if v else o.get("if_off")) or {}).items():
             added[k] = added.get(k, []) + x if isinstance(x, list) else x
+        # a picked choice can write several apworld options at once ("yaml"): Sekiro/DS3 «خلط الأعداء» safe mode
+        for c in o.get("choices") or []:
+            if isinstance(c, dict) and c.get("yaml") and c["value"] == v:
+                added.update(c["yaml"])
         if o.get("app_only"):  # a question for the player, not an apworld option
             continue
         if o.get("as_toggles"):  # one tick list in the UI, one on/off option per choice in the apworld (BO3 maps)
