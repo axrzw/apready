@@ -151,7 +151,7 @@
     "ابدأ New Game: لازم تشوف شعار Archipelago تحت يمين عليه صح."
   ],
   "checks_ar": "صناديق مخفية وأغراض على قواعد في كل منطقة، وأغراض Archipelago في المحلات (Holy Mountain)، والـ Orbs والزعماء لو شغلتها. ينرسل لحاله.",
-  "checks_count_ar": "يعتمد على الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "يعتمد على الخيارات، ويطلع العدد بالضبط في صفحة الروم بعد التوليد.",
   "avoid_ar": [
     "اسمك في الروم بحروف إنجليزية وأرقام (اللعبة ما تكتب عربي).",
     "التشيكات ما تضيع لو متّ: الدورة الجاية تكمل."
@@ -161,5 +161,16 @@
     "variant": "standard",
     "download": "https://github.com/ScipioWright/Noita-poptracker/releases/download/2.1.0/Noita-poptracker.zip"
   },
-  "death_link_key": "death_link"
+  "death_link_key": "death_link",
+  "length": "long",
+  "genres": [
+    "action"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "فعّل Unsafe mods أول مرة.",
+    "التشيكات ما تضيع لو مت، الدورة الجاية تكمل."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "تموت فجأة كثير: Death Link فوضوي، استخدم موتات مجانية."
 }

@@ -116,10 +116,22 @@
     "العبها عادي قبل الراندومايزر، مو منصوح تبدأ فيه.",
     "ابدأ New Game بعد ما تتصل."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
     "uid": "tunic_sapphiresapphic",
     "variant": "standard",
     "download": "https://github.com/SapphireSapphic/TunicTracker/releases/download/2.3.0/TunicTracker.zip"
-  }
+  },
+  "length": "medium",
+  "genres": [
+    "action",
+    "puzzle"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "العبها عادي قبل الراندو لو ما جربتها.",
+    "الخريطة تساعد كثير."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت متوسط: Death Link مقبول."
 }

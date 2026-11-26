@@ -185,6 +185,11 @@ class RoomFeed:
         self.hints = []             # raw hint dicts from the room's data storage (_read_hints_<team>_<slot>)
         self.status = "connecting"
         self.error = ""
+        # is MY GAME (not this watcher) connected to the room? From the server's Join/Part lines for my slot:
+        # "unknown" until one is seen (the game may have connected before this watcher), then "playing"/"lost"
+        self.game_clients = 0
+        self.game_state = "unknown"
+        self.game_since = 0.0
         self.my_slot = None
         self.players = {}         # slot number -> name
         self.games = {}           # slot number -> game
@@ -229,7 +234,7 @@ class RoomFeed:
         if self.status != "connected" or not self.ws:
             raise ConnectionError("مو متصل بالروم للحين")
         self._send({"cmd": "Say", "text": text})
-        self._add("system", f"› {text}")
+        self._add("sent", text)
 
     def stop(self):
         self.stop_flag.set()
@@ -458,20 +463,55 @@ class RoomFeed:
     # changes, the server's tutorial line
     NOISE = {"Join", "Part", "TagsChanged", "Tutorial"}
 
+    # clients that are not the game: this watcher (TextOnly), trackers (PopTracker), hint clients
+    NOT_GAME = {"TextOnly", "Tracker", "HintGame"}
+
+    def _game_link(self, p: dict):
+        """Join/Part for my slot: is my game connected? Part carries no tags, but its text says
+        "has left the game" for a game and "has stopped viewing/tracking/hinting" for the rest."""
+        if p.get("slot") != self.my_slot or self.my_slot is None:
+            return
+        text = "".join(str(x.get("text", "")) for x in p.get("data", []) if isinstance(x, dict))
+        if p.get("type") == "Join":
+            tags = set(p.get("tags") or [])
+            if tags & self.NOT_GAME or " playing " not in f" {text} ":
+                return
+            self.game_clients += 1
+            if self.game_state != "playing":
+                self.game_state, self.game_since = "playing", time.time()
+                self._add("conn", "لعبتك اتصلت بالروم", state="playing")
+        elif p.get("type") == "Part" and "has left the game" in text:
+            self.game_clients = max(0, self.game_clients - 1)
+            if self.game_clients == 0 and self.game_state != "lost":
+                self.game_state, self.game_since = "lost", time.time()
+                self._add("conn", "لعبتك انفصلت عن الروم", state="lost")
+
     def _print(self, p: dict):
+        if p.get("type") in ("Join", "Part"):
+            self._game_link(p)
         if p.get("type") in self.NOISE:
             return
         text = self._text(p.get("data", []))
         kind = {"ItemSend": "item", "ItemCheat": "item", "Hint": "hint", "Join": "join", "Part": "join",
                 "Chat": "chat", "ServerChat": "chat", "Goal": "goal", "Release": "goal", "Collect": "goal",
-                "Countdown": "system", "Tutorial": "system", "CommandResult": "system"}.get(p.get("type"), "system")
+                "Countdown": "system", "Tutorial": "system", "CommandResult": "cmd",
+                "AdminCommandResult": "cmd"}.get(p.get("type"), "system")
         extra = {}
+        if p.get("type") == "Hint" and isinstance(p.get("item"), dict):  # a hint that concerns me pops up in the page
+            finder, receiver = p["item"].get("player"), p.get("receiving")
+            extra = {"to_me": receiver == self.my_slot, "from_me": finder == self.my_slot and receiver != self.my_slot,
+                     "found": bool(p.get("found")), "sender": self._name(finder), "receiver": self._name(receiver),
+                     "flags": p["item"].get("flags", 0),
+                     "item": self._item_name(p["item"].get("item"), receiver),
+                     "location": self._location_name(p["item"].get("location"), finder)}
         if p.get("type") in ("ItemSend", "ItemCheat") and isinstance(p.get("item"), dict):
             it = p["item"]
             sender, receiver = it.get("player"), p.get("receiving")
             extra = {"sender": self._name(sender), "receiver": self._name(receiver),
                      "flags": it.get("flags", 0),
-                     "to_me": receiver == self.my_slot, "from_me": sender == self.my_slot}
+                     "to_me": receiver == self.my_slot, "from_me": sender == self.my_slot,
+                     # the parts on their own, so the page can say it in Arabic
+                     "item": self._item_name(it.get("item"), receiver), "location": self._location_name(it.get("location"), sender)}
         self._add(kind, text, **extra)
 
     def _add(self, kind: str, text: str, **extra):
@@ -551,5 +591,6 @@ class RoomFeed:
             if not progress and mine and self.my_slot is not None:  # not on archipelago.gg: at least my own
                 progress = {self._name(self.my_slot): dict(mine, goal=False)}
             return {"status": self.status, "error": self.error, "events": ev, "progress": progress, "me": self.slot,
+                    "game_link": {"state": self.game_state, "since": self.game_since},
                     "deaths": None,
                     "room": f"{self.host}:{self.port}", "slot": self.slot}

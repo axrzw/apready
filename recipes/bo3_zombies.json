@@ -6,7 +6,7 @@
   "steam_appid": 311210,
   "verified": false,
   "death_link_key": "deathlink_enabled",
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة (Unstable)، توقعوا مشاكل. تحتاج الزومبي من اللعبة الأساسية والخرائط اللي عندك. ننصح تثبتون t7patch (حماية لنسخة الكمبيوتر). البرنامج يكتب العنوان والاسم في المود.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة (Unstable)، توقعوا مشاكل. تحتاج الزومبي من اللعبة الأساسية والخرائط اللي عندك. ننصح تثبتون t7patch (حماية لنسخة الكمبيوتر). البرنامج يكتب العنوان والاسم في المود.",
   "sources": [
     "https://github.com/colin969/bo3_archipelago",
     "https://github.com/colin969/bo3_archipelago/releases"
@@ -220,5 +220,18 @@
     "شغّل مود bo3_archipelago قبل ما تبدأ أي خريطة.",
     "لو طلع end of file وقت التحقق، جرّب تبدأ اللعب على أي حال."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "medium",
+  "genres": [
+    "action",
+    "coop",
+    "horror"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "التشيكات على الجولات: كل ما طوّلت تجيب أكثر.",
+    "استخدم Checkpoint Token لو بتطلع وترجع."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت في الزومبي متوقع، والـ Death Link يزيد التوتر."
 }

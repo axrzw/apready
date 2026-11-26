@@ -56,6 +56,10 @@ def game_list():
             "id": r["id"], "name": r["name"], "name_ar": r.get("name_ar", r["name"]),
             "installed": bool(steam.game_dir(r["steam_appid"])) if r.get("steam_appid") else True,
             "steam": bool(r.get("steam_appid")),  # Minecraft: not a Steam game
+            # the page's art (official store images) and library filters
+            "steam_appid": r.get("steam_appid"), "art_appid": r.get("art_appid"),
+            "length": r.get("length", ""), "genres": r.get("genres", []), "beginner": bool(r.get("beginner")),
+            "tips_ar": r.get("tips_ar", []), "dl_fit": r.get("dl_fit"), "dl_fit_ar": r.get("dl_fit_ar", ""),
             "verified": r.get("verified", False), "notes_ar": r.get("notes_ar", ""),
             "guide_ar": r.get("guide_ar", []), "checks_ar": r.get("checks_ar", ""), "checks_count_ar": r.get("checks_count_ar", ""), "avoid_ar": r.get("avoid_ar", []),
             "options": r.get("options", []), "game": r.get("game", ""), "has_map": bool(r.get("map_tracker")),
@@ -192,6 +196,17 @@ class Handler(BaseHTTPRequestHandler):
                     return self.send(400, {"error": "تابع الروم أول"})
                 f.say("!hint " + item)
                 return self.send(200, {"ok": True})
+            if p == "/api/say":  # chat, or one of the room commands the page offers (never !admin and the like)
+                text = " ".join(str(b.get("text", "")).split())[:300]
+                if not text:
+                    return self.send(400, {"error": "اكتب شي"})
+                if text.startswith("!") and text.split()[0].lower() not in SAFE_COMMANDS:
+                    return self.send(400, {"error": "هذا الأمر مو متاح من هنا"})
+                f = FEED["feed"]
+                if not f:
+                    return self.send(400, {"error": "تابع الروم أول"})
+                f.say(text)
+                return self.send(200, {"ok": True})
             if p == "/api/watch/release":  # the UI asks twice before calling this
                 if not FEED["feed"]:
                     raise ValueError("تابع الروم أول (اضغط العب أو تابع الروم)")
@@ -230,6 +245,11 @@ class Handler(BaseHTTPRequestHandler):
         tid = uuid.uuid4().hex[:8]
         TASKS[tid] = t
         return tid
+
+
+# room commands the page can send for the player (release has its own endpoint, asked twice)
+SAFE_COMMANDS = {"!hint", "!hint_location", "!missing", "!checked", "!status", "!players", "!remaining",
+                 "!collect", "!countdown", "!help"}
 
 
 def reload_recipes():

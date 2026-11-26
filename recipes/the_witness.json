@@ -160,7 +160,7 @@
     "تكمل بعدين؟ حمّل نفس السيف، واضغط Restore Credentials وبعدها Connect."
   ],
   "checks_ar": "كل لوح (panel) تحله تشيك، والليزرات، وأشياء ثانية حسب الخيارات. ينرسل لحاله لما تحل اللوح.",
-  "checks_count_ar": "تقريباً 250-500 حسب الخيارات، ويطلع العدد بالضبط في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "تقريباً 250-500 حسب الخيارات، ويطلع العدد بالضبط في صفحة الروم بعد التوليد.",
   "avoid_ar": [
     "لا تسكّر نافذة الراندومايزر وأنت تلعب: هي اللي ترسل التشيكات.",
     "لكل روم سيف جديد في اللعبة."
@@ -170,5 +170,17 @@
     "variant": "standard",
     "download": "https://github.com/NewSoupVi/witness_archipelago_tracker/releases/download/v0.6.8.2/witness_archipelago_tracker.zip"
   },
-  "death_link_key": "death_link"
+  "death_link_key": "death_link",
+  "length": "long",
+  "genres": [
+    "puzzle",
+    "chill"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "لعبة ألغاز صرفة: حلوة مع ناس يحبون التفكير.",
+    "لا تسكّر نافذة الراندومايزر."
+  ],
+  "dl_fit": 1,
+  "dl_fit_ar": "الموت هنا = تغلط في لغز. ممكن يزعج الشباب، خلّ الغلطات المجانية."
 }

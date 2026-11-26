@@ -146,5 +146,16 @@
     "لا تتحرك قبل رسالة Save linked فوق يسار.",
     "القرية والقلعة والجزيرة تتقفل وراك. لو فات شي مهم: F1 > Trainer > Area Jump."
   ],
-  "checks_count_ar": "حوالي 750 check، وحوالي 250 لو طفيت الذخيرة والعلاج."
+  "checks_count_ar": "حوالي 750 check، وحوالي 250 لو طفيت الذخيرة والعلاج.",
+  "length": "long",
+  "genres": [
+    "horror",
+    "action"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "طويلة: خطط لكذا جلسة."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت متوقع بس مو كثير."
 }

@@ -5,7 +5,7 @@
   "game": "R.E.P.O",
   "steam_appid": 3241660,
   "verified": false,
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود ومكتباته من Thunderstore. لو نزل تحديث كبير للعبة ممكن المود يوقف لين يتحدث.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. البرنامج يركّب BepInEx والمود ومكتباته من Thunderstore. لو نزل تحديث كبير للعبة ممكن المود يوقف لين يتحدث.",
   "sources": [
     "https://github.com/Automagic00/R.E.P.O.-Archipelago-Client-Mod",
     "https://thunderstore.io/c/repo/p/Automagic/Archipelago_Randomizer_for_REPO/"
@@ -61,5 +61,17 @@
     "لو نزل تحديث كبير للعبة، المود ممكن يوقف لين يتحدث.",
     "ابدأ سيف جديد."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "short",
+  "genres": [
+    "horror",
+    "coop"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "تلعبونها مع بعض في نفس العالم.",
+    "اكتب عنوان الروم في اللعبة نفسها."
+  ],
+  "dl_fit": 3,
+  "dl_fit_ar": "تموتون مع بعض وتضحكون: Death Link ممتاز هنا."
 }

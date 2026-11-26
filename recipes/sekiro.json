@@ -92,10 +92,21 @@
     "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة امسحه.",
     "اختيار النهاية تسويه انت داخل اللعبة."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
     "uid": "sekiro: shadows die twice_ap",
     "variant": "Map Tracker",
     "download": "https://github.com/vonTungsten/Sekiro-Poptracker/archive/refs/tags/v0.1.0.zip"
-  }
+  },
+  "length": "long",
+  "genres": [
+    "action"
+  ],
+  "beginner": false,
+  "tips_ar": [
+    "لازم إصدار 1.06 وأوفلاين.",
+    "استخدم موتات مجانية أو طفّي Death Link."
+  ],
+  "dl_fit": 1,
+  "dl_fit_ar": "أصعب لعبة في المكتبة: Death Link بدون موتات مجانية يعذّب الكل."
 }

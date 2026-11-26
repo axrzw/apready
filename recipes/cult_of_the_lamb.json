@@ -5,7 +5,7 @@
   "game": "Cult of the Lamb",
   "steam_appid": 1313140,
   "verified": false,
-  "notes_ar": "⚠ في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. سوّ سيف خاص لـ Archipelago. البرنامج يركّب BepInEx والمود من Thunderstore.",
+  "notes_ar": "في جدول ألعاب Archipelago مكتوبة غير مستقرة، توقعوا مشاكل. سوّ سيف خاص لـ Archipelago. البرنامج يركّب BepInEx والمود من Thunderstore.",
   "sources": [
     "https://github.com/IanCichy/CultOfTheLamb_Archipelago",
     "https://thunderstore.io/c/cult-of-the-lamb/p/chichi2020/Archipelago_CultOfTheLamb/"
@@ -123,5 +123,17 @@
     "استخدم سيف خاص لـ Archipelago.",
     "مع خلط بطاقات التاروت: البطاقات تنشال من مجموعتك وترجع لما تقطع الاتصال، وبطاقة تفتحها وأنت مو متصل ما ترسل check."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد."
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
+  "length": "medium",
+  "genres": [
+    "action",
+    "chill"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "التشيكات في الحملات وفي القاعدة: نوّع بينها.",
+    "اكتب عنوان الروم في اللعبة نفسها."
+  ],
+  "dl_fit": 2,
+  "dl_fit_ar": "الموت يرجّعك للقاعدة، مو مؤلم كثير."
 }

@@ -459,7 +459,7 @@
     "لا تستخدم Peacock اللي تلعب فيه عادي، البرنامج يستخدم نسخة خاصة.",
     "هذي اللعبة ما فيها Death Link."
   ],
-  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في تبويب 📡 الروم بعد التوليد.",
+  "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "not_equal": [
     [
       "goal_level",
@@ -470,5 +470,15 @@
     "uid": "hitman_woa",
     "variant": "standard",
     "download": "https://github.com/BenDipp/HitmanPopTracker/releases/download/v0.4.0/HitmanPopTracker_0.4.0.zip"
-  }
+  },
+  "length": "medium",
+  "genres": [
+    "action",
+    "puzzle"
+  ],
+  "beginner": true,
+  "tips_ar": [
+    "كل تحدي في المهمة تشيك: العب بهدوء ودوّر.",
+    "يشتغل على سيرفر محلي (Peacock)، يعني ما تلعب أونلاين."
+  ]
 }
