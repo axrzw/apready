@@ -665,3 +665,17 @@ def test_mod_load_watch(tmp_path, monkeypatch):
     server.MOD_CHECK.clear()
     server.watch_mod_load(r, _t.time(), wait=10, poll=5, sleep=lambda s: (gd / "BepInEx" / "LogOutput.log").touch())
     assert server.MOD_CHECK["state"] == "ok"                                     # written while we waited
+
+
+def test_skip_nasty_bosses_excludes_their_drops():
+    from app import recipes as rec
+    R = rec.load_all()
+    y = rec.build_yaml(R["sekiro"], "A", {}, True)
+    assert '"Headless"' in y and "Malcontent's Ring" in y and '"Hidden"' in y
+    assert 'random_enemy_preset: {"RemoveSource": "Shichimen Warrior"}' in y
+    assert "skip_nasty_minibosses" not in y  # app-only question
+    off = rec.build_yaml(R["sekiro"], "A", {"skip_nasty_minibosses": False}, True, "exclude_locations: [Prominent]")
+    assert 'exclude_locations: ["Hidden", "Prominent"]' in off and "Headless" not in off.split("exclude_locations")[1]
+    ds = rec.build_yaml(R["dark_souls_3"], "A", {}, False)
+    assert "AP: Soul of the Nameless King" in ds and '"Small Souls"' in ds  # the apworld's own defaults kept
+    assert "exclude_locations" not in rec.build_yaml(R["dark_souls_3"], "A", {"skip_optional_bosses": False}, False)

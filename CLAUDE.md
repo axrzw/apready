@@ -156,8 +156,10 @@ death_link_in_mod  true when the apworld has no option but the mod has Death Lin
                  (TUNIC, Buckshot Roulette): the toggle stays live, connect steps use
                  {death_link} / {death_link_ar}. null key without this = toggle greyed out.
 options[]        {key, label_ar, help_ar, default, choices?|min/max, advanced?}
-                 app_only: a question for the player, never written to the YAML; if_off {key: value}:
-                 written when that option is off (lists add up, also with the advanced box). RE4R: "I own
+                 app_only: a question for the player, never written to the YAML; if_off / if_on {key: value}:
+                 written when that option is off / on (lists add up, also with the advanced box; a dict value is
+                 written as a flow mapping, e.g. random_enemy_preset). Writing exclude_locations replaces the
+                 apworld's default list, so repeat its defaults (Sekiro: Hidden, Headless; DS3: 5 groups). RE4R: "I own
                  Treasure Map: Expansion" off -> exclude_locations ["T.DLC"] (its 36 checks get filler).
                  A choice can carry `sets` {key: value}: picking it switches that option too (in the page
                  and in `effective_options`; Terraria's Calamity goals set calamity: true).
@@ -318,6 +320,12 @@ pack's uid/variant against its manifest.json. Options were checked against the c
   folder before extracting, so a pinned older version doesn't sit on top of newer files).
 - Sekiro: enemy randomizer off by default (client #1/#2: boss swaps that can't be killed / fights that never end).
 - Dark Souls III: enemy randomization off by default (official guide: crashes, impossible seeds).
+- Skipping bosses (owner, Nov 2026): a story boss can't be removed, but optional ones can be made worthless.
+  Sekiro «تجاهل الـ Headless والـ Shichimen» (app_only, on): exclude_locations Headless group + the three
+  Shichimen Warriors' drops and arena items, random_enemy_preset RemoveSource Shichimen Warrior (only matters with
+  enemy rando); off = only Hidden. DS3 «الزعماء الاختيارية الصعبة ما يلزمونك» (on): Champion Gundyr, Nameless
+  King, Friede, Demon Prince, Midir, Gael drops excluded (DLC names are fine without DLC: exclusion_rules skips
+  valid names that aren't in the world).
 - Blasphemous (#38): a room that slept comes back on a new port; the mod keeps the old one in its save.
   The app's room watcher now follows the room link to the new port after 2 failed reconnects (`room_id`,
   `_follow_room`), and moves the free-deaths relay there too.

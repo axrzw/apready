@@ -116,6 +116,8 @@ def load_all(folder: Path = None, extra: Path = None) -> dict:
 def _yaml_value(v) -> str:
     if isinstance(v, (list, tuple, set)):  # OptionSet / OptionList: a YAML flow list
         return json.dumps(sorted(v) if isinstance(v, set) else list(v), ensure_ascii=False)
+    if isinstance(v, dict):  # OptionDict (random_enemy_preset): a YAML flow mapping (JSON is valid YAML)
+        return json.dumps(v, ensure_ascii=False)
     if isinstance(v, bool):
         return "true" if v else "false"
     if isinstance(v, (int, float)):
@@ -213,9 +215,10 @@ def build_yaml(recipe: dict, player_name: str, chosen: dict, death_link: bool,
     chosen = effective_options(recipe, chosen)
     for o in recipe.get("options", []):
         v = clean_value(o, chosen[o["key"]])
-        if o.get("if_off") and not v:  # e.g. "I own this DLC" off -> exclude the DLC's locations
-            for k, x in o["if_off"].items():
-                added[k] = added.get(k, []) + x if isinstance(x, list) else x
+        # if_off / if_on: written when that option is off / on (lists add up). "I own this DLC" off -> exclude the
+        # DLC's locations; Sekiro "skip the nasty minibosses" on -> exclude their drops
+        for k, x in ((o.get("if_on") if v else o.get("if_off")) or {}).items():
+            added[k] = added.get(k, []) + x if isinstance(x, list) else x
         if o.get("app_only"):  # a question for the player, not an apworld option
             continue
         if o.get("as_toggles"):  # one tick list in the UI, one on/off option per choice in the apworld (BO3 maps)

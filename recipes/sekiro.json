@@ -64,6 +64,35 @@
       ]
     },
     {
+      "key": "skip_nasty_minibosses",
+      "app_only": true,
+      "label_ar": "تجاهل الـ Headless والـ Shichimen",
+      "help_ar": "الزعماء اللي ما ينذبحون إلا بأغراض معينة (Divine Confetti): ما يكون عندهم ولا عند اللي حولهم شي مهم، فتقدر تتجاهلهم وتكمل. ولو شغّلت خلط الأعداء ما يطلعون مكان زعيم لازم.",
+      "default": true,
+      "if_on": {
+        "exclude_locations": [
+          "Hidden",
+          "Headless",
+          "AD: Ceremonial Tanto - Bottomless Hole, miniboss drop",
+          "AD: Black Gunpowder - Bottomless Hole, alcove in miniboss arena",
+          "AD: Mibu Balloon of Soul - Bottomless Hole, stalagmite in miniboss arena",
+          "AD: Scrap Magnetite - Bottomless Hole, wall in miniboss arena",
+          "FP1: Lapis Lazuli - past bridge, at waterfall, miniboss drop",
+          "FP1: Bundled Jizo Statue - behind waterfall miniboss",
+          "PP: Malcontent's Ring - Guardian Ape's Burrow, miniboss drop",
+          "DT: Valley Apparitions Memo - Fujioka after boss killed in Guardian Ape's Burrow"
+        ],
+        "random_enemy_preset": {
+          "RemoveSource": "Shichimen Warrior"
+        }
+      },
+      "if_off": {
+        "exclude_locations": [
+          "Hidden"
+        ]
+      }
+    },
+    {
       "key": "enemy_randomizer",
       "label_ar": "خلط الأعداء",
       "help_ar": "مطفي لأن فيه بلاغات إنه يقفل الجولة (زعيم ما ينذبح أو قتال ما يخلص)",
@@ -75,6 +104,13 @@
       "label_ar": "خلط المهارات والأدوات",
       "help_ar": "",
       "default": false,
+      "advanced": true
+    },
+    {
+      "key": "remove_headless_slow_walk",
+      "label_ar": "بدون بطء الـ Headless",
+      "help_ar": "قرب الـ Headless ما يبطّئك",
+      "default": true,
       "advanced": true
     }
   ],
@@ -90,7 +126,8 @@
     "خل اللعبة أوفلاين.",
     "إصدار 1.06 بس.",
     "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة امسحه.",
-    "اختيار النهاية تسويه انت داخل اللعبة."
+    "اختيار النهاية تسويه انت داخل اللعبة.",
+    "الزعماء الأساسيين (Genichiro و Owl و Isshin وغيرهم) ما ينشالون: لازمين عشان تكمل القصة."
   ],
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
@@ -105,7 +142,8 @@
   "beginner": false,
   "tips_ar": [
     "لازم إصدار 1.06 وأوفلاين.",
-    "استخدم موتات مجانية أو طفّي Death Link."
+    "استخدم موتات مجانية أو طفّي Death Link.",
+    "الـ Headless والـ Shichimen تقدر تتجاهلهم: ما عندهم شي مهم (لو ما طفّيت خيارهم)."
   ],
   "dl_fit": 1,
   "dl_fit_ar": "أصعب لعبة في المكتبة: Death Link بدون موتات مجانية يعذّب الكل."
