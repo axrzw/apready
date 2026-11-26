@@ -1,0 +1,64 @@
+name: issues-scan
+# Known problems of every mod/tool the recipes install: open issues and issues closed in the last 6 months, with
+# the start of each body and of the last comments, so recipes can avoid what already bit other players.
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/issue-repos.txt", ".github/workflows/issues-scan.yml"]
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p out
+          since=$(date -u -d '180 days ago' +%Y-%m-%dT%H:%M:%SZ)
+          grep -v '^\s*#' .github/issue-repos.txt | sed 's/ *#.*//' | while read -r r; do
+            [ -z "$r" ] && continue
+            f="out/$(echo "$r" | tr / _).json"
+            gh api "repos/$r/issues?state=all&since=$since&per_page=60&sort=updated" > "$f" 2>/dev/null || echo "[]" > "$f"
+            python3 - "$r" "$f" <<'PY' >> out/report.md
+          import json, sys
+          repo, f = sys.argv[1], sys.argv[2]
+          try:
+              items = json.load(open(f))
+          except Exception:
+              items = []
+          items = [i for i in items if isinstance(i, dict) and "pull_request" not in i]
+          print(f"\n## {repo} ({len(items)} issues)")
+          for i in items[:40]:
+              body = " ".join((i.get("body") or "").split())[:300]
+              labels = ",".join(l["name"] for l in i.get("labels", []))
+              print(f"- [{i['state']}] #{i['number']} {i['title']} ({i['comments']} comments{', ' + labels if labels else ''}) :: {body}")
+          PY
+          done
+          wc -c out/report.md
+      - name: Comments on the issues people talk about most
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY' >> out/report.md
+          import glob, json, subprocess
+          print("\n# Comments (busiest issues)")
+          for f in sorted(glob.glob("out/*.json")):
+              try:
+                  items = [i for i in json.load(open(f)) if isinstance(i, dict) and "pull_request" not in i]
+              except Exception:
+                  continue
+              for i in sorted(items, key=lambda i: -i["comments"])[:3]:
+                  if i["comments"] < 2:
+                      continue
+                  r = subprocess.run(["gh", "api", i["comments_url"] + "?per_page=8"], capture_output=True, text=True)
+                  try:
+                      cs = json.loads(r.stdout)
+                  except Exception:
+                      continue
+                  print(f"\n### {i['html_url']} {i['title']}")
+                  for c in cs[-6:]:
+                      print("> " + " ".join((c.get("body") or "").split())[:280])
+          PY
+      - uses: actions/upload-artifact@v4
+        with: { name: issues-report, path: out/report.md }
