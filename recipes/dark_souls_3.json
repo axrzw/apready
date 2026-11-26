@@ -64,6 +64,31 @@
       "default": false
     },
     {
+      "key": "skip_optional_bosses",
+      "app_only": true,
+      "label_ar": "الزعماء الاختيارية الصعبة ما يلزمونك",
+      "help_ar": "Champion Gundyr و Nameless King وزعماء الإضافات (Friede و Demon Prince و Midir و Gael): ما يكون عندهم شي مهم، فتقدر تتجاهلهم. تقدر تقاتلهم لو تبي.",
+      "default": true,
+      "if_on": {
+        "exclude_locations": [
+          "Hidden",
+          "Small Crystal Lizards",
+          "Upgrade",
+          "Small Souls",
+          "Miscellaneous",
+          "UG: Soul of Champion Gundyr",
+          "UG: Coiled Sword Fragment - shrine, dead bonfire",
+          "AP: Soul of the Nameless King",
+          "PW2: Soul of Sister Friede",
+          "PW2: Titanite Slab - boss drop",
+          "DH: Soul of the Demon Prince",
+          "RC: Soul of Darkeater Midir",
+          "RC: Soul of Slave Knight Gael",
+          "RC: Blood of the Dark Soul - end boss drop"
+        ]
+      }
+    },
+    {
       "key": "randomize_enemies",
       "label_ar": "خلط الأعداء والزعماء",
       "help_ar": "الدليل الرسمي ينصح تطفيه: أحياناً يطيّح اللعبة أو يحط عدو ما ينذبح ويقفل الجولة",
@@ -120,7 +145,8 @@
   "beginner": false,
   "tips_ar": [
     "لازم تلعب أوفلاين داخل اللعبة.",
-    "الخريطة (TVV1GK) تساعدك تعرف وش باقي في كل منطقة."
+    "الخريطة (TVV1GK) تساعدك تعرف وش باقي في كل منطقة.",
+    "الزعماء الاختيارية الصعبة ما يلزمونك (الخيار شغّال من البداية): لا تضيع وقت الشباب عندهم."
   ],
   "dl_fit": 2,
   "dl_fit_ar": "الموت في سولز طبيعي: مع موتات مجانية يصير ممتع ومتوتر."
