@@ -168,8 +168,10 @@ class RoomFeed:
     """One watched room. Thread-safe; the UI reads snapshot(since)."""
 
     def __init__(self, host: str, port: int, slot: str, password: str = "", connect=None, tracker: str = "",
-                 get_json=_get_json, store=None):
+                 get_json=_get_json, store=None, room_id: str = "", resolve=None, on_port=None):
         self.host, self.port, self.slot, self.password = host, int(port), slot, password or ""
+        # an archipelago.gg room that slept (2 h with nobody) comes back on a NEW port: find it from the room link
+        self.room_id, self._resolve, self.on_port = room_id, resolve or resolve_room_link, on_port
         self.tracker, self._get_json = tracker, get_json
         self.id = uuid.uuid4().hex[:8]  # a new feed (new room / Play again) restarts its event numbers: the page resets on a new id
         self.progress = {}        # player name -> {"done", "total", "goal"}
@@ -261,21 +263,39 @@ class RoomFeed:
         raise ConnectionError(str(last))
 
     def _run(self):
-        delay = 2
+        delay, fails = 2, 0
         while not self.stop_flag.is_set():
             try:
                 self.status = "connecting"
                 self.ws = self._connect()
-                delay = 2
+                delay, fails = 2, 0
                 self._session()
             except Exception as e:  # network drop, room asleep, refused login...
                 self.error = str(e)
                 if self.status == "refused":
                     return
                 self.status = "reconnecting"
+                fails += 1
+                if self.room_id and fails >= 2:
+                    self._follow_room()
             if self.stop_flag.wait(delay):
                 return
             delay = min(delay * 2, 30)
+
+    def _follow_room(self):
+        """The room link wakes the room and says its current port; move there if it changed."""
+        try:
+            room = self._resolve(f"{WEBHOST}/room/{self.room_id}")
+        except Exception:
+            return
+        new = int(room.get("port") or 0)
+        if new and new != self.port:
+            old, self.port = self.port, new
+            self._add("system", f"الروم رجع على بورت جديد ({new})، البرنامج انتقل له")
+            try:
+                (self.on_port or (lambda o, n: None))(old, new)
+            except Exception:
+                pass
 
     # -- protocol --
     def _send(self, *packets):

@@ -39,7 +39,9 @@
       "extract": true,
       "strip_top_folder": true,
       "to": "{appdata}/Balatro/Mods/smods",
-      "label": "Steamodded"
+      "label": "Steamodded",
+      "tag": "1.0.0-beta-1814a",
+      "clean": true
     },
     {
       "type": "github_release",
@@ -135,7 +137,8 @@
   "checks_ar": "هزيمة الـ Boss Blind في كل Ante بكل Deck وكل Stake، وأغراض المحل. ينرسل لحاله أول ما تسويه، وتطلع لك رسالة.",
   "avoid_ar": [
     "العب من بروفايل Archipelago بس.",
-    "انسخ سيفاتك احتياط قبل أول مرة (ما المفروض تتأثر، بس احتياط)."
+    "انسخ سيفاتك احتياط قبل أول مرة (ما المفروض تتأثر، بس احتياط).",
+    "لا تحدّث Steamodded بنفسك: النسخ الجديدة (26) تخرّب مود Archipelago، والبرنامج يركّب النسخة اللي تشتغل."
   ],
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {

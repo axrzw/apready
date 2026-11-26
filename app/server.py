@@ -37,6 +37,13 @@ def parse_room(text: str, resolve=None) -> dict:
     raise ValueError("ما فهمت عنوان الروم. الصق رابط الروم من archipelago.gg، أو العنوان مثل archipelago.gg:38281")
 
 
+def _room_moved(old: int, new: int):
+    """The room came back on another port: the free-deaths relay sends the next game connection there."""
+    p = dlproxy.ACTIVE["proxy"]
+    if p and p.port == int(old):
+        p.port = int(new)
+
+
 def watch_room(room: dict, slot: str, password: str = ""):
     """Start (or restart) the read-only room watcher for the 📡 tab."""
     old = FEED["feed"]
@@ -45,7 +52,8 @@ def watch_room(room: dict, slot: str, password: str = ""):
     if old:
         old.stop()
     FEED["feed"] = roomfeed.RoomFeed(room["host"], room["port"], slot, password, tracker=room.get("tracker", ""),
-                                     store=data_dir() / "deaths.json").start()
+                                     store=data_dir() / "deaths.json", room_id=room.get("room", ""),
+                                     on_port=_room_moved).start()
     return FEED["feed"]
 
 
@@ -97,7 +105,7 @@ class Handler(BaseHTTPRequestHandler):
             window.ping()
             f, relay = FEED["feed"], dlproxy.ACTIVE["proxy"]
             return self.send(200, {"app": "MyReadyAP", "version": VERSION, "recipes": RECIPES_REV["n"],
-                                   "app_update": APP_UPDATE.get("tag", ""),
+                                   "app_update": APP_UPDATE.get("tag", ""), "mod_check": dict(MOD_CHECK),
                                    "deaths": f.death_counts() if f else {}, "me": f.slot if f else "",
                                    "free": dlproxy.status(f.my_death_heard_at if f else 0.0) if relay else None})
         if self.path == "/icon.png":
@@ -179,6 +187,7 @@ class Handler(BaseHTTPRequestHandler):
                     dlproxy.stop()
                 t = runner.start(runner.run_phases, r, ["apworld", "install", "connect", "launch"], session,
                                  _options(r, b, yaml_first=True))
+                threading.Thread(target=watch_mod_load, args=(r, time.time()), daemon=True).start()
                 return self.send(200, {"task": self._keep(t)})
             if p == "/api/app_update":  # start the downloaded exe: it closes this copy, installs itself, opens again
                 path = APP_UPDATE.get("path")
@@ -352,6 +361,34 @@ def reload_recipes():
 
 
 APP_UPDATE = {}
+MOD_CHECK = {}   # did the mod load after Play? {"game", "state": waiting|ok|missing, "log"}
+
+# where mod loaders write their log when the game starts with them
+MOD_LOGS = ("BepInEx/LogOutput.log", "BepInEx/LogOutput.txt", "MelonLoader/Latest.log", "MelonLoader/Logs/Latest.log")
+
+
+def watch_mod_load(recipe: dict, started: float, wait: float = 180, poll: float = 5, sleep=time.sleep):
+    """After Play: if the game folder has a mod loader, its log must be written within a few minutes.
+    Not written = the game started without the mod (an antivirus took winhttp.dll / the loader, or the
+    game was started some other way). Only games whose folder has a loader are watched."""
+    loc = stores.locate(recipe, load_settings())
+    if not loc:
+        return
+    gd = loc["dir"]
+    logs = [gd / x for x in MOD_LOGS if (gd / x.split("/")[0]).is_dir()]
+    if not logs:
+        return
+    MOD_CHECK.clear()
+    MOD_CHECK.update({"game": recipe["name"], "state": "waiting", "since": started})
+    waited = 0.0
+    while waited < wait:
+        if any(l.exists() and l.stat().st_mtime >= started - 2 for l in logs):
+            MOD_CHECK["state"] = "ok"
+            return
+        sleep(poll)
+        waited += poll
+    MOD_CHECK["state"] = "missing"
+    MOD_CHECK["loader"] = "BepInEx" if (gd / "BepInEx").is_dir() else "MelonLoader"
 
 
 def update_app_in_background():

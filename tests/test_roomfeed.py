@@ -354,3 +354,22 @@ def test_checks_reveal_a_game_that_connected_before_the_watcher():
     f._handle({"cmd": "RoomUpdate", "checked_locations": [69696968]})
     gl = f.snapshot()["game_link"]
     assert gl["state"] == "playing" and gl["checks"] == 1
+
+
+def test_a_room_that_slept_is_followed_to_its_new_port():
+    tried, moved = [], []
+    f = None
+
+    def connect():
+        tried.append(f.port)
+        if len(tried) >= 4:
+            f.stop_flag.set()
+        raise ConnectionError("refused")
+    f = roomfeed.RoomFeed("archipelago.gg", 40000, "Mishal", connect=connect, room_id="AbC",
+                          resolve=lambda link: {"host": "archipelago.gg", "port": "50001"},
+                          on_port=lambda old, new: moved.append((old, new)))
+    f.stop_flag.wait = lambda t: f.stop_flag.is_set()
+    f._run()
+    assert tried[:2] == [40000, 40000] and 50001 in tried[2:]   # after two misses it asks the room link
+    assert moved == [(40000, 50001)]
+    assert any("بورت جديد" in e["text"] for e in f.snapshot()["events"])
