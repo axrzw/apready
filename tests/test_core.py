@@ -646,3 +646,22 @@ def test_join_by_link_and_quick_session(tmp_path, monkeypatch):
         assert post("/api/host/quick", {"players": [{"name": "A", "game": "celeste"}, {"name": "a", "game": "doom_1993"}]})["status"] == 400
     finally:
         srv.shutdown()
+
+
+def test_mod_load_watch(tmp_path, monkeypatch):
+    """After Play: a game folder with BepInEx must get a fresh LogOutput.log, else the page warns."""
+    import time as _t
+    from app import server, stores
+    gd = tmp_path / "Game"
+    (gd / "BepInEx").mkdir(parents=True)
+    monkeypatch.setattr(server.stores, "locate", lambda r, s: {"dir": gd, "store": "steam", "epic_app": ""})
+    monkeypatch.setattr(server, "load_settings", lambda: {})
+    r = {"id": "x", "name": "Game"}
+    server.watch_mod_load(r, _t.time(), wait=10, poll=5, sleep=lambda s: None)
+    assert server.MOD_CHECK["state"] == "missing" and server.MOD_CHECK["loader"] == "BepInEx"
+    (gd / "BepInEx" / "LogOutput.log").write_text("Chainloader ready")
+    server.watch_mod_load(r, _t.time() - 1, wait=10, poll=5, sleep=lambda s: None)
+    assert server.MOD_CHECK["state"] == "ok"
+    server.MOD_CHECK.clear()
+    server.watch_mod_load(r, _t.time(), wait=10, poll=5, sleep=lambda s: (gd / "BepInEx" / "LogOutput.log").touch())
+    assert server.MOD_CHECK["state"] == "ok"                                     # written while we waited

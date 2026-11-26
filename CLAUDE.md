@@ -312,6 +312,19 @@ pack's uid/variant against its manifest.json. Options were checked against the c
   Choice, needs the per-recipe "on" value like Slay the Spire, plus an installer .bat); The Messenger (Courier
   install via the AP launcher); Raft (RML); Satisfactory (its mod manager); Factorio (separate copy + server).
 
+### Known problems found in the mods' issues (Nov 2026, CI `issues-scan.yml` -> artifact report)
+- Balatro: BalatroAP 0.1.9f breaks on Steamodded 26.x (BalatroAP #139/#144/#138: crash at deck select, stakes
+  don't unlock): smods pinned to tag 1.0.0-beta-1814a with `clean` (github_release `clean`: wipe the mod's own
+  folder before extracting, so a pinned older version doesn't sit on top of newer files).
+- Sekiro: enemy randomizer off by default (client #1/#2: boss swaps that can't be killed / fights that never end).
+- Dark Souls III: enemy randomization off by default (official guide: crashes, impossible seeds).
+- Blasphemous (#38): a room that slept comes back on a new port; the mod keeps the old one in its save.
+  The app's room watcher now follows the room link to the new port after 2 failed reconnects (`room_id`,
+  `_follow_room`), and moves the free-deaths relay there too.
+- After Play the app watches the game's BepInEx/MelonLoader log (`watch_mod_load`): not written within 3 minutes
+  = the game started without the mod (usually an antivirus) -> red banner with the fix. Room refusal codes
+  (InvalidSlot/InvalidGame/IncompatibleVersion/InvalidPassword) are explained in Arabic.
+
 ### Games from the Archipelago games sheet still to add
 Hades (Polycosmos needs ModImporter + ModUtil + StyxScribe + Python and a file picker every
 run), ULTRAKILL (Thunderstore packages exist; check them), Supermarket Simulator (BepInEx 6 bleeding-edge build is not on

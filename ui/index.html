@@ -1136,6 +1136,7 @@ function drawGroup() {
       h("div", {}, h("b", {}, bidi(a.title)), h("span", {}, bidi(a.text)))))
     : [h("div", {class: "muted"}, "حط ملفات الشباب في المجلد واضغط تحديث.")]));
 }
+let MODCHK = {}, MODWARNED = false;
 async function appUpdate() {
   if (LASTF.status === "connected" && !await confirmBox("تحدّث الحين؟", "البرنامج يقفل ثواني ويفتح بالجديد. لو لعبتك متصلة عن طريق البرنامج (الموتات المجانية) بتنفصل لحظة.", "حدّث")) return;
   try { await api("/api/app_update", {}); toast("يحدّث الحين", "البرنامج يقفل ويفتح بالنسخة الجديدة", "ok", 0); }
@@ -1145,6 +1146,9 @@ async function ping() {
   try {
     const j = await api("/api/ping");
     $("appUpd").classList.toggle("hidden", !j.app_update);
+    MODCHK = j.mod_check || {};
+    if (MODCHK.state === "missing" && !MODWARNED) { MODWARNED = true; toast("المود ما اشتغل مع " + MODCHK.game, "افتح صفحة الروم تشوف الحل", "bad", 0); beep("bad"); }
+    if (MODCHK.state !== "missing") MODWARNED = false;
     $("appUpdTag").textContent = j.app_update || "";
     drawRelay(j);
     if (recipesRev !== null && j.recipes !== recipesRev) { await refresh(); if (cur && VIEW === "game") pick(cur.id); }
@@ -1329,6 +1333,16 @@ async function askHint() {
 // status, alerts, side cards
 const WATCH = {connecting: ["يتصل", "warn"], reconnecting: ["انقطع، يرجع يتصل", "bad"], connected: ["متصل", "ok"], refused: ["الروم رفضه", "bad"], off: ["ما يتابع", ""]};
 function ago(sec) { const m = Math.max(0, Math.round((Date.now() / 1000 - sec) / 60)); return m < 1 ? "الحين" : m === 1 ? "قبل دقيقة" : `قبل ${m} دقايق`; }
+// the room's refusal codes in plain words, with what to do (Archipelago's network protocol)
+function refusedWhy(err) {
+  const e = String(err || "");
+  if (/InvalidSlot/.test(e)) return "اسمك مو موجود في هذا الروم. اكتب اسمك نفس ما هو في الروم بالضبط (الحروف الكبيرة والصغيرة مهمة)، أو الصق رابط الروم في المكتبة واختار اسمك من القائمة.";
+  if (/InvalidGame/.test(e)) return "اسمك موجود بس على لعبة ثانية. افتح لعبتك اللي في الروم، أو الصق رابط الروم في المكتبة ويلا: البرنامج يفتح اللعبة الصح.";
+  if (/IncompatibleVersion/.test(e)) return "نسخة مختلفة عن اللي سوّى الروم. حدّث البرنامج (يطلع لك «حدّث الحين») وارجع اضغط العب.";
+  if (/InvalidPassword/.test(e)) return "كلمة السر غلط أو ناقصة. خذها من المستضيف واكتبها جنب رابط الروم.";
+  if (/InvalidItemsHandling/.test(e)) return "المود ما يتوافق مع نسخة الروم. حدّث البرنامج والمود (جهّز اللعبة مرة ثانية).";
+  return "تأكد من اسمك وكلمة السر. " + clean(e);
+}
 function drawStatus(f) {
   const [wt, wk] = WATCH[f.status] || [f.status, ""];
   $("stWatch").className = "pill " + wk; $("stWatch").textContent = wt;
@@ -1345,12 +1359,14 @@ function drawStatus(f) {
   const al = [];
   if (gl.state === "lost") al.push(h("div", {class: "alert bad"}, svg("plug", "lg"), h("div", {class: "t"}, "لعبتك انفصلت عن الروم",
     h("small", {}, `من ${ago(gl.since)}. اللي تسويه الحين ما ينرسل. ارجع اتصل من داخل اللعبة (أو سكّرها واضغط العب مرة ثانية).`))));
+  if (MODCHK.state === "missing") al.push(h("div", {class: "alert bad"}, svg("alert", "lg"), h("div", {class: "t"}, bidi(`${MODCHK.game} اشتغلت بدون المود`),
+    h("small", {}, bidi(`ما شفت ${MODCHK.loader} يشتغل. غالباً الأنتي فايرس (Windows Defender) حذف ملفاته. افتح «حماية من الفيروسات» > سجل الحماية ورجّع الملفات، وضيف مجلد اللعبة للاستثناءات. بعدها سكّر اللعبة واضغط العب مرة ثانية (البرنامج يرجّع اللي انحذف). ولو شغّلت اللعبة من ستيم بنفسك: سكّرها وشغّلها من العب.`)))));
   if (quiet) al.push(h("div", {class: "alert warn"}, svg("alert", "lg"), h("div", {class: "t"}, "لعبتك متصلة بس ما أرسلت ولا تشيك",
     h("small", {}, "لو سويت شي المفروض يرسل (صندوق، غرض، مرحلة) وما طلع هنا، ممكن اللعبة شغالة بدون الراندو. شيك «كيف أشغّلها» في صفحة لعبتك (مثلاً سيف Archipelago أو وضع Archipelago)."))));
   if (f.status === "reconnecting") al.push(h("div", {class: "alert warn"}, svg("refresh", "lg"), h("div", {class: "t"}, "البرنامج انقطع عن الروم ويرجع يتصل لحاله",
     h("small", {}, bidi(f.error ? "السبب: " + clean(f.error) : "غالباً النت أو الروم نام. ما يأثر على لعبتك لو هي متصلة.")))));
   if (f.status === "refused") al.push(h("div", {class: "alert bad"}, svg("x", "lg"), h("div", {class: "t"}, "الروم رفض الاتصال",
-    h("small", {}, bidi("تأكد من اسمك وكلمة السر. " + clean(f.error || ""))))));
+    h("small", {}, bidi(refusedWhy(f.error))))));
   $("alerts").replaceChildren(...al);
   $("connectCard").classList.toggle("hidden", f.status === "connected");
   $("wstatus").textContent = f.status === "off" ? "" : bidi(wt + (f.error && f.status !== "connected" ? " · " + clean(f.error) : ""));

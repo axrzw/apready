@@ -393,6 +393,10 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         task.say(f"… {s.get('label', s['repo'])} {version}")
         cache = tools_dir() / "_downloads" / asset["name"]
         download(asset["browser_download_url"], cache, task)
+        if s.get("clean") and dest_dir.exists():  # a mod's own folder, replaced whole (an older pinned version)
+            if len(dest_dir.resolve().parts) < 4 or str(dest_dir) in (ctx.get("game_dir"), ctx.get("appdata")):
+                raise RuntimeError(f"ما أمسح {dest_dir}: مو مجلد مود")
+            shutil.rmtree(dest_dir)
         dest_dir.mkdir(parents=True, exist_ok=True)
         if s.get("extract") and cache.suffix.lower() == ".zip":
             n = extract_zip(cache, dest_dir, s.get("strip_top_folder", False), s.get("pick"))

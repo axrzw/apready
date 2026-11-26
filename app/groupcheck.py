@@ -56,6 +56,12 @@ def check(players: list, recipes: dict) -> list:
             out.append({"level": "ok", "title": f"{game} مع بعض",
                         "text": f"{who(ps)} يقدرون يلعبون في نفس العالم/اللوبي، كل واحد باسمه."})
 
+    # Terraria + Calamity: the Archipelago mod doesn't load with the current Calamity (since its late-2025 updates)
+    cal = [p for p in known if r_of(p)["id"] == "terraria" and p.get("calamity")]
+    if cal:
+        out.append({"level": "bad", "title": "Terraria مع Calamity مكسور حالياً",
+                    "text": f"{who(cal)}: مود Archipelago ما يشتغل مع آخر نسخة من Calamity. خلّوه يلعب Terraria بدون Calamity."})
+
     if len(players) > 8:
         out.append({"level": "warn", "title": "مجموعة كبيرة",
                     "text": f"{len(players)} ملف: التوليد ياخذ وقت أطول، والروم يكون مزدحم بالرسائل. صفحة الروم تفلتر لك اللي يخصك."})

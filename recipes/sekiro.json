@@ -66,8 +66,8 @@
     {
       "key": "enemy_randomizer",
       "label_ar": "خلط الأعداء",
-      "help_ar": "يغيّر الأعداء والبوسات",
-      "default": true,
+      "help_ar": "مطفي لأن فيه بلاغات إنه يقفل الجولة (زعيم ما ينذبح أو قتال ما يخلص)",
+      "default": false,
       "advanced": true
     },
     {
