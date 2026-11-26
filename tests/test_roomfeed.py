@@ -294,3 +294,41 @@ def test_hints_and_command_results_are_marked():
     h = next(e for e in ev if e["kind"] == "hint")
     assert h["to_me"] and not h["from_me"] and h["found"] is False
     assert any(e["kind"] == "cmd" and "missing" in e["text"] for e in ev)
+
+
+def test_progress_keeps_players_with_no_checks_and_my_live_numbers():
+    api = {
+        "https://archipelago.gg/api/static_tracker/TRK": {"player_locations_total": [
+            {"team": 0, "player": 1, "total_locations": 2}, {"team": 0, "player": 2, "total_locations": 10}]},
+        "https://archipelago.gg/api/tracker/TRK": {
+            "aliases": [{"team": 0, "player": 1, "alias": "Mishal"}, {"team": 0, "player": 2, "alias": None}],
+            "player_checks_done": [{"team": 0, "player": 1, "locations": []}],   # Fahad has none: not listed
+            "player_status": []},
+    }
+    f, _ = _feed(ROOM[:3] + [[{"cmd": "RoomUpdate", "checked_locations": [69696968]}]],
+                 tracker="TRK", get_json=api.__getitem__)
+    f.stop_flag.clear()                    # _feed stops the reconnect loop; the tracker loop runs one round
+    f.stop_flag.wait = lambda t: True
+    f._track()
+    snap = f.snapshot()
+    assert snap["progress"]["Fahad"] == {"done": 0, "total": 10, "goal": False}       # still shown, by slot name
+    assert snap["progress"]["Mishal"] == {"done": 1, "total": 2, "goal": False}       # live from the room, not 0
+    assert snap["progress_why"] == ""
+
+
+def test_progress_says_why_it_is_empty():
+    f, _ = _feed(ROOM[:2])
+    assert f.snapshot()["progress_why"] == "no_link"
+    def boom(url):
+        raise OSError("timed out")
+    g = roomfeed.RoomFeed("archipelago.gg", 1, "Mishal", tracker="TRK", get_json=boom)
+    g.stop_flag.wait = lambda t: True
+    g._track()
+    assert g.snapshot()["progress_why"] == "error"
+
+
+def test_each_feed_has_its_own_id():
+    """Play on another room starts a new feed whose events start at 0 again: the page must notice."""
+    a, _ = _feed(ROOM[:3])
+    b, _ = _feed(ROOM[:3])
+    assert a.snapshot()["id"] and a.snapshot()["id"] != b.snapshot()["id"]

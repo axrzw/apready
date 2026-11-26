@@ -128,7 +128,7 @@
   "dl_fit_ar": "مترويدفانيا خفيفة: الموت مو كثير.",
   "stores": [
     "steam",
-    "gog"
+    "standalone"
   ],
   "exe": "Timespinner.exe"
 }

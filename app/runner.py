@@ -567,14 +567,14 @@ def run_step(step: dict, ctx: dict, settings: dict, recipe: dict, task: Task):
         webbrowser.open(f"com.epicgames.launcher://apps/{ctx['epic_app']}?action=launch&silent=true")
         task.say("✔ شغّلت اللعبة من Epic")
 
-    elif t == "steam_launch" and ctx.get("store") in ("gog", "folder", "epic") and recipe.get("exe"):
+    elif t == "steam_launch" and ctx.get("store") in ("standalone", "folder", "epic") and recipe.get("exe"):
         hits = sorted(Path(ctx["game_dir"]).glob(recipe["exe"]))
         if not hits:
             raise RuntimeError(f"ما لقيت {recipe['exe']} في مجلد اللعبة")
         subprocess.Popen([str(hits[0])] + list(s.get("args", [])), cwd=str(hits[0].parent))
         task.say(f"✔ شغّلت {hits[0].name}")
 
-    elif t == "steam_launch" and ctx.get("store") in ("gog", "epic"):
+    elif t == "steam_launch" and ctx.get("store") in ("standalone", "epic"):
         task.say("👉 شغّل اللعبة بنفسك من " + stores.STORE_AR[ctx["store"]])
 
     elif t == "steam_launch":

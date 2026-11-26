@@ -1,4 +1,4 @@
-"""Games outside Steam: a folder the player picked, GOG (registry) and Epic (launcher manifests)."""
+"""Games outside Steam: a folder the player picked, copies with no launcher (GOG installs found in the registry) and Epic."""
 import json
 from pathlib import Path
 
@@ -44,7 +44,7 @@ def test_epic_and_gog_copies_are_found_by_name(tmp_path, monkeypatch):
     assert stores.locate(R["lethal_company"]) is None                      # a Steam-only mod never looks at Epic
     hk = _game(tmp_path, "GOG HK", "hollow_knight.exe")
     monkeypatch.setattr(stores, "gog_games", lambda: [{"name": "Hollow Knight", "dir": hk, "exe": "hollow_knight.exe"}])
-    assert stores.locate(R["hollow_knight"])["store"] == "gog"
+    assert stores.locate(R["hollow_knight"])["store"] == "standalone"
 
 
 def test_launch_from_other_stores(tmp_path, monkeypatch):
@@ -56,12 +56,12 @@ def test_launch_from_other_stores(tmp_path, monkeypatch):
     step = {"type": "steam_launch", "appid": 504230}
     runner.run_step(step, {"store": "epic", "epic_app": "Salt", "game_dir": str(gd)}, {"installed": {}, "done_steps": {}}, r, _T())
     assert opened == ["com.epicgames.launcher://apps/Salt?action=launch&silent=true"]
-    runner.run_step(step, {"store": "gog", "epic_app": "", "game_dir": str(gd)}, {"installed": {}, "done_steps": {}}, r, _T())
+    runner.run_step(step, {"store": "standalone", "epic_app": "", "game_dir": str(gd)}, {"installed": {}, "done_steps": {}}, r, _T())
     assert ran == [[str(gd / "Celeste.exe")]]
     runner.run_step(step, {"store": "steam", "epic_app": "", "game_dir": str(gd)}, {"installed": {}, "done_steps": {}}, r, _T())
     assert opened[-1] == "steam://run/504230"
     with pytest.raises(RuntimeError, match="ورشة ستيم"):
-        runner.run_step({"type": "workshop", "id": "w", "workshop_id": "1"}, {"store": "gog"},
+        runner.run_step({"type": "workshop", "id": "w", "workshop_id": "1"}, {"store": "standalone"},
                         {"installed": {}, "done_steps": {}}, rec.load_all()["a_hat_in_time"], _T())
 
 
@@ -72,4 +72,4 @@ def test_not_found_asks_for_the_folder(tmp_path, monkeypatch):
     monkeypatch.setattr(stores, "epic_manifest_dir", lambda: tmp_path / "none")
     with pytest.raises(runner.NeedsUser) as e:
         runner.run_phases(_T(), rec.load_all()["celeste"], ["install"])
-    assert e.value.step["kind"] == "folder" and "GOG" in e.value.text and "Epic" in e.value.text
+    assert e.value.step["kind"] == "folder" and "بدون لانشر" in e.value.text and "Epic" in e.value.text

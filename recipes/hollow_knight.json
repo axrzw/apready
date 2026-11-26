@@ -222,7 +222,7 @@
   "dl_fit_ar": "الموت يترك شبحك وفلوسك: Death Link يزيد التوتر، مع موتات مجانية أحسن.",
   "stores": [
     "steam",
-    "gog"
+    "standalone"
   ],
   "exe": "hollow_knight.exe"
 }
