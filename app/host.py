@@ -23,7 +23,8 @@ def scan_players(all_recipes: dict) -> list:
         out.append({"file": f.name, "game": game, "recipe": r["id"] if r else None,
                     "name": _yaml_field(text, "name"),
                     # Death Link as written for this game (our files say `true`/`false`; weights count as on if `true` is there)
-                    "death_link": _dl_on(text, (r or {}).get("death_link_key", "death_link"))})
+                    "death_link": _dl_on(text, (r or {}).get("death_link_key", "death_link")),
+                    "calamity": bool(re.search(r"^\s+calamity:\s*['\"]?(true|on)\b", text, re.M))})
     return out
 
 
