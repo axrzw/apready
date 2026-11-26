@@ -319,17 +319,19 @@ pack's uid/variant against its manifest.json. Options were checked against the c
 - Balatro: BalatroAP 0.1.9f breaks on Steamodded 26.x (BalatroAP #139/#144/#138: crash at deck select, stakes
   don't unlock): smods pinned to tag 1.0.0-beta-1814a with `clean` (github_release `clean`: wipe the mod's own
   folder before extracting, so a pinned older version doesn't sit on top of newer files).
-- Sekiro: enemy randomizer off by default (client #1/#2: boss swaps that can't be killed / fights that never end).
-- Enemy shuffle (owner: "keep it, but not impossible"): Sekiro and DS3 have an app_only choice «خلط الأعداء»
-  off / safe (default) / full, whose choices carry `yaml` {option: value} (written as they are). Safe = bosses stay
-  in place (Sekiro randomize_bosses false: the reported softlocks were boss swaps, client #1/#2; DS3
-  random_enemy_preset DontRandomize "Bosses"), Sekiro also RemoveSource Shichimen Warrior; Headless; Mist Noble;
-  Folding Screen Monkey; Divine Dragon and Old Dragons (names checked in SoulsRandomizers dists/Base/enemy.txt).
-  fixed_options writes the shuffle off, so an older app (no choice `yaml`) never gets the apworld's default (on).
+- Enemy shuffle (owner: "keep it, bosses may change, but what they give stays"): Sekiro and DS3 have an app_only
+  choice «خلط الأعداء» off / safe (bosses stay) / bosses (default), whose choices carry `yaml` {option: value}.
+  The static randomizer moves a boss's defeat flag to its replacement (EnemyRandomizer.cs DefeatFlag), so the
+  replacement gives the same reward and story progress. "bosses" protects what was reported: Sekiro DontRandomize
+  Great Shinobi Owl; Owl (Father); Sword Saint Isshin; Isshin Ashina; Genichiro Ashina (Tutorial) (client #1: Owl
+  replaced by Isshin = softlock; final bosses = goal) and RemoveSource Shichimen Warrior; Headless; Mist Noble
+  (client #2); Folding Screen Monkey; Divine Dragon and Old Dragons. DS3 DontRandomize Lords of Cinder (goal);
+  the apworld places Yhorm itself and its logic follows the Storm Ruler. Names checked in SoulsRandomizers
+  dist(s)/Base/enemy.txt. fixed_options writes the shuffle off, so an older app (no choice `yaml`) never gets
+  the apworld's default (on).
 - Skipping bosses (owner, Nov 2026): a story boss can't be removed, but optional ones can be made worthless.
   Sekiro «تجاهل الـ Headless والـ Shichimen» (app_only, on): exclude_locations Headless group + the three
-  Shichimen Warriors' drops and arena items, random_enemy_preset RemoveSource Shichimen Warrior (only matters with
-  enemy rando); off = only Hidden. DS3 «الزعماء الاختيارية الصعبة ما يلزمونك» (on): Champion Gundyr, Nameless
+  Shichimen Warriors' drops and arena items; off = only Hidden. DS3 «الزعماء الاختيارية الصعبة ما يلزمونك» (on): Champion Gundyr, Nameless
   King, Friede, Demon Prince, Midir, Gael drops excluded (DLC names are fine without DLC: exclusion_rules skips
   valid names that aren't in the world).
 - Blasphemous (#38): a room that slept comes back on a new port; the mod keeps the old one in its save.

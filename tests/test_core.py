@@ -672,7 +672,8 @@ def test_skip_nasty_bosses_excludes_their_drops():
     R = rec.load_all()
     y = rec.build_yaml(R["sekiro"], "A", {}, True)
     assert '"Headless"' in y and "Malcontent's Ring" in y and '"Hidden"' in y
-    assert "randomize_bosses: false" in y and "enemy_randomizer: true" in y  # safe mode by default
+    assert "randomize_bosses: true" in y and "enemy_randomizer: true" in y  # bosses shuffle, protected
+    assert "DontRandomize" in y and "Great Shinobi Owl" in y and "Sword Saint Isshin" in y
     assert 'random_enemy_preset: {"RemoveSource": "Shichimen Warrior; Headless; Mist Noble' in y
     assert "skip_nasty_minibosses" not in y  # app-only question
     off = rec.build_yaml(R["sekiro"], "A", {"skip_nasty_minibosses": False}, True, "exclude_locations: [Prominent]")
@@ -686,10 +687,10 @@ def test_enemy_modes_and_old_app_fallback():
     from app import recipes as rec
     R = rec.load_all()
     ds = rec.build_yaml(R["dark_souls_3"], "A", {}, False)
-    assert 'random_enemy_preset: {"DontRandomize": "Bosses"}' in ds and "randomize_enemies: true" in ds
+    assert 'random_enemy_preset: {"DontRandomize": "Lords of Cinder"}' in ds and "randomize_enemies: true" in ds
+    assert '{"DontRandomize": "Bosses"}' in rec.build_yaml(R["dark_souls_3"], "A", {"enemy_mode": "safe"}, False)
     assert "randomize_enemies: false" in rec.build_yaml(R["dark_souls_3"], "A", {"enemy_mode": "off"}, False)
-    full = rec.build_yaml(R["sekiro"], "A", {"enemy_mode": "full"}, False)
-    assert "randomize_bosses: true" in full
+    assert "randomize_bosses: false" in rec.build_yaml(R["sekiro"], "A", {"enemy_mode": "safe"}, False)
     # an app older than choice "yaml" reads only fixed_options: shuffle off, never the apworld's default (on)
     assert R["sekiro"]["fixed_options"]["enemy_randomizer"] is False
     assert R["dark_souls_3"]["fixed_options"]["randomize_enemies"] is False
