@@ -67,8 +67,8 @@
       "key": "enemy_mode",
       "app_only": true,
       "label_ar": "خلط الأعداء",
-      "help_ar": "الآمن: الأعداء العاديين والميني بوسات يتخلطون، والبوسات الأساسية تبقى مكانها (هذا اللي كان يقفل الجولة). وما يطلع لك عدو ما ينذبح إلا بأغراض (Shichimen و Headless و Mist Noble والقرود والتنين).",
-      "default": "safe",
+      "help_ar": "البوسات تتبدل، بس اللي يعطيك إياه البوس (الغرض والذاكرة وتقدم القصة) يبقى نفسه: تذبح البوس الجديد وتاخذ نفس الشي. Owl والبوسات الأخيرة يبقون مكانهم لأنهم اللي فيهم بلاغات قفل، وما يطلع لك عدو ما ينذبح إلا بأغراض (Shichimen و Headless و Mist Noble والقرود والتنين).",
+      "default": "bosses",
       "choices": [
         {
           "value": "off",
@@ -79,7 +79,7 @@
         },
         {
           "value": "safe",
-          "label_ar": "آمن (البوسات مكانها)",
+          "label_ar": "بدون البوسات (البوسات مكانها)",
           "yaml": {
             "enemy_randomizer": true,
             "randomize_minibosses": true,
@@ -96,8 +96,8 @@
           }
         },
         {
-          "value": "full",
-          "label_ar": "كل شي حتى البوسات (فيه بلاغات قفل)",
+          "value": "bosses",
+          "label_ar": "مع البوسات (المحمي)",
           "yaml": {
             "enemy_randomizer": true,
             "randomize_minibosses": true,
@@ -108,7 +108,8 @@
             "simple_early_minibosses": true,
             "scale_enemies": true,
             "random_enemy_preset": {
-              "RemoveSource": "Shichimen Warrior; Headless; Mist Noble; Folding Screen Monkey; Divine Dragon and Old Dragons"
+              "RemoveSource": "Shichimen Warrior; Headless; Mist Noble; Folding Screen Monkey; Divine Dragon and Old Dragons",
+              "DontRandomize": "Great Shinobi Owl; Owl (Father); Sword Saint Isshin; Isshin Ashina; Genichiro Ashina (Tutorial)"
             },
             "randomize_bosses": true
           }
@@ -169,8 +170,7 @@
     "إصدار 1.06 بس.",
     "لو عندك dinput8.dll من راندومايزر قديم في مجلد اللعبة امسحه.",
     "اختيار النهاية تسويه انت داخل اللعبة.",
-    "الزعماء الأساسيين (Genichiro و Owl و Isshin وغيرهم) ما ينشالون: لازمين عشان تكمل القصة.",
-    "خلط الأعداء «كل شي حتى البوسات»: فيه بلاغات إن بوس بمكان بوس ثاني ما يكمّل القصة. خلّه على «آمن»."
+    "الزعماء الأساسيين (Genichiro و Owl و Isshin وغيرهم) ما ينشالون: لازمين عشان تكمل القصة."
   ],
   "checks_count_ar": "العدد بالضبط يعتمد على خياراتك، ويطلع لكل لاعب في صفحة الروم بعد التوليد.",
   "map_tracker": {
@@ -187,7 +187,7 @@
     "لازم إصدار 1.06 وأوفلاين.",
     "استخدم موتات مجانية أو طفّي Death Link.",
     "الـ Headless والـ Shichimen تقدر تتجاهلهم: ما عندهم شي مهم (لو ما طفّيت خيارهم).",
-    "خلط الأعداء على «آمن»: كل منطقة فيها أعداء جدد بس البوسات مكانها، فما تنقفل الجولة."
+    "خلط الأعداء «مع البوسات»: البوس يتغير بس الغرض اللي معه نفسه. لو بوس علّق ولا انذبح، قولوا لي ونحطه مكانه."
   ],
   "dl_fit": 1,
   "dl_fit_ar": "أصعب لعبة في المكتبة: Death Link بدون موتات مجانية يعذّب الكل.",
